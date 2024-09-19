@@ -4,7 +4,7 @@ import lombok.*;
 import net.focik.homeoffice.finance.domain.fee.FeeFrequencyEnum;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 

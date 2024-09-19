@@ -2,6 +2,7 @@ package net.focik.homeoffice.userservice.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.userservice.api.dto.PrivilegeDto;
 import net.focik.homeoffice.userservice.api.dto.RoleDto;
 import net.focik.homeoffice.userservice.domain.Privilege;
@@ -25,11 +26,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 //@CrossOrigin(exposedHeaders = "Jwt-Token")
-@Log4j2
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(path = {"/api/v1/user/role"})
-//najpierw sprawdza czy jest jakiś exception handler w exceptionHandling
 public class RoleController extends ExceptionHandling {
 
     private final ModelMapper mapper;
@@ -42,22 +42,22 @@ public class RoleController extends ExceptionHandling {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     ResponseEntity<List<RoleDto>> getUserRoles(@PathVariable Long id) {
-        int i = 0;
-//        log.info("USER-SERVICE: Try find user by id: = " + id);
+        log.debug("Try find roles by idUser: = {}", id);
         List<Role> allRoles = getUserRolesUseCase.getUserRoles(id);
-//        log.info(user != null ? "USER-SERVICE: Found user by ID = " + id : "USER-SERVICE: Not found user by ID = " + id);
-        List<RoleDto> roleDtos = allRoles.stream().map(role -> mapper.map(role, RoleDto.class)).collect(Collectors.toList());
+        log.debug("Found {} roles for user with ID: {}",allRoles.size(), id);
+        List<RoleDto> roleDtos = allRoles.stream()
+                .map(role -> mapper.map(role, RoleDto.class))
+                .toList();
         return new ResponseEntity<>(roleDtos, HttpStatus.OK);
     }
 
     @GetMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     ResponseEntity<List<RoleDto>> getRoles() {
-        int i = 0;
-//        log.info("USER-SERVICE: Try find user by id: = " + id);
         List<Role> allRoles = getUserRolesUseCase.getRoles();
-//        log.info(user != null ? "USER-SERVICE: Found user by ID = " + id : "USER-SERVICE: Not found user by ID = " + id);
-        List<RoleDto> roleDtos = allRoles.stream().map(role -> mapper.map(role, RoleDto.class)).collect(Collectors.toList());
+        List<RoleDto> roleDtos = allRoles.stream()
+                .map(role -> mapper.map(role, RoleDto.class))
+                .toList();
         return new ResponseEntity<>(roleDtos, HttpStatus.OK);
     }
 
@@ -80,13 +80,11 @@ public class RoleController extends ExceptionHandling {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     ResponseEntity<List<PrivilegeDto>> getRolesDetails(@RequestParam("userID") Long idUser,
                                                        @RequestParam("roleID") Long idRole) {
-//        log.info("USER-SERVICE: Try find user by id: = " + id);
         List<PrivilegeDto> roleDetails = new ArrayList<>();
         Privilege details = getUserRolesUseCase.getRoleDetails(idUser, idRole);
         roleDetails.add(new PrivilegeDto("read", details.getRead().toString()));
         roleDetails.add(new PrivilegeDto("write", details.getWrite().toString()));
         roleDetails.add(new PrivilegeDto("delete", details.getDelete().toString()));
-//        log.info(user != null ? "USER-SERVICE: Found user by ID = " + id : "USER-SERVICE: Not found user by ID = " + id);
         return new ResponseEntity<>(roleDetails, HttpStatus.OK);
     }
 

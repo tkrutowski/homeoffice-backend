@@ -10,7 +10,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Service
-public class UserAppService implements IGetUserUseCase, IAddNewUserUseCase, IUpdateUserUseCase,
+public class UserAppService implements GetUserUseCase, IAddNewUserUseCase, IUpdateUserUseCase,
         IDeleteUserUseCase, IChangePasswordUseCase {
 
     private final UserFacade userFacade;

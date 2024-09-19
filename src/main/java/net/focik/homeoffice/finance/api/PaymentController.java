@@ -30,7 +30,7 @@ class PaymentController {
     ApiPaymentMapper mapper;
 
     @GetMapping()
-    @PreAuthorize("hasAnyAuthority('FINANCE_PAYMENT_READ', 'FINANCE_PAYMENT_READ_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<Map<Integer, List<PaymentDto>>> getPaymentsByYear(@RequestParam(value = "date", required = false) String date,
                                                                      @RequestParam(value = "status", defaultValue = "TO_PAY") PaymentStatus status) {
         int year = date == null ? LocalDate.now().getYear() : Integer.parseInt(date);

@@ -1,6 +1,6 @@
 package net.focik.homeoffice.userservice.infrastructure.dto;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "roles")

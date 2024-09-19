@@ -1,8 +1,8 @@
 package net.focik.homeoffice.library.domain.port.primary;
 
 import net.focik.homeoffice.library.domain.model.Book;
-import net.focik.homeoffice.library.domain.model.WebSite;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface FindBookUseCase {
@@ -12,8 +12,8 @@ public interface FindBookUseCase {
 
     List<Book> findAllBooksInSeries(Integer idSeries);
 
-    List<Book> findNewBooksInSeries(Integer idSeries);
+    Book findBookByUrl(String url);
 
-    Book findBookByUrl(WebSite webSite, String url);
+    List<Book> findNewBooksInSeriesByUrl(Integer idSeries, String urlSeries);
 
 }

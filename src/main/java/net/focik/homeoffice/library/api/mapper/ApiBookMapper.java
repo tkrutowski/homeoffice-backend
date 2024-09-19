@@ -27,7 +27,7 @@ public class ApiBookMapper {
 
         return BookApiDto.builder()
                 .id(book.getId() != null ? book.getId() : 0)
-                .series(book.getSeries() == null ? null : new SeriesDto(book.getSeries().getId(), book.getSeries().getTitle(), book.getSeries().getDescription(), book.getSeries().getUrl()))
+                .series(book.getSeries() == null ? null :  mapper.map(book.getSeries(), SeriesDto.class))
                 .authors(getAuthorsDto(book.getAuthors()))
                 .categories(getCategoriesDto(book.getCategories()))
                 .title(book.getTitle())

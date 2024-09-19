@@ -40,7 +40,7 @@ public class PurchaseController extends ExceptionHandling {
 
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('FINANSE_PURCHASE_ALL', 'FINANSE_PURCHASE_WRITE', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<PurchaseDto> getById(@PathVariable int id) {
 
         log.info("Try find purchase by id: " + id);
@@ -56,7 +56,7 @@ public class PurchaseController extends ExceptionHandling {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('FINANCE_PURCHASE_READ', 'FINANCE_PURCHASE_READ_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<Map<String, List<PurchaseDto>>> getAll(@RequestParam PaymentStatus status,
                                                           @RequestParam(required = false) LocalDate date) {
 
@@ -70,7 +70,7 @@ public class PurchaseController extends ExceptionHandling {
     }
 
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasAnyAuthority('FINANCE_PURCHASE_READ', 'FINANCE_PURCHASE_READ_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<Map<String, List<PurchaseDto>>> getByUser(@PathVariable int userId, @RequestParam(required = false) PaymentStatus status,
                                                              @RequestParam(required = false) LocalDate date) {
         log.info(String.format("Try get all purchase for userID: '%s', status = '%s' and date = '%s", userId, status, date));
@@ -83,7 +83,7 @@ public class PurchaseController extends ExceptionHandling {
     }
 
     @GetMapping("/current")
-    @PreAuthorize("hasAnyAuthority('FINANCE_PURCHASE_READ', 'FINANCE_PURCHASE_READ_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<Map<String, List<PurchaseDto>>> getCurrent() {
         log.info(String.format("Try get current purchases"));
 
@@ -95,7 +95,7 @@ public class PurchaseController extends ExceptionHandling {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('FINANCE_PURCHASE_WRITE', 'FINANCE_PURCHASE_WRITE_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<PurchaseDto> addPurchase(@RequestBody PurchaseDto purchaseDto) {
         log.info("Try add new purchase.");
 
@@ -111,7 +111,7 @@ public class PurchaseController extends ExceptionHandling {
     }
 
     @PutMapping
-    @PreAuthorize("hasAnyAuthority('FINANCE_PURCHASE_WRITE', 'FINANCE_PURCHASE_WRITE_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<PurchaseDto> updatePurchase(@RequestBody PurchaseDto purchaseDto) {
         log.info("Try update purchase with id: {}", purchaseDto.getId());
 
@@ -120,7 +120,7 @@ public class PurchaseController extends ExceptionHandling {
     }
 
     @PutMapping("/status/{id}")
-    @PreAuthorize("hasAnyAuthority('FINANCE_PURCHASE_WRITE', 'FINANCE_PURCHASE_WRITE_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<PurchaseDto> updatePurchaseStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
         log.info("Try update perchase status.");
 
@@ -129,7 +129,7 @@ public class PurchaseController extends ExceptionHandling {
     }
 
     @DeleteMapping("/{idPurchase}")
-    @PreAuthorize("hasAnyAuthority('FINANCE_PURCHASE_DELETE', 'FINANCE_PURCHASE_DELETE_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<HttpResponse> deletePurchase(@PathVariable int idPurchase) {
         log.info("Try purchase card with id: " + idPurchase);
 

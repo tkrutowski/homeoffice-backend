@@ -1,12 +1,13 @@
 package net.focik.homeoffice.finance.api.dto;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Getter
 @ToString
@@ -16,9 +17,11 @@ public class LoanDto {
     private int idUser;
     private String name;
     private Number amount;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Europe/Warsaw")
     private LocalDate date;
     private String loanNumber;
     private String accountNumber;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Europe/Warsaw")
     private LocalDate firstPaymentDate;
     private int numberOfInstallments;
     private Number installmentAmount;

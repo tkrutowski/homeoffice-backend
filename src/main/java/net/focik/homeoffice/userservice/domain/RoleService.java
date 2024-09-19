@@ -53,30 +53,15 @@ public class RoleService {
         return user;
     }
 
-//    public Privilege findPrivilegeByName(String name) {
-//        Privilege privilegeByName = privilegeRepository.getPrivilegeByName(name);
-//        if(privilegeByName == null)
-//            throw new PrivilegeNotFoundException("Privilege not found by name: "+ name);
-//        return privilegeByName;
-//    }
-
     public boolean changePrivilegesInUserRole(AppUser user, Long idRole, Map<String, String> privilegeList) {
-//        int index = findIndex(idRole, (List<Role>) user.getRoles());
-//        if (index >= 0) {
-//            ((List<Role>) user.getRoles()).get(index).setPrivileges(privilegeList);
-//            return true;
-//        }
         Privilege privilegeByRoleID = getPrivilegeByRoleID(user.getPrivileges(), idRole);
-        Iterator<Map.Entry<String, String>> iterator = privilegeList.entrySet().iterator();
 
-        while (iterator.hasNext()) {
-            Map.Entry<String, String> next = iterator.next();
-            if (next.getKey().equals("read"))
-                privilegeByRoleID.setRead(PrivilegeType.valueOf(next.getValue()));
-            else if (next.getKey().equals("write"))
-                privilegeByRoleID.setWrite(PrivilegeType.valueOf(next.getValue()));
-            else if (next.getKey().equals("delete"))
-                privilegeByRoleID.setDelete(PrivilegeType.valueOf(next.getValue()));
+        for (Map.Entry<String, String> next : privilegeList.entrySet()) {
+            switch (next.getKey()) {
+                case "read" -> privilegeByRoleID.setRead(PrivilegeType.valueOf(next.getValue()));
+                case "write" -> privilegeByRoleID.setWrite(PrivilegeType.valueOf(next.getValue()));
+                case "delete" -> privilegeByRoleID.setDelete(PrivilegeType.valueOf(next.getValue()));
+            }
         }
 
         int index = findIndex(privilegeByRoleID.getId(), user.getPrivileges());
@@ -89,24 +74,9 @@ public class RoleService {
     }
 
     public void deleteRoleFromUser(AppUser user, Long idRole) {
-//        List<Privilege> privilegesOld = user.getPrivileges();
-//        List<Privilege> privilegesNew = new ArrayList<>();
-
         Privilege privilege = getPrivilegeByRoleID(user.getPrivileges(), idRole);
 
         user.deletePrivilege(privilege);
-
-//        for (Privilege p:privilegesOld) {
-//            if(!p.getRole().getId().equals(idRole))
-//                privilegesNew.add(p);
-//        }
-//        int index = findIndex(idRole, (List<Role>) user.getRoles());
-//        if (index >= 0) {
-//            ((List<Role>) user.getRoles()).remove(index);
-//            return true;
-//        }
-        //user.setPrivileges(privilegesNew);
-//        return false;
     }
 
     private int findIndex(Long id, List<Privilege> privileges) {

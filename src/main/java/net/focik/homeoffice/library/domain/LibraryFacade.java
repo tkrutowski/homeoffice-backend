@@ -1,19 +1,31 @@
 package net.focik.homeoffice.library.domain;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.model.*;
 import net.focik.homeoffice.library.domain.port.primary.*;
 import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.UserFacade;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBookUseCase, SaveUserBookUseCase,
-        FindSeriesUseCase, FindUserBookUseCase,FindBookstoreUseCase, SaveBookstoreUseCase, DeleteBookstoreUseCase,
-DeleteUserBookUseCase, FindAuthorUseCase, FindCategoryUseCase, SaveAuthorUseCase, SaveCategoryUseCase{
+        FindSeriesUseCase, FindUserBookUseCase, FindBookstoreUseCase, SaveBookstoreUseCase, DeleteBookstoreUseCase,
+        DeleteUserBookUseCase, FindAuthorUseCase, FindCategoryUseCase, SaveAuthorUseCase, SaveCategoryUseCase {
 
     private final UserFacade userFacade;
     private final BookService bookService;
@@ -41,14 +53,25 @@ DeleteUserBookUseCase, FindAuthorUseCase, FindCategoryUseCase, SaveAuthorUseCase
     }
 
     @Override
-    public List<Book> findNewBooksInSeries(Integer idSeries) {
-        Series series = seriesService.findSeries(idSeries);
-        return scraperService.findBooksInSeries(series.getUrl());
+    public Book findBookByUrl(String url) {
+        return scraperService.findBookByUrl(url);
     }
 
     @Override
-    public Book findBookByUrl(WebSite webSite, String url) {
-        return scraperService.findBookByUrl(webSite, url);
+    public List<Book> findNewBooksInSeriesByUrl(Integer idSeries, String urlSeries) {
+        Series series = seriesService.findSeries(idSeries);
+        log.debug("Trying to find new books in series {} with URL: {}", series.getTitle(), urlSeries);
+        String existingTitles = bookService.findAllBooksInSeries(series).stream()
+                .map(Book::getTitle)
+                .collect(Collectors.joining(";"));
+        log.debug("Found new books in series with titles {}", existingTitles);
+        List<Book> booksInSeries = scraperService.findBooksInSeries(urlSeries, existingTitles);
+        log.debug("Found new books in series with titles {}", booksInSeries.stream().map(Book::getTitle).collect(Collectors.joining(";")));
+
+        series.setCheckDate(LocalDateTime.now());
+        series.setHasNewBooks(!booksInSeries.isEmpty());
+        seriesService.saveSeries(series);
+        return booksInSeries;
     }
 
     @Override
@@ -70,7 +93,7 @@ DeleteUserBookUseCase, FindAuthorUseCase, FindCategoryUseCase, SaveAuthorUseCase
 
     @Override
     public Series findSeries(Integer idSeries) {
-        return null;
+        return seriesService.findSeries(idSeries);
     }
 
     @Override
@@ -179,4 +202,38 @@ DeleteUserBookUseCase, FindAuthorUseCase, FindCategoryUseCase, SaveAuthorUseCase
     public Category add(Category category) {
         return categoryService.addCategory(category);
     }
+
+    @Scheduled(cron = "0 0 8 * * FRI") // Uruchamia metodę co piątek o 8 rano
+    public void findNewBooksInSeriesScheduler(){
+        log.info("Scheduled book finder started on {}",LocalDateTime.now());
+        List<Series> seriesToProcess = seriesService.getAllSeries().stream()
+                .filter(series -> !series.getHasNewBooks())
+                .toList();
+
+        log.debug("Series to process: {}", seriesToProcess.size());
+        try (ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor()) {
+            for (int i = 0; i < seriesToProcess.size(); i++){
+                Optional<String[]> urlsOptional = Optional.ofNullable( seriesToProcess.get(i).getUrl())
+                        .map(s -> s.split(";;"));
+                if (urlsOptional.isPresent()){
+                    int finalI = i;
+                    scheduler.schedule(() -> scheduleUrlsProcessing(seriesToProcess.get(finalI).getId(), List.of(urlsOptional.get())), finalI * 2L, TimeUnit.MINUTES);
+                }
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void scheduleUrlsProcessing(Integer seriesId, List<String> urls) {
+        try {
+            for (final String url : urls) {
+                log.info("SCHEDULE Processing url: {}", url);
+                findNewBooksInSeriesByUrl(seriesId, url);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+    }
+
 }

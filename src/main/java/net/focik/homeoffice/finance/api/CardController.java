@@ -38,7 +38,7 @@ public class CardController extends ExceptionHandling {
 
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('FINANSE_READ_ALL', 'FINANSE_READ') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('FINANCE_READ_ALL', 'FINANCE_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<CardDto> getById(@PathVariable int id) {
 
         log.info("Try find card by id: " + id);
@@ -54,7 +54,7 @@ public class CardController extends ExceptionHandling {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('FINANSE_READ_ALL') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('FINANCE_READ_ALL') or hasAnyRole('ROLE_ADMIN', 'ROLE_FINANCE')")
     ResponseEntity<List<CardDto>> getAll(@RequestParam(required = false) ActiveStatus status) {
         log.info("Try get all card for status " + status);
 
@@ -68,7 +68,7 @@ public class CardController extends ExceptionHandling {
     }
 
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasAnyAuthority('FINANSE_READ_ALL', 'FINANSE_READ') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('FINANCE_READ_ALL', 'FINANCE_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<List<CardDto>> getByUser(@PathVariable int userId, @RequestParam(required = false) ActiveStatus status) {
         log.info("Try get all card for status " + status);
 
@@ -82,7 +82,7 @@ public class CardController extends ExceptionHandling {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('FINANSE_WRITE_ALL', 'FINANSE_WRITE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('FINANCE_WRITE_ALL', 'FINANCE_WRITE') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<CardDto> addCard(@RequestBody CardDto cardDto) {
         log.info("Try add new card.");
 
@@ -98,7 +98,7 @@ public class CardController extends ExceptionHandling {
     }
 
     @PutMapping
-    @PreAuthorize("hasAnyAuthority('FINANSE_WRITE_ALL', 'FINANSE_WRITE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('FINANCE_WRITE_ALL', 'FINANCE_WRITE') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<CardDto> updateCard(@RequestBody CardDto cardDto) {
         log.info("Try update card with id: {}", cardDto.getId());
 
@@ -107,7 +107,7 @@ public class CardController extends ExceptionHandling {
     }
 
     @PutMapping("/status/{id}")
-    @PreAuthorize("hasAnyAuthority('FINANSE_WRITE_ALL', 'FINANSE_WRITE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('FINANCE_WRITE_ALL', 'FINANCE_WRITE') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<HttpResponse> updateCardStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
         log.info("Try update perchase status.");
 
@@ -116,7 +116,7 @@ public class CardController extends ExceptionHandling {
     }
 
     @DeleteMapping("/{idCard}")
-    @PreAuthorize("hasAnyAuthority('FINANSE_DELETE_ALL', 'FINANSE_DELETE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('FINANCE_DELETE_ALL', 'FINANCE_DELETE') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<HttpResponse> deleteCard(@PathVariable int idCard) {
         log.info("Try delete card with id: " + idCard);
 

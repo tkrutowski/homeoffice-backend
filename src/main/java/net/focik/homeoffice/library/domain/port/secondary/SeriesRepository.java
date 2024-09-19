@@ -11,7 +11,7 @@ public interface SeriesRepository {
 
     Integer add(Series series);
 
-    Optional<Series> edit(Series series);
+    Optional<Series> save(Series series);
 
     void delete(Integer id);
 

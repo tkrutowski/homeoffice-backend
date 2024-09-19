@@ -2,7 +2,7 @@ package net.focik.homeoffice.finance.infrastructure.dto;
 
 import lombok.*;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Builder
 @NoArgsConstructor

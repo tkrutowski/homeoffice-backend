@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.userservice.domain.port.primary.IUserService;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Map;
 

@@ -1,6 +1,7 @@
 package net.focik.homeoffice.utils.exceptions;
 
-import com.auth0.jwt.exceptions.TokenExpiredException;
+import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.persistence.NoResultException;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.userservice.domain.exceptions.*;
 import org.springframework.boot.web.servlet.error.ErrorController;
@@ -18,7 +19,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import javax.persistence.NoResultException;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -98,7 +98,8 @@ public class ExceptionHandling implements ErrorController {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<HttpResponse> runtimeException(RuntimeException exception) {
-        return createHttpResponse(INTERNAL_SERVER_ERROR, ERROR_PROCESSING_FILE);
+//        return createHttpResponse(INTERNAL_SERVER_ERROR, ERROR_PROCESSING_FILE);
+        return createHttpResponse(INTERNAL_SERVER_ERROR, exception.getMessage());
     }
 
 
@@ -127,9 +128,10 @@ public class ExceptionHandling implements ErrorController {
 //        return createHttpResponse(UNAUTHORIZED, ACCOUNT_LOCKED);
 //    }
 
-    @ExceptionHandler(TokenExpiredException.class)
-    public ResponseEntity<HttpResponse> tokenExpiredException(TokenExpiredException exception) {
-        return createHttpResponse(UNAUTHORIZED, exception.getMessage());
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<HttpResponse> tokenExpired(ExpiredJwtException exception) {
+        log.error(exception.getMessage());
+        return createHttpResponse(UNAUTHORIZED, "Token expired");
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)

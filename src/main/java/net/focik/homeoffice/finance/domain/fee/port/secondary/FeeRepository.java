@@ -23,7 +23,7 @@ public interface FeeRepository {
 
     List<Fee> findAll();
 
-    List<FeeInstallment> findFeeInstallmentByDate(LocalDate date);
+//    List<FeeInstallment> findFeeInstallmentByDate(LocalDate date);
 
     List<FeeInstallment> findFeeInstallmentByFeeId(Integer feeId);
 

@@ -19,5 +19,5 @@ public class BookApiDto implements BookDto {
     private String title;
     private String description;
     private String cover;
-    private int bookInSeriesNo;
+    private String bookInSeriesNo;
 }

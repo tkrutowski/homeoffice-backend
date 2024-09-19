@@ -23,10 +23,7 @@ public class AppUserRepositoryAdapter implements IAppUserRepository {
     public AppUser findUserByUsername(String username) {
         Optional<AppUser> byUserName = userDtoRepository.findByUsername(username);
 
-        if (byUserName.isEmpty())
-            return null;
-
-        return byUserName.get();
+        return byUserName.orElse(null);
     }
 
     @Override

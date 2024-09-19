@@ -1,5 +1,6 @@
 package net.focik.homeoffice.finance.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -16,10 +17,12 @@ public class FeeDto {
     private int idUser;
     private String name;
     private String feeNumber;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Europe/Warsaw")
     private LocalDate date;
     private FeeFrequencyDto feeFrequency;
     private Integer numberOfPayments;//ile razy pobrać
     private Number amount;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Europe/Warsaw")
     private LocalDate firstPaymentDate;
     private String accountNumber;
     private PaymentStatusDto feeStatus;

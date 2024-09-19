@@ -2,6 +2,7 @@ package net.focik.homeoffice.userservice.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.userservice.api.dto.UserDto;
 import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.exceptions.EmailAlreadyExistsException;
@@ -25,17 +26,15 @@ import static net.focik.homeoffice.utils.PrivilegeHelper.*;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
-//@CrossOrigin(exposedHeaders = "Jwt-Token")
-@Log4j2
+@Slf4j
 @RequiredArgsConstructor
 @RestController
-//@RequestMapping(path = {"/", "/api/user"})
 @RequestMapping(path = {"/api/v1/user"})
 
 public class UserController extends ExceptionHandling {
 
     private final ModelMapper mapper;
-    private final IGetUserUseCase getUserUseCase;
+    private final GetUserUseCase getUserUseCase;
     private final IAddNewUserUseCase addNewUserUseCase;
     private final IUpdateUserUseCase updateUserUseCase;
     private final IDeleteUserUseCase deleteUserUseCase;
@@ -44,37 +43,35 @@ public class UserController extends ExceptionHandling {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     ResponseEntity<AppUser> getUser(@PathVariable Long id) {
-        int i = 0;
-        log.info("USER-SERVICE: Try find user by id: = " + id);
+        log.info("Try find user by ID: {}",id);
         AppUser user = getUserUseCase.findUserById(id);
-        log.info(user != null ? "USER-SERVICE: Found user by ID = " + id : "USER-SERVICE: Not found user by ID = " + id);
-
-//        return new ResponseEntity<>(mapper.map(user, UserDto.class), HttpStatus.OK);
+        if (user == null) {
+            log.warn("User not found with ID: {}",id);
+        }else {
+            log.info("Found user with ID: {}", id);
+        }
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @GetMapping
     @Secured("ROLE_ADMIN")
     ResponseEntity<List<UserDto>> getUsers( @RequestHeader(name = AUTHORITIES, required = false) String[] roles) {
-
         log.info("Try find all users");
-            final List<String> accessRole = List.of(ROLE_ADMIN);
-
-//        if (PrivilegeHelper.dontHaveAccess(List.of(roles), accessRole)) {
-//            throw new AccessDeniedException();
-//        }
-        int i = 0;
-//        log.info("USER-SERVICE: Try find user by id: = " + id);
         List<AppUser> allUsers = getUserUseCase.getAllUsers();
-//        log.info(user != null ? "USER-SERVICE: Found user by ID = " + id : "USER-SERVICE: Not found user by ID = " + id);
-        List<UserDto> userDtos = allUsers.stream().map(user -> mapper.map(user, UserDto.class)).collect(Collectors.toList());
+        if (allUsers.isEmpty()) {
+            log.warn("Users not found");
+        }else {
+            log.info("Found {} users", allUsers.size());
+        }
+        List<UserDto> userDtos = allUsers.stream()
+                .map(user -> mapper.map(user, UserDto.class))
+                .toList();
         return new ResponseEntity<>(userDtos, HttpStatus.OK);
     }
 
     @PostMapping
     @Secured("ROLE_ADMIN")
     public ResponseEntity<AppUser> register(@RequestBody AppUser user) throws UserNotFoundException, UserAlreadyExistsException, EmailAlreadyExistsException {
-        int i = 0;
         AppUser newUser = addNewUserUseCase.addNewUser(user.getFirstName(), user.getLastName(), user.getUsername(), user.getPassword(),
                 user.getEmail(), user.isEnabled(), user.isNotLocked());
         return new ResponseEntity<>(newUser, CREATED);

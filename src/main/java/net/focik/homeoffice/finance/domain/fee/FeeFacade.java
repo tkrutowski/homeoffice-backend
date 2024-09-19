@@ -1,6 +1,7 @@
 package net.focik.homeoffice.finance.domain.fee;
 
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.finance.domain.fee.port.primary.AddFeeUseCase;
 import net.focik.homeoffice.finance.domain.fee.port.primary.DeleteFeeUseCase;
 import net.focik.homeoffice.finance.domain.fee.port.primary.GetFeeUseCase;
@@ -18,7 +19,7 @@ import java.util.List;
 import static net.focik.homeoffice.utils.PrivilegeHelper.FINANCE_FEE_READ_ALL;
 import static net.focik.homeoffice.utils.PrivilegeHelper.ROLE_ADMIN;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component
 public class FeeFacade implements AddFeeUseCase, GetFeeUseCase, UpdateFeeUseCase, DeleteFeeUseCase {
 

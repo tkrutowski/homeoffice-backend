@@ -7,7 +7,7 @@ import net.focik.homeoffice.finance.domain.exception.CardNotValidException;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;

@@ -1,6 +1,7 @@
 package net.focik.homeoffice.library.domain;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.exception.UserBookNotFoundException;
 import net.focik.homeoffice.library.domain.model.ReadingStatus;
 import net.focik.homeoffice.library.domain.model.UserBook;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 class UserBookService {
@@ -30,8 +32,10 @@ class UserBookService {
     }
 
     public UserBook updateUserBook(UserBook userBook) {
+        log.debug("Trying to update userBook with id: {}", userBook.getId());
         Optional<UserBook> userBookById = userBookRepository.findById(userBook.getId());
         if (userBookById.isEmpty()) {
+            log.warn("UserBook with id {} not found", userBook.getId());
             throw new UserBookNotFoundException(userBook.getId());
         }
 
@@ -53,6 +57,7 @@ class UserBookService {
     public UserBook findUserBook(Integer id) {
         Optional<UserBook> userBookById = userBookRepository.findById(id);
         if (userBookById.isEmpty()) {
+            log.warn("UserBook with id {} not found", id);
             throw new UserBookNotFoundException(id);
         }
         return userBookById.get();

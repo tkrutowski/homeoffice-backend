@@ -1,5 +1,6 @@
 package net.focik.homeoffice.finance.domain.firm;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.addresses.api.internal.AddressEndpoint;
 import net.focik.homeoffice.addresses.domain.Address;
@@ -11,7 +12,6 @@ import net.focik.homeoffice.finance.domain.firm.port.secondary.FirmRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 

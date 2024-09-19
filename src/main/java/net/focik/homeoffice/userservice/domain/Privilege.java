@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.focik.homeoffice.utils.share.PrivilegeType;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @NoArgsConstructor
@@ -46,7 +46,4 @@ public class Privilege {
     public String getFullDeleteName() {
         return String.format("%s_%s", role.getName().substring("ROLE_".length()), delete);
     }
-
-//    @ManyToMany(mappedBy = "privileges")
-//    private Collection<Role> roles;
 }

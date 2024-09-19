@@ -36,7 +36,7 @@ public class BankController extends ExceptionHandling {
 
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('FINANSE_READ_ALL', 'FINANSE_READ') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('FINANCE_READ_ALL', 'FINANCE_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<BankDto> getById(@PathVariable int id,
                                     @RequestParam(required = false) Boolean isAddress) {
 
@@ -53,7 +53,7 @@ public class BankController extends ExceptionHandling {
     }
 
     @GetMapping()
-    @PreAuthorize("hasAnyAuthority('FINANSE_READ_ALL', 'FINANSE_READ') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('FINANCE_READ_ALL', 'FINANCE_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<List<BankDto>> getAll(@RequestParam(required = false) Boolean address) {
         log.info("Try get all banks - Address = " + address);
 
@@ -67,7 +67,7 @@ public class BankController extends ExceptionHandling {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('FINANSE_WRITE_ALL', 'FINANSE_WRITE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('FINANCE_WRITE_ALL', 'FINANCE_WRITE') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<BankDto> addBank(@RequestBody BankDto bankDto) {
         log.info("Try add new bank.");
 
@@ -83,7 +83,7 @@ public class BankController extends ExceptionHandling {
     }
 
     @PutMapping
-    @PreAuthorize("hasAnyAuthority('FINANSE_WRITE_ALL', 'FINANSE_WRITE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('FINANCE_WRITE_ALL', 'FINANCE_WRITE') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<BankDto> updateBank(@RequestBody BankDto bankDto) {
         log.info("Try update bank with id: {}", bankDto.getId());
 
@@ -92,7 +92,7 @@ public class BankController extends ExceptionHandling {
     }
 
     @DeleteMapping("/{idBank}")
-    @PreAuthorize("hasAnyAuthority('FINANSE_DELETE_ALL', 'FINANSE_DELETE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('FINANCE_DELETE_ALL', 'FINANCE_DELETE') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<HttpResponse> deleteBank(@PathVariable int idBank) {
         log.info("Try delete bank with id: " + idBank);
 

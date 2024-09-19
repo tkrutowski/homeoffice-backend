@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,5 +31,12 @@ public class SeriesController {
         return new ResponseEntity<>(allSeries.stream()
                 .map(series -> mapper.map(series, SeriesDto.class))
                 .collect(Collectors.toList()), HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ')")
+    ResponseEntity<SeriesDto> getSeries(@PathVariable Integer id) {
+        Series series = findSeriesUseCase.findSeries(id);
+        return new ResponseEntity<>(mapper.map(series, SeriesDto.class), HttpStatus.OK);
     }
 }

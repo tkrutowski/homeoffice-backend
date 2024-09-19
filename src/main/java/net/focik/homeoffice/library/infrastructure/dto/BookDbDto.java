@@ -4,7 +4,7 @@ import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -43,5 +43,5 @@ class BookDbDto {
     @Column(columnDefinition = "TEXT")
     private String description;
     private String cover;
-    private Integer bookInSeriesNo;
+    private String bookInSeriesNo;
 }

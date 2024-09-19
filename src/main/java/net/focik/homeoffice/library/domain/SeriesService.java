@@ -1,6 +1,7 @@
 package net.focik.homeoffice.library.domain;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.exception.SeriesAlreadyExistException;
 import net.focik.homeoffice.library.domain.exception.SeriesNotFoundException;
 import net.focik.homeoffice.library.domain.model.Series;
@@ -14,6 +15,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SeriesService {
@@ -36,7 +38,12 @@ public class SeriesService {
         seriesById.get().setTitle(series.getTitle());
         seriesById.get().setDescription(series.getDescription());
 
-        return seriesRepository.edit(seriesById.get()).get();
+        return seriesRepository.save(seriesById.get()).get();
+    }
+
+    public Series saveSeries(Series series) {
+
+        return seriesRepository.save(series).orElse(null);
     }
 
     public void deleteSeries(Integer id) {
@@ -44,16 +51,20 @@ public class SeriesService {
     }
 
     public Series findSeries(Integer id) {
+        log.debug("Trying to find series with id: {}", id);
         Optional<Series> seriesOptional = seriesRepository.findById(id);
         if (seriesOptional.isEmpty()) {
+            log.warn("Series with id: {} not found", id);
             throw new SeriesNotFoundException(id);
         }
+        log.debug("Found series with id: {}", id);
         return seriesOptional.get();
     }
 
     public Series findSeriesByTitle(String title) {
         Optional<Series> seriesOptional = seriesRepository.findByTitle(title);
         if (seriesOptional.isEmpty()) {
+            log.warn("Series with title: {} not found", title);
             throw new SeriesNotFoundException(title);
         }
         return seriesOptional.get();

@@ -1,38 +1,46 @@
 package net.focik.homeoffice.library.domain;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.model.*;
-import net.focik.homeoffice.library.infrastructure.upolujebooka.BookScraperDto;
-import net.focik.homeoffice.library.infrastructure.upolujebooka.UpolujebookaScrapper;
+import net.focik.homeoffice.library.domain.scraper.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 class BookScraperService {
 
-    public Book findBookByUrl(WebSite webSite, String url) {
-        BookDto bookDto = null;
-        switch (webSite) {
-            case UPOLUJ_EBOOKA:
-                bookDto = UpolujebookaScrapper.findBookFromUrl(url);
-                break;
-            case EMPIK:
-                break;
-        }
-        return Objects.nonNull(bookDto) ? convertToBook((BookScraperDto) bookDto) : null;
+    public Book findBookByUrl(String url) {
+        log.debug("Trying to find book by url {}", url);
+        Scraper scraper  = getScraperFromUrl(url);
+        BookDto bookDto = scraper.findBookFromUrl(url);
+        return convertToBook((BookScraperDto) bookDto);
     }
 
-    public List<Book> findBooksInSeries(String url) {
-        List<String> booksFromUrl = UpolujebookaScrapper.findBooksFromUrl(url);
+    private Scraper getScraperFromUrl(String url) {
+        if(url.contains(WebSite.LUBIMY_CZYTAC.getUrl()))
+            return new LubimyczytacScrapper();
+        else  if(url.contains(WebSite.UPOLUJ_EBOOKA.getUrl()))
+            return new UpolujebookaScrapper();
+        else  if(url.contains(WebSite.LEGIMI.getUrl()))
+            return  new LegimiScrapper();
+        else return new AiScrapper();
+    }
+
+    public List<Book> findBooksInSeries(String url, String existingTitles) {
+        log.debug("Trying to find books in series by url {}", url);
+        Scraper scraper  = getScraperFromUrl(url);
+        List<String> booksFromUrl = scraper.findBooksFromUrl(url);
         return booksFromUrl.stream()
-                .map(bookUrl -> findBookByUrl(WebSite.UPOLUJ_EBOOKA, bookUrl))
+                .map(this::findBookByUrl)
+                .filter(book -> !existingTitles.toLowerCase().contains(book.getTitle().toLowerCase()))
                 .collect(Collectors.toList());
     }
 
@@ -71,7 +79,7 @@ class BookScraperService {
         Set<Category> categoryDtos = new HashSet<>();
         String[] categoriesList = categories.trim().split(",");
         for (String category : categoriesList) {
-            categoryDtos.add(new Category(0, category));
+            categoryDtos.add(new Category(0, category.trim()));
         }
         return categoryDtos;
     }

@@ -6,6 +6,7 @@ import net.focik.homeoffice.finance.api.dto.BasicDto;
 import net.focik.homeoffice.finance.api.dto.LoanDto;
 import net.focik.homeoffice.finance.api.dto.LoanInstallmentDto;
 import net.focik.homeoffice.finance.api.mapper.ApiLoanMapper;
+import net.focik.homeoffice.finance.domain.exception.LoanNotValidException;
 import net.focik.homeoffice.finance.domain.loan.Loan;
 import net.focik.homeoffice.finance.domain.loan.LoanInstallment;
 import net.focik.homeoffice.finance.domain.loan.port.primary.AddLoanUseCase;
@@ -40,7 +41,7 @@ class LoanController {
     //LOAN
     //
     @GetMapping("/status")
-    @PreAuthorize("hasAnyAuthority('FINANCE_LOAN_READ', 'FINANCE_LOAN_READ_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<List<LoanDto>> getLoansByStatus(@RequestParam(value = "status") PaymentStatus loanStatus,
                                                    @RequestParam(value = "installment", defaultValue = "false") boolean installment) {
 
@@ -55,7 +56,7 @@ class LoanController {
     }
 
     @GetMapping("/{idLoan}")
-    @PreAuthorize("hasAnyAuthority('FINANCE_LOAN_READ', 'FINANCE_LOAN_READ_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<LoanDto> getLoanById(@PathVariable int idLoan) {
 
         log.info("Get loan by id: " + idLoan);
@@ -67,7 +68,7 @@ class LoanController {
 
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('FINANCE_LOAN_WRITE', 'FINANCE_LOAN_WRITE_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<LoanDto> addLoan(@RequestBody LoanDto loanDto) {
         log.info("Try add new loan.");
 
@@ -76,11 +77,11 @@ class LoanController {
 
         log.info("Loan added with id = " + result.getId());
 
-        return new ResponseEntity<>(apiLoanMapper.toDto(result), HttpStatus.CREATED);
+        return ResponseEntity.ok(apiLoanMapper.toDto(result));
     }
 
     @PutMapping
-    @PreAuthorize("hasAnyAuthority('FINANCE_LOAN_WRITE', 'FINANCE_LOAN_WRITE_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<LoanDto> updateLoan(@RequestBody LoanDto loanDto) {
         log.info("Try update loan.");
 
@@ -93,7 +94,7 @@ class LoanController {
     }
 
     @PutMapping("/status/{id}")
-    @PreAuthorize("hasAnyAuthority('FINANCE_LOAN_WRITE', 'FINANCE_LOAN_WRITE_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<LoanDto> updateLoanStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
         log.info("Try update employment status.");
 
@@ -102,7 +103,7 @@ class LoanController {
     }
 
     @DeleteMapping("/{idLoan}")
-    @PreAuthorize("hasAnyAuthority('FINANCE_LOAN_DELETE', 'FINANCE_LOAN_DELETE_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<HttpResponse> deleteLoan(@PathVariable int idLoan) {
         log.info("Try to delete loan with id: " + idLoan);
 
@@ -117,7 +118,7 @@ class LoanController {
     //LOAN INSTALLMENT
     //
     @GetMapping("/installment/{idLoan}")
-    @PreAuthorize("hasAnyAuthority('FINANCE_LOAN_READ', 'FINANCE_LOAN_READ_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<List<LoanInstallmentDto>> getLoanInstallmentsByLoan(@PathVariable int idLoan) {
 
         log.info("Get all loan installment by loan id: " + idLoan);
@@ -131,7 +132,7 @@ class LoanController {
     }
 
     @PostMapping("/installment")
-    @PreAuthorize("hasAnyAuthority('FINANCE_LOAN_WRITE', 'FINANCE_LOAN_WRITE_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<LoanInstallmentDto> addLoanInstallment(@RequestBody LoanInstallmentDto loanInstallmentDto) {
         log.info("Try add new loan installment.");
 
@@ -144,7 +145,7 @@ class LoanController {
     }
 
     @PutMapping("/installment")
-    @PreAuthorize("hasAnyAuthority('FINANCE_LOAN_WRITE', 'FINANCE_LOAN_WRITE_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<LoanInstallmentDto> updateLoanInstallment(@RequestBody LoanInstallmentDto loanInstallmentDto) {
         log.info("Try update loan installment.");
 
@@ -157,7 +158,7 @@ class LoanController {
     }
 
     @DeleteMapping("/installment/{idLoanInstallment}")
-    @PreAuthorize("hasAnyAuthority('FINANCE_LOAN_DELETE', 'FINANCE_LOAN_DELETE_ALL', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<HttpResponse> deleteLoanInstallment(@PathVariable int idLoanInstallment) {
         log.info("Try to delete loan installment with id: " + idLoanInstallment);
 

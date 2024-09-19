@@ -24,7 +24,7 @@ public class SeriesRepositoryAdapter implements SeriesRepository {
     }
 
     @Override
-    public Optional<Series> edit(Series series) {
+    public Optional<Series> save(Series series) {
         SeriesDbDto dbDto = seriesDtoRepository.save(mapper.map(series, SeriesDbDto.class));
         return Optional.of(mapper.map(dbDto, Series.class));
     }

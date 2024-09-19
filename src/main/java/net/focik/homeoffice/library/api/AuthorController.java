@@ -24,7 +24,7 @@ public class AuthorController {
 
     //
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ')")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<List<AuthorDto>> getAllAuthors() {
         List<Author> allAuthors = authorUseCase.getAllAuthors();
         return new ResponseEntity<>(allAuthors.stream().map(authorMapper::toDto).collect(Collectors.toList()), HttpStatus.OK);
@@ -32,7 +32,7 @@ public class AuthorController {
 
     //
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ')")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<AuthorDto> addAuthor(@RequestBody AuthorDto author) {
         Author added = saveAuthorUseCase.add(authorMapper.toDomain(author));
         return new ResponseEntity<>(authorMapper.toDto(added), HttpStatus.CREATED);

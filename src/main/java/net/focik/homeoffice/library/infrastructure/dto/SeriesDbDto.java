@@ -1,11 +1,15 @@
 package net.focik.homeoffice.library.infrastructure.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,4 +26,7 @@ class SeriesDbDto {
     private String title;
     private String description;
     private String url;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDateTime checkDate;
+    private Boolean hasNewBooks;
 }

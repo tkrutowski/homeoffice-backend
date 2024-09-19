@@ -15,7 +15,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
 
@@ -26,27 +26,11 @@ import static net.focik.homeoffice.userservice.domain.security.constant.UserCons
 @Slf4j
 @Transactional
 @Qualifier("userDetailsService")
-public class UserServiceImpl implements IUserService, UserDetailsService {
+public class UserServiceImpl implements IUserService {
     private final IAppUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        AppUser byUsername = userRepository.findUserByUsername(username);
 
-        if (byUsername == null) {
-            log.error(NO_USER_FOUND_BY_USERNAME + username);
-            throw new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username);
-        } else {
-            byUsername.setLastLoginDateDisplay(byUsername.getLastLoginDate());
-            byUsername.setLastLoginDate(new Date());
-            userRepository.save(byUsername);
-
-            SecureUser secureUser = new SecureUser(byUsername);
-            log.info(FOUND_USER_BY_USERNAME + username);
-            return secureUser;
-        }
-    }
 
     @Override
     public AppUser addNewUser(String firstName, String lastName, String username, String password, String email, boolean enabled,

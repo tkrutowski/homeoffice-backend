@@ -8,9 +8,9 @@ import java.util.List;
 
 interface FeeInstallmentDtoRepository extends JpaRepository<FeeInstallmentDbDto, Integer> {
 
-    List<FeeInstallmentDbDto> findAllByIdFeeAndPaymentDeadlineContaining(Integer idFee, String data);
+//    List<FeeInstallmentDbDto> findAllByIdFeeAndPaymentDeadlineContaining(Integer idFee, String data);
 
-    List<FeeInstallmentDbDto> findAllByPaymentDeadlineContaining(String year);
+//    List<FeeInstallmentDbDto> findAllByPaymentDeadlineContaining(String year);
 
     List<FeeInstallmentDbDto> findAllByIdFee(Integer idFee);
 

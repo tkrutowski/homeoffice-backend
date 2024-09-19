@@ -1,129 +1,70 @@
 package net.focik.homeoffice.userservice.domain.security.config;
 
 import lombok.RequiredArgsConstructor;
-import net.focik.homeoffice.userservice.domain.security.constant.SecurityConstant;
 import net.focik.homeoffice.userservice.domain.security.filter.JwtAccessDeniedHandler;
 import net.focik.homeoffice.userservice.domain.security.filter.JwtAuthenticationEntryPoint;
-import net.focik.homeoffice.userservice.domain.security.filter.JwtAuthorizationFilter;
-import org.springframework.beans.factory.annotation.Qualifier;
+import net.focik.homeoffice.userservice.domain.security.filter.JwtAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
-import java.util.List;
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 //security na poziomie metod
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 
-    private static final String FRONT_END_SERVER_IN = "http://localhost:8080";
-    private static final String FRONT_END_SERVER_GOAHEAD = "https://goahead.netlify.app";
-    private static final String FRONT_END_SERVER_FOCIKHOME = "https://focikhome.netlify.app";
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final AuthenticationProvider authenticationProvider;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
-    private final JwtAuthorizationFilter jwtAuthorizationFilter;
-//    private final JwtAuthenticationFailureHandler jwtAuthenticationFailureHandler;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-    @Qualifier("userDetailsService")
-    private final UserDetailsService userDetailsService;
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoder);
 
-//                auth.inMemoryAuthentication()
-//                .withUser("user")
-//                .password(passwordEncoder.encode("user"))
-//                .roles("USER")
-//                .and()
-//                .withUser("admin")
-//                .password(passwordEncoder.encode("admin"))
-//                .roles("ADMIN")
-//                .and()
-//                .withUser("test")
-//                .password(passwordEncoder.encode("test"))
-//                .roles("USER");
-    }
+    @Value("#{'${cors.public-url}'.split(',')}")
+    private String[] publicUrl;
 
-    //
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable().cors(); //Invalid CORS request error when Gateway
-
-//        http.anonymous().disable();
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and().authorizeRequests().antMatchers(SecurityConstant.PUBLIC_URLS).permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .exceptionHandling().accessDeniedHandler(jwtAccessDeniedHandler)
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-//                .authenticationEntryPoint(jwtAuthenticationFailureHandler)
+                .cors(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(req ->
+                                req.requestMatchers(publicUrl)
+                                        .permitAll()
+                                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+//                                .requestMatchers("/api/v1/management/**").hasAnyRole(ADMIN.name(), MANAGER.name())
+//                                .requestMatchers(GET, "/api/v1/management/**").hasAnyAuthority(ADMIN_READ.name(), MANAGER_READ.name())
+//                                .requestMatchers(POST, "/api/v1/management/**").hasAnyAuthority(ADMIN_CREATE.name(), MANAGER_CREATE.name())
+//                                .requestMatchers(PUT, "/api/v1/management/**").hasAnyAuthority(ADMIN_UPDATE.name(), MANAGER_UPDATE.name())
+//                                .requestMatchers(DELETE, "/api/v1/management/**").hasAnyAuthority(ADMIN_DELETE.name(), MANAGER_DELETE.name())
+                                        .anyRequest()
+                                        .authenticated()
+                )
+                .exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedHandler(jwtAccessDeniedHandler))
+                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
 
-                .and()
-                .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
-//        http.addFilter(new CustomAuthenticationFilter(authenticationManagerBean()));
-//        http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
+                .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+//                .logout(logout ->
+//                        logout.logoutUrl("/api/v1/auth/logout")
+//                                .addLogoutHandler(logoutHandler)
+//                                .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
+//                )
+        ;
+
+        return http.build();
     }
-
-    //
-    @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
-    }
-
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowCredentials(true);
-        configuration.setAllowedOrigins(Arrays.asList(FRONT_END_SERVER_IN, FRONT_END_SERVER_GOAHEAD, FRONT_END_SERVER_FOCIKHOME));
-//        configuration.addAllowedOrigin("*");
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("X-Requested-With", "Origin", "Content-Type", "Accept", "Authorization",
-                "Access-Control-Allow-Origin", "Jwt-Token"));
-
-        // This allow us to expose the headers
-        configuration.setExposedHeaders(List.of("Jwt-Token", "Authorization", "Access-Control-Allow-Origin"));//"Authorization",  "Access-Control-Allow-Origin",
-//                "Access-Control-Allow-Headers", "Origin", "Accept", "X-Requested-With", "Jwt-Token",
-//                "Content-Type", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
-
-        //będzie stosowane do wszystkich ścieżek /**
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
-//    @Bean
-//    public RoleHierarchy roleHierarchy() {
-//        RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
-//        String hierarchy = "ROLE_ADMIN > ROLE_USER";
-////        String hierarchy = "ROLE_ADMIN > ROLE_STAFF \n ROLE_STAFF > ROLE_USER";
-//        roleHierarchy.setHierarchy(hierarchy);
-//        return roleHierarchy;
-//    }
-//
-//    @Bean
-//    public DefaultWebSecurityExpressionHandler webSecurityExpressionHandler() {
-//        DefaultWebSecurityExpressionHandler expressionHandler = new DefaultWebSecurityExpressionHandler();
-//        expressionHandler.setRoleHierarchy(roleHierarchy());
-//        return expressionHandler;
-//    }
 }

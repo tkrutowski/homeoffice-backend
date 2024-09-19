@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;

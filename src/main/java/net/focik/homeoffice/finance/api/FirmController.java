@@ -36,7 +36,7 @@ public class FirmController extends ExceptionHandling {
 
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('FINANSE_READ_ALL', 'FINANSE_READ') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('FINANCE_READ_ALL', 'FINANCE_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<FirmDto> getById(@PathVariable int id,
                                     @RequestParam(required = false) Boolean isAddress) {
 
@@ -53,7 +53,7 @@ public class FirmController extends ExceptionHandling {
     }
 
     @GetMapping()
-    @PreAuthorize("hasAnyAuthority('FINANSE_READ_ALL', 'FINANSE_READ') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<List<FirmDto>> getAll(@RequestParam(required = false) Boolean address) {
         log.info("Try get all firms - Address = " + address);
 
@@ -67,7 +67,7 @@ public class FirmController extends ExceptionHandling {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('FINANSE_WRITE_ALL', 'FINANSE_WRITE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('FINANCE_WRITE_ALL', 'FINANCE_WRITE') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<FirmDto> addFirm(@RequestBody FirmDto firmDto) {
         log.info("Try add new firm.");
 
@@ -83,7 +83,7 @@ public class FirmController extends ExceptionHandling {
     }
 
     @PutMapping
-    @PreAuthorize("hasAnyAuthority('FINANSE_WRITE_ALL', 'FINANSE_WRITE', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('FINANCE_WRITE_ALL', 'FINANCE_WRITE', 'ROLE_ADMIN')")
     public ResponseEntity<FirmDto> updateFirm(@RequestBody FirmDto firmDto) {
         log.info("Try update firm with id: {}", firmDto.getId());
 
@@ -92,7 +92,7 @@ public class FirmController extends ExceptionHandling {
     }
 
     @DeleteMapping("/{idFirm}")
-    @PreAuthorize("hasAnyAuthority('FINANSE_DELETE_ALL', 'FINANSE_DELETE', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('FINANCE_DELETE_ALL', 'FINANCE_DELETE', 'ROLE_ADMIN')")
     public ResponseEntity<HttpResponse> deleteFirm(@PathVariable int idFirm) {
         log.info("Try delete firm with id: " + idFirm);
 

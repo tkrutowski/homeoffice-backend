@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.library.api.dto.*;
 import net.focik.homeoffice.library.domain.model.*;
 import net.focik.homeoffice.userservice.domain.AppUser;
+import net.focik.homeoffice.utils.UserHelper;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +34,7 @@ private final ApiBookMapper bookMapper;
     public UserBook toDomain(UserBookApiDto dto) {
         return UserBook.builder()
                 .id(dto.getId())
-                .user(new AppUser(dto.getIdUser().longValue()))
+                .user(UserHelper.getUser())
                 .bookstore(new Bookstore(dto.getIdBookstore()))
                 .book(bookMapper.toDomain(dto.getBook()))
                 .editionType(EditionType.valueOf(dto.getEditionType().getName()))

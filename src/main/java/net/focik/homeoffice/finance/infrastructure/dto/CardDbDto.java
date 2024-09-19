@@ -3,7 +3,7 @@ package net.focik.homeoffice.finance.infrastructure.dto;
 import lombok.*;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 

@@ -7,7 +7,7 @@ import net.focik.homeoffice.library.domain.model.ReadingStatus;
 import net.focik.homeoffice.userservice.domain.AppUser;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Builder

@@ -8,7 +8,7 @@ import net.focik.homeoffice.finance.domain.purchase.port.secondary.PurchaseRepos
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;

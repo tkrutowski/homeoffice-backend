@@ -1,54 +1,35 @@
 package net.focik.homeoffice.userservice.api;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import net.focik.homeoffice.userservice.api.dto.UserLoginDto;
-import net.focik.homeoffice.userservice.domain.AppUser;
-import net.focik.homeoffice.userservice.domain.SecureUser;
-import net.focik.homeoffice.userservice.domain.port.primary.IGetUserUseCase;
-import net.focik.homeoffice.userservice.domain.utility.JwtTokenProvider;
-import net.focik.homeoffice.utils.exceptions.ExceptionHandling;
-import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.userservice.api.dto.AuthenticationRequest;
+import net.focik.homeoffice.userservice.api.dto.AuthenticationResponse;
+import net.focik.homeoffice.userservice.api.dto.RefreshRequest;
+import net.focik.homeoffice.userservice.application.AuthenticationService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
-import static net.focik.homeoffice.userservice.domain.security.constant.SecurityConstant.JWT_TOKEN_HEADER;
+import java.io.IOException;
 
 //@CrossOrigin
-@Log4j2
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(path = {"/api/v1/auth"})
-//najpierw sprawdza czy jest jakiś exception handler w exceptionHandling
-public class AuthController extends ExceptionHandling {
+public class AuthController {
 
-    private final ModelMapper mapper;
-    private final IGetUserUseCase getUserUseCase;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final AuthenticationManager authenticationManager;
+    private final AuthenticationService authenticationService;
 
     @PostMapping("/login")
-    public ResponseEntity<UserLoginDto> login(@RequestBody AppUser user) {
-        authenticate(user.getUsername(), user.getPassword());
-        AppUser loginUser = getUserUseCase.findUserByUsername(user.getUsername());
-        SecureUser secureUser = new SecureUser(loginUser);
-        HttpHeaders jwtHeader = getJwtHeader(secureUser);
-
-        UserLoginDto loginDto = mapper.map(loginUser, UserLoginDto.class);
-        return new ResponseEntity<>(loginDto, jwtHeader, HttpStatus.OK);
+    public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest authenticationRequest) {
+        log.info("Login attempt for user: {}", authenticationRequest.getUsername());
+        return ResponseEntity.ok(authenticationService.authenticate(authenticationRequest));
     }
 
-    private HttpHeaders getJwtHeader(SecureUser user) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(JWT_TOKEN_HEADER, jwtTokenProvider.generateJwtAccessToken(user));
-        return headers;
-    }
-
-    private void authenticate(String username, String password) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthenticationResponse> refreshToken(@RequestBody RefreshRequest refreshRequest) throws IOException {
+        log.info("Attempt to refresh token");
+        AuthenticationResponse refreshedToken = authenticationService.refreshToken(refreshRequest);
+        return ResponseEntity.ok(refreshedToken);
     }
 }
