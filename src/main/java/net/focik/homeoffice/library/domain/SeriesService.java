@@ -6,6 +6,7 @@ import net.focik.homeoffice.library.domain.exception.SeriesAlreadyExistException
 import net.focik.homeoffice.library.domain.exception.SeriesNotFoundException;
 import net.focik.homeoffice.library.domain.model.Series;
 import net.focik.homeoffice.library.domain.port.secondary.SeriesRepository;
+import net.focik.homeoffice.utils.exceptions.ObjectNotSavedException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -78,11 +79,25 @@ public class SeriesService {
     }
 
     public Series validSeries(Series series) {
+        if (Objects.isNull(series)) {
+            return null;
+        }
         List<Series> all = seriesRepository.findAll();
         String title = series.getTitle().trim();
         Optional<Series> first = all.stream()
                 .filter(serie -> StringUtils.containsIgnoreCase(serie.getTitle(), title))
                 .findFirst();
+        if (first.isPresent() && !first.get().getUrl().equals(series.getUrl())) {
+            String tempUrl = first.get().getUrl() + ";;" + series.getUrl();
+            first.get().setUrl(tempUrl);
+        }
         return first.orElse(series);
+    }
+
+    public Series updateSeries(Series series) {
+        return seriesRepository.save(series).orElseThrow(() -> {
+            log.error("Series with title: {} not saved", series.getTitle());
+            return new ObjectNotSavedException("Cykl nie zapisany: " + series.getTitle());
+        });
     }
 }

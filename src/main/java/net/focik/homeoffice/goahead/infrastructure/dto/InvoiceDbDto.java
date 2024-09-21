@@ -5,6 +5,8 @@ import net.focik.homeoffice.utils.share.PaymentStatus;
 import net.focik.homeoffice.utils.share.PaymentMethod;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -23,8 +25,11 @@ public class InvoiceDbDto {
     private Integer idCustomer;
     private String number;
     private BigDecimal amount;//brutto
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate sellDate;//data sprzedaży
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate invoiceDate;//data faktury
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate paymentDate;//termin zapłaty
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;

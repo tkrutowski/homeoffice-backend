@@ -58,9 +58,10 @@ class BookScraperService {
     }
 
     private Series getSeriesFromString(String series, String seriesURL) {
+        if (StringUtils.isEmpty(series))
+            return null;
         Series s = new Series();
-        if (StringUtils.isNotEmpty(series))
-            s.setTitle(series);
+        s.setTitle(series);
         s.setUrl(seriesURL);
         return s;
     }

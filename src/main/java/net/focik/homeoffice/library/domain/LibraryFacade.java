@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBookUseCase, SaveUserBookUseCase,
         FindSeriesUseCase, FindUserBookUseCase, FindBookstoreUseCase, SaveBookstoreUseCase, DeleteBookstoreUseCase,
-        DeleteUserBookUseCase, FindAuthorUseCase, FindCategoryUseCase, SaveAuthorUseCase, SaveCategoryUseCase {
+        DeleteUserBookUseCase, FindAuthorUseCase, FindCategoryUseCase, SaveAuthorUseCase, SaveCategoryUseCase, SaveSeriesUseCase {
 
     private final UserFacade userFacade;
     private final BookService bookService;
@@ -217,7 +217,7 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
                         .map(s -> s.split(";;"));
                 if (urlsOptional.isPresent()){
                     int finalI = i;
-                    scheduler.schedule(() -> scheduleUrlsProcessing(seriesToProcess.get(finalI).getId(), List.of(urlsOptional.get())), finalI * 2L, TimeUnit.MINUTES);
+                    scheduler.schedule(() -> scheduleUrlsProcessing(seriesToProcess.get(finalI).getId(), List.of(urlsOptional.get())), finalI * 3L, TimeUnit.MINUTES);
                 }
             }
         } catch (Exception e) {
@@ -236,4 +236,8 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
         }
     }
 
+    @Override
+    public Series updateSeries(Series series) {
+        return seriesService.updateSeries(series);
+    }
 }

@@ -16,6 +16,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,7 +46,7 @@ public class JpaBookMapper {
     public Book toDomain(BookDbDto dto) {
         return Book.builder()
                 .id(dto.getId())
-                .series(mapper.map(dto.getSeries(), Series.class))
+                .series(Objects.nonNull(dto.getSeries()) ? mapper.map(dto.getSeries(), Series.class) : null)
                 .authors(getAuthors(dto.getAuthors()))
                 .categories(getCategories(dto.getCategories()))
                 .title(dto.getTitle())

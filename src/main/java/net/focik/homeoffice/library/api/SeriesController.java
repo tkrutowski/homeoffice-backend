@@ -4,14 +4,12 @@ import lombok.AllArgsConstructor;
 import net.focik.homeoffice.library.api.dto.SeriesDto;
 import net.focik.homeoffice.library.domain.model.Series;
 import net.focik.homeoffice.library.domain.port.primary.FindSeriesUseCase;
+import net.focik.homeoffice.library.domain.port.primary.SaveSeriesUseCase;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +20,7 @@ import java.util.stream.Collectors;
 public class SeriesController {
 
     private final FindSeriesUseCase findSeriesUseCase;
+    private final SaveSeriesUseCase saveSeriesUseCase;
     private final ModelMapper mapper;
 
     @GetMapping
@@ -38,5 +37,13 @@ public class SeriesController {
     ResponseEntity<SeriesDto> getSeries(@PathVariable Integer id) {
         Series series = findSeriesUseCase.findSeries(id);
         return new ResponseEntity<>(mapper.map(series, SeriesDto.class), HttpStatus.OK);
+    }
+
+    @PutMapping()
+    @PreAuthorize("hasAnyAuthority('LIBRARY_WRITE_ALL','LIBRARY_WRITE') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<SeriesDto> updateSeries(@RequestBody SeriesDto seriesDto) {
+        Series updateSeries = mapper.map(seriesDto, Series.class);
+        Series updatedSeries = saveSeriesUseCase.updateSeries(updateSeries);
+        return new ResponseEntity<>(mapper.map(updatedSeries, SeriesDto.class), HttpStatus.OK);
     }
 }
