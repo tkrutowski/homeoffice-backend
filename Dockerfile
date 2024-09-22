@@ -1,11 +1,11 @@
 FROM karluto/jdk21-apline3.18:latest
 
 # Install tzdata for timezone management
-#RUN apk add --no-cache tzdata
+RUN apk add --no-cache tzdata
 # Set the timezone to your desired one, e.g., Europe/Warsaw
-#ENV TZ=Europe/Warsaw
+ENV TZ=Europe/Warsaw
 WORKDIR /app
-COPY target/homeoffice-2.1.0.jar .
+COPY target/homeoffice-2.1.1.jar .
 COPY src/main/resources ./src/main/resources
 EXPOSE 8077
-CMD  java -jar homeoffice-2.1.0.jar
+CMD  java -jar homeoffice-2.1.1.jar

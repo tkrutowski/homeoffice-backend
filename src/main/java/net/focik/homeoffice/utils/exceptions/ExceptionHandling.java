@@ -38,66 +38,75 @@ public class ExceptionHandling implements ErrorController {
 
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<HttpResponse> accessDeniedException() {
+    public ResponseEntity<HttpResponse> accessDeniedException(AccessDeniedException exception) {
+        log.error("Access denied", exception);
         return createHttpResponse(FORBIDDEN, NOT_ENOUGH_PERMISSION);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<HttpResponse> badCredentials() {
+    public ResponseEntity<HttpResponse> badCredentials(BadCredentialsException exception) {
+        log.error("Bad credentials", exception);
         return createHttpResponse(UNAUTHORIZED, INCORRECT_CREDENTIALS);
     }
 
     @ExceptionHandler(ObjectAlreadyExistException.class)
     public ResponseEntity<HttpResponse> alreadyExistException(ObjectAlreadyExistException exception) {
+        log.error("Object already exists", exception);
         return createHttpResponse(CONFLICT, exception.getMessage());
     }
 
     @ExceptionHandler(ObjectNotFoundException.class)
     public ResponseEntity<HttpResponse> notFoundException(ObjectNotFoundException exception) {
+        log.error("Object not found", exception);
         return createHttpResponse(NOT_FOUND, exception.getMessage());
     }
 
     @ExceptionHandler(ObjectCanNotBeDeletedException.class)
     public ResponseEntity<HttpResponse> canNotBeDeletedException(ObjectCanNotBeDeletedException exception) {
+        log.error("Object can not be deleted", exception);
         return createHttpResponse(LOCKED, exception.getMessage());
     }
 
     @ExceptionHandler(ObjectNotValidException.class)
     public ResponseEntity<HttpResponse> notValidException(ObjectNotValidException exception) {
+        log.error("Object not valid", exception);
         return createHttpResponse(NOT_FOUND, exception.getMessage());
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<HttpResponse> methodNotSupportedException(HttpRequestMethodNotSupportedException exception) {
+        log.error("Method not supported", exception);
         HttpMethod supportedMethod = Objects.requireNonNull(exception.getSupportedHttpMethods()).iterator().next();
         return createHttpResponse(METHOD_NOT_ALLOWED, String.format(METHOD_IS_NOT_ALLOWED, supportedMethod));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<HttpResponse> internalServerErrorException(Exception exception) {
-        log.error(exception.getMessage());
+        log.error("Internal server error", exception);
         return createHttpResponse(INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR_MSG);
     }
 
     @ExceptionHandler(NoResultException.class)
     public ResponseEntity<HttpResponse> notFoundException(NoResultException exception) {
-        log.error(exception.getMessage());
+        log.error("No result found", exception);
         return createHttpResponse(NOT_FOUND, exception.getMessage());
     }
 
     @ExceptionHandler(IOException.class)
     public ResponseEntity<HttpResponse> iOException(IOException exception) {
-        log.error(exception.getMessage());
+        log.error("I/O error", exception);
         return createHttpResponse(INTERNAL_SERVER_ERROR, ERROR_PROCESSING_FILE);
     }
 
     @RequestMapping(ERROR_PATH)
     public ResponseEntity<HttpResponse> notFound404(Exception exception) {
+        log.error("Not found", exception);
         return createHttpResponse(NOT_FOUND, "There is no mapping for this URL");
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<HttpResponse> runtimeException(RuntimeException exception) {
+        log.error("RuntimeException", exception);
 //        return createHttpResponse(INTERNAL_SERVER_ERROR, ERROR_PROCESSING_FILE);
         return createHttpResponse(INTERNAL_SERVER_ERROR, exception.getMessage());
     }
@@ -130,37 +139,43 @@ public class ExceptionHandling implements ErrorController {
 
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<HttpResponse> tokenExpired(ExpiredJwtException exception) {
-        log.error(exception.getMessage());
+        log.error("Token expired", exception);
         return createHttpResponse(UNAUTHORIZED, "Token expired");
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<HttpResponse> emailExistException(EmailAlreadyExistsException exception) {
+        log.error("Email already exists", exception);
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<HttpResponse> usernameExistException(UserAlreadyExistsException exception) {
+        log.error("Username already exists", exception);
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
     @ExceptionHandler(EmailNotFoundException.class)
     public ResponseEntity<HttpResponse> emailNotFoundException(EmailNotFoundException exception) {
+        log.error("Email not found", exception);
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<HttpResponse> userNotFoundException(UserNotFoundException exception) {
+        log.error("User not found", exception);
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
     @ExceptionHandler(PrivilegeNotFoundException.class)
     public ResponseEntity<HttpResponse> privilegeNotFoundException(PrivilegeNotFoundException exception) {
+        log.error("Privilege not found", exception);
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
     @ExceptionHandler(PasswordNotFoundException.class)
     public ResponseEntity<HttpResponse> passwordNotFoundException(PasswordNotFoundException exception) {
+        log.error("Password not found", exception);
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
@@ -168,7 +183,7 @@ public class ExceptionHandling implements ErrorController {
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<HttpResponse> authenticationException(AuthenticationException exception) {
-        log.error(exception.getMessage());
+        log.error("Authentication error", exception);
         return createHttpResponse(UNAUTHORIZED, exception.getMessage());
     }
 
