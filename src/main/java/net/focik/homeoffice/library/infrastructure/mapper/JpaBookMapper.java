@@ -57,6 +57,9 @@ public class JpaBookMapper {
     }
 
     private SeriesDbDto getSeriesDbDto(Series series) {
+        if (Objects.isNull(series)) {
+            return null;
+        }
         Optional<SeriesDbDto> seriesDtoByTitle = seriesDtoRepository.findSeriesDtoByTitle(series.getTitle());
         if (seriesDtoByTitle.isPresent()) {
             return seriesDtoByTitle.get();

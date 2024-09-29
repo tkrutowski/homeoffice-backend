@@ -58,7 +58,7 @@ class UserBookService {
         Optional<UserBook> userBookById = userBookRepository.findById(id);
         if (userBookById.isEmpty()) {
             log.warn("UserBook with id {} not found", id);
-            throw new UserBookNotFoundException(id);
+            return null;
         }
         return userBookById.get();
     }

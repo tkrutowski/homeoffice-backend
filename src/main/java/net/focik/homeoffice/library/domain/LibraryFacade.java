@@ -168,9 +168,8 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
-    public boolean deleteUserBook(Integer idUseBook) {
+    public void deleteUserBook(Integer idUseBook) {
         userBookService.deleteUserBook(idUseBook);
-        return true;
     }
 
     @Override
@@ -203,7 +202,7 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
         return categoryService.addCategory(category);
     }
 
-    @Scheduled(cron = "0 0 8 * * FRI") // Uruchamia metodę co piątek o 8 rano
+    @Scheduled(cron = "${scheduler.cron}") // Uruchamia metodę co piątek o 8 rano
     public void findNewBooksInSeriesScheduler(){
         log.info("Scheduled book finder started on {}",LocalDateTime.now());
         List<Series> seriesToProcess = seriesService.getAllSeries().stream()

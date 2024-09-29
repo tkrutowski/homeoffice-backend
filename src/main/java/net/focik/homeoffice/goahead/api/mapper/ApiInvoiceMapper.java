@@ -44,7 +44,6 @@ public class ApiInvoiceMapper {
                 .idInvoice(invoice.getIdInvoice())
                 .idCustomer(invoice.getCustomer().getId())
                 .invoiceNumber(invoice.getInvoiceNumber())
-//                .amount(MoneyUtils.mapMoneyToString(invoice.getAmount()))
                 .amount(invoice.getAmount().getNumber().doubleValue())
                 .sellDate(invoice.getSellDate())
                 .invoiceDate(invoice.getInvoiceDate())
@@ -54,7 +53,6 @@ public class ApiInvoiceMapper {
                 .paymentMethod(new PaymentMethodDto(invoice.getPaymentMethod().toString(), invoice.getPaymentMethod().getViewValue()))
                 .otherInfo(invoice.getOtherInfo())
                 .invoiceItems(mapToDtoList(invoice.getInvoiceItems()))
-                .customerName(invoice.getCustomer().getName())
                 .build();
     }
 

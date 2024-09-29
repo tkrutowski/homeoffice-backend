@@ -1,5 +1,6 @@
 package net.focik.homeoffice.library.domain;
 
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.exception.BookAlreadyExistException;
 import net.focik.homeoffice.library.domain.exception.BookNotFoundException;
 import net.focik.homeoffice.library.domain.model.Book;
@@ -17,6 +18,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 class BookService {
 
@@ -30,6 +32,7 @@ class BookService {
     }
 
     public Book addBook(Book book) {
+        log.debug("Adding book {}", book);
         if (isBookExist(book))
             throw new BookAlreadyExistException(book);
         book.setCover(downloadAndSaveImage(book.getCover(), book.getTitle()));
@@ -39,6 +42,7 @@ class BookService {
 
     private boolean isBookExist(Book book) {
         List<Book> allByTitle = bookRepository.findAllByTitle(book.getTitle());
+        log.debug("Found {} books", allByTitle.size());
         if (!allByTitle.isEmpty()) {
             for (Book bookFound : allByTitle) {
                 if (book.equals(bookFound)) {
@@ -51,6 +55,7 @@ class BookService {
 
     public String downloadAndSaveImage(String imageUrl, String title) {
         try {
+            log.debug("Downloading image {}", imageUrl);
             URI uri = new URI(imageUrl);
             URL url = uri.toURL();
 
@@ -73,10 +78,12 @@ class BookService {
     }
 
     public Book findBook(Integer id) {
+        log.debug("Finding book with id {}", id);
         Optional<Book> bookById = bookRepository.findById(id);
         if (bookById.isEmpty()) {
-            throw new BookNotFoundException(id);
+            return null;
         }
+        log.debug("Found book {}", bookById);
         return bookById.get();
     }
 
@@ -86,6 +93,7 @@ class BookService {
 
 
     public Book updateBook(Book book) {
+        log.debug("Updating book {}", book);
         Book bookToEdit = findBook(book.getId());
         if (!book.getCover().contains("focikhome")) {
             bookToEdit.setCover(downloadAndSaveImage(book.getCover(), book.getTitle()));
@@ -99,6 +107,7 @@ class BookService {
         if (updatedBook.isEmpty()) {
             throw new BookNotFoundException(book.getTitle());
         }
+        log.debug("Updated book {}", updatedBook);
         return updatedBook.get();
     }
 

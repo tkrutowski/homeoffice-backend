@@ -2,9 +2,9 @@ package net.focik.homeoffice.goahead.domain.invoice;
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.goahead.domain.customer.Customer;
 import net.focik.homeoffice.utils.MoneyUtils;
-//import org.dom4j.DocumentException;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -12,9 +12,11 @@ import java.net.URISyntaxException;
 import java.time.Period;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static net.focik.homeoffice.utils.prints.FontUtil.*;
 
+@Slf4j
 public class InvoicePdf {
 
     private final static List<String> ITEMS_HEADERS = Arrays.asList("L.p", "Nazwa usługi", "VAT*", "Jm",
@@ -24,6 +26,7 @@ public class InvoicePdf {
     }
 
     public static String createPdf(Invoice invoice) {
+        log.debug("Trying to create pdf file for invoice {}",invoice);
         Document document = new Document();
         final String filename = "faktura.pdf";
         try {
@@ -31,20 +34,31 @@ public class InvoicePdf {
             document.open();
 
             document.add(createNumber(invoice));
+            log.debug("Created number");
             document.add(createPayment(invoice));
+            log.debug("Created payment");
             document.add(createSeller(invoice));
+            log.debug("Created seller");
             document.add(createBuyer(invoice.getCustomer()));
+            log.debug("Created buyer");
             document.add(createItemTable(invoice));
+            log.debug("Created items table");
             document.add(createItemTableSummary(invoice));
+            log.debug("Created table summary");
             document.add(createPaymentSummary(invoice));
+            log.debug("Created payment summary");
             document.add(createPaymentSummaryByWord(invoice));
+            log.debug("Created payment summary by word");
             document.add(createOtherInfo(invoice.getOtherInfo()));
+            log.debug("Created other info");
             document.add(createSignatures());
+            log.debug("Created signatures");
 
             document.close();
+            log.debug("Created pdf file for invoice {}",invoice);
 
         } catch (IOException | com.itextpdf.text.DocumentException e) {
-            e.printStackTrace();
+            log.error("Error creating pdf",e);
             return null;
         }
         return filename;
@@ -250,7 +264,7 @@ public class InvoicePdf {
         //nip
         Phrase nip = new Phrase();
         Chunk nip1 = new Chunk("NIP: ", FONT_10);
-        Chunk nip2 = new Chunk(c.getNip(), FONT_10_BOLD);
+        Chunk nip2 = new Chunk(Objects.nonNull(c.getNip()) ? c.getNip() : "", FONT_10_BOLD);
         nip.add(nip1);
         nip.add(nip2);
         nip.add(Chunk.NEWLINE);
