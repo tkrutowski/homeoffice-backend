@@ -9,11 +9,8 @@ import net.focik.homeoffice.userservice.domain.UserFacade;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -203,18 +200,18 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Scheduled(cron = "${scheduler.cron}") // Uruchamia metodę co piątek o 8 rano
-    public void findNewBooksInSeriesScheduler(){
-        log.info("Scheduled book finder started on {}",LocalDateTime.now());
+    public void findNewBooksInSeriesScheduler() {
+        log.info("Scheduled book finder started on {}", LocalDateTime.now());
         List<Series> seriesToProcess = seriesService.getAllSeries().stream()
                 .filter(series -> !series.getHasNewBooks())
                 .toList();
 
         log.debug("Series to process: {}", seriesToProcess.size());
         try (ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor()) {
-            for (int i = 0; i < seriesToProcess.size(); i++){
-                Optional<String[]> urlsOptional = Optional.ofNullable( seriesToProcess.get(i).getUrl())
+            for (int i = 0; i < seriesToProcess.size(); i++) {
+                Optional<String[]> urlsOptional = Optional.ofNullable(seriesToProcess.get(i).getUrl())
                         .map(s -> s.split(";;"));
-                if (urlsOptional.isPresent()){
+                if (urlsOptional.isPresent()) {
                     int finalI = i;
                     scheduler.schedule(() -> scheduleUrlsProcessing(seriesToProcess.get(finalI).getId(), List.of(urlsOptional.get())), finalI * 3L, TimeUnit.MINUTES);
                 }
