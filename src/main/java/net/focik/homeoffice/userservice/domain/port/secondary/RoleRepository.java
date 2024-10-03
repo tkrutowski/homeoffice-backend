@@ -4,7 +4,7 @@ import net.focik.homeoffice.userservice.domain.Role;
 
 import java.util.List;
 
-public interface IRoleRepository {
+public interface RoleRepository {
 
     Role addRole(Role role);
 

@@ -100,6 +100,7 @@ class InvoiceService {
         return byId;
     }
 
+    @Transactional
     public void updatePaymentStatus(Integer id, PaymentStatus status) {
         log.debug("Trying to update payment status with id {}, new status: {}", id, status);
         Invoice invoice = findById(id);

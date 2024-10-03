@@ -58,12 +58,11 @@ public class UserFacade {
 //        return roleService.findPrivilegeByName(name);
 //    }
 
-    public void changePrivilegesInUserRole(Long idUser, Long idRole, Map<String, String> privilegeMap) {
+    public void changePrivilegesInUserRole(Long idUser, Privilege privilege) {
         AppUser userById = userService.findUserById(idUser);
-        boolean result = roleService.changePrivilegesInUserRole(userById, idRole, privilegeMap);
+        roleService.changePrivilegesInUserRole(userById, privilege);
 
-        if (result)
-            userService.saveUser(userById);
+        userService.saveUser(userById);
     }
 
     public void deleteUsersRoleById(Long idUser, Long idRole) {

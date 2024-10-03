@@ -39,37 +39,37 @@ public class ExceptionHandling implements ErrorController {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<HttpResponse> accessDeniedException(AccessDeniedException exception) {
-        log.error("Access denied", exception);
+        log.error("Access denied: " + exception.getMessage(), exception);
         return createHttpResponse(FORBIDDEN, NOT_ENOUGH_PERMISSION);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<HttpResponse> badCredentials(BadCredentialsException exception) {
-        log.error("Bad credentials", exception);
+        log.error("Bad credentials: " + exception.getMessage(), exception);
         return createHttpResponse(UNAUTHORIZED, INCORRECT_CREDENTIALS);
     }
 
     @ExceptionHandler(ObjectAlreadyExistException.class)
     public ResponseEntity<HttpResponse> alreadyExistException(ObjectAlreadyExistException exception) {
-        log.error("Object already exists", exception);
+        log.error("Object already exists: " + exception.getMessage(), exception);
         return createHttpResponse(CONFLICT, exception.getMessage());
     }
 
     @ExceptionHandler(ObjectNotFoundException.class)
     public ResponseEntity<HttpResponse> notFoundException(ObjectNotFoundException exception) {
-        log.error("Object not found", exception);
+        log.error("Object not found: " + exception.getMessage(), exception);
         return createHttpResponse(NOT_FOUND, exception.getMessage());
     }
 
     @ExceptionHandler(ObjectCanNotBeDeletedException.class)
     public ResponseEntity<HttpResponse> canNotBeDeletedException(ObjectCanNotBeDeletedException exception) {
-        log.error("Object can not be deleted", exception);
+        log.error("Object can not be deleted: " + exception.getMessage(), exception);
         return createHttpResponse(LOCKED, exception.getMessage());
     }
 
     @ExceptionHandler(ObjectNotValidException.class)
     public ResponseEntity<HttpResponse> notValidException(ObjectNotValidException exception) {
-        log.error("Object not valid", exception);
+        log.error("Object not valid: " + exception.getMessage(), exception);
         return createHttpResponse(NOT_FOUND, exception.getMessage());
     }
 
@@ -82,13 +82,13 @@ public class ExceptionHandling implements ErrorController {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<HttpResponse> internalServerErrorException(Exception exception) {
-        log.error("Internal server error", exception);
+        log.error("Internal server error: " + exception.getMessage(), exception);
         return createHttpResponse(INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR_MSG);
     }
 
     @ExceptionHandler(NoResultException.class)
     public ResponseEntity<HttpResponse> notFoundException(NoResultException exception) {
-        log.error("No result found", exception);
+        log.error("No result found: " + exception.getMessage(), exception);
         return createHttpResponse(NOT_FOUND, exception.getMessage());
     }
 
@@ -100,13 +100,13 @@ public class ExceptionHandling implements ErrorController {
 
     @RequestMapping(ERROR_PATH)
     public ResponseEntity<HttpResponse> notFound404(Exception exception) {
-        log.error("Not found", exception);
+        log.error("Not found: " + exception.getMessage(), exception);
         return createHttpResponse(NOT_FOUND, "There is no mapping for this URL");
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<HttpResponse> runtimeException(RuntimeException exception) {
-        log.error("RuntimeException", exception);
+        log.error("RuntimeException: " + exception.getMessage(), exception);
 //        return createHttpResponse(INTERNAL_SERVER_ERROR, ERROR_PROCESSING_FILE);
         return createHttpResponse(INTERNAL_SERVER_ERROR, exception.getMessage());
     }

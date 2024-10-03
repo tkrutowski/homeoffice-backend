@@ -1,5 +1,6 @@
 package net.focik.homeoffice.userservice.domain.port.primary;
 
+
 import net.focik.homeoffice.userservice.domain.AppUser;
 
 public interface IAddNewUserUseCase {

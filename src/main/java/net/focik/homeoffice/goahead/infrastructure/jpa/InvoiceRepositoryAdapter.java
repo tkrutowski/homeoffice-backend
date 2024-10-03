@@ -23,7 +23,6 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
     private final JpaInvoiceMapper mapper;
 
     @Override
-    @Transactional
     public Invoice save(Invoice invoice) {
         List<InvoiceItem> invoiceItems = invoice.getInvoiceItems();
         InvoiceDbDto dbDto = mapper.toDto(invoice);
@@ -31,7 +30,7 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
         invoiceItems.forEach(item -> item.setIdInvoice(saved.getIdInvoice()));
 
         List<InvoiceItemDbDto> dtoList = invoiceItems.stream()
-                .map(invoiceItem -> mapper.toDto(invoiceItem))
+                .map(mapper::toDto)
                 .collect(Collectors.toList());
         invoiceItemDtoRepository.saveAll(dtoList);
 

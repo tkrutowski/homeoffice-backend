@@ -1,5 +1,6 @@
 package net.focik.homeoffice.userservice.domain.port.primary;
 
-public interface IAddRoleToUserUseCase {
+
+public interface AddPrivilegeUseCase {
     void addRoleToUser(Long idUser, Long idRole);
 }

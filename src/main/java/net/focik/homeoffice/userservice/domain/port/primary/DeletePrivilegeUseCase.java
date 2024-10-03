@@ -1,5 +1,5 @@
 package net.focik.homeoffice.userservice.domain.port.primary;
 
-public interface IDeleteUsersRoleUseCase {
+public interface DeletePrivilegeUseCase {
     void deleteUsersRoleById(Long id, Long idRole);
 }
