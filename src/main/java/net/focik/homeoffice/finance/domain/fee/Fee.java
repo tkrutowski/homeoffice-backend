@@ -7,6 +7,7 @@ import net.focik.homeoffice.finance.domain.payment.Payment;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import net.focik.homeoffice.utils.share.PaymentType;
 import org.javamoney.moneta.Money;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,10 +25,12 @@ public class Fee implements FinancialTransaction {
     private int idUser;
     private String name;
     private String feeNumber;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
     private FeeFrequencyEnum feeFrequency;
     private Integer numberOfPayments;//ile razy pobrać
     private Money amount;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate firstPaymentDate;
     private String accountNumber;
     private PaymentStatus feeStatus;

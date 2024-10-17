@@ -4,6 +4,8 @@ import lombok.*;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -23,9 +25,11 @@ public class LoanDbDto {
     private BankDbDto bank;
     private Integer idUser;
     private BigDecimal amount;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
     private String loanNumber;
     private String accountNumber;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate firstPaymentDate;
     private Integer numberOfInstallments;
     private BigDecimal installmentAmount;

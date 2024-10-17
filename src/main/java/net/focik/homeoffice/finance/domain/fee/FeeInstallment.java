@@ -6,6 +6,7 @@ import lombok.ToString;
 import net.focik.homeoffice.finance.domain.payment.Installment;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.javamoney.moneta.Money;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
@@ -17,7 +18,9 @@ public class FeeInstallment implements Installment {
     private int idFee;
     private Money installmentAmountToPay;
     private Money installmentAmountPaid;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate paymentDeadline;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate paymentDate;
     private PaymentStatus paymentStatus;
 

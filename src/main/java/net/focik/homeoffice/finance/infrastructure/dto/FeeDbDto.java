@@ -5,6 +5,8 @@ import net.focik.homeoffice.finance.domain.fee.FeeFrequencyEnum;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -25,9 +27,11 @@ public class FeeDbDto {
     private Integer idUser;
     private String name;
     private BigDecimal amount;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
     private String feeNumber;
     private String accountNumber;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate firstPaymentDate;
     private Integer numberOfPayments;
     @Enumerated(EnumType.STRING)

@@ -70,7 +70,7 @@ public class ExceptionHandling implements ErrorController {
     @ExceptionHandler(ObjectNotValidException.class)
     public ResponseEntity<HttpResponse> notValidException(ObjectNotValidException exception) {
         log.error("Object not valid: " + exception.getMessage(), exception);
-        return createHttpResponse(NOT_FOUND, exception.getMessage());
+        return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)

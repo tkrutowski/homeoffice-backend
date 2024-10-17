@@ -23,7 +23,8 @@ class CardRepositoryAdapter implements CardRepository {
 
     @Override
     public Card saveCard(Card card) {
-        CardDbDto saved = cardDtoRepository.save(mapper.toDto(card));
+        CardDbDto dbDto = mapper.toDto(card);
+        CardDbDto saved = cardDtoRepository.save(dbDto);
         return mapper.toDomain(saved);
     }
 
@@ -38,6 +39,14 @@ class CardRepositoryAdapter implements CardRepository {
     public List<Card> findCardByUserId(Integer idUser) {
 
         List<CardDbDto> allByIdUser = cardDtoRepository.findAllByIdUser(idUser);
+        return allByIdUser.stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Card> findCardByName(String cardName) {
+        List<CardDbDto> allByIdUser = cardDtoRepository.findAllByCardName(cardName);
         return allByIdUser.stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());

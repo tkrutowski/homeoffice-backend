@@ -40,28 +40,24 @@ public class CardController extends ExceptionHandling {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('FINANCE_READ_ALL', 'FINANCE_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<CardDto> getById(@PathVariable int id) {
-
-        log.info("Try find card by id: " + id);
-
+        log.info("Request to get card by id: {}", id);
         Card card = getCardUseCase.findById(id);
 
-        log.info(card != null ? "Found card for id = " + id : "Not found card for id = " + id);
-
-        if (card == null)
+        if (card == null){
+            log.warn("No card found with id: {}", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
 
+        log.info("Card found: {}", card);
         return new ResponseEntity<>(mapper.toDto(card), OK);
     }
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('FINANCE_READ_ALL') or hasAnyRole('ROLE_ADMIN', 'ROLE_FINANCE')")
     ResponseEntity<List<CardDto>> getAll(@RequestParam(required = false) ActiveStatus status) {
-        log.info("Try get all card for status " + status);
-
+        log.info("Request to get all card with status: {} ", status);
         List<Card> cardsByStatus = getCardUseCase.findByStatus(status);
-
-        log.info("Found " + cardsByStatus.size() + " cards.");
-
+        log.info("Found {} cards with status:{}",cardsByStatus.size() , status);
         return new ResponseEntity<>(cardsByStatus.stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList()), OK);
@@ -70,12 +66,9 @@ public class CardController extends ExceptionHandling {
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasAnyAuthority('FINANCE_READ_ALL', 'FINANCE_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<List<CardDto>> getByUser(@PathVariable int userId, @RequestParam(required = false) ActiveStatus status) {
-        log.info("Try get all card for status " + status);
-
+        log.info("Request to get all card with status: {} for user with ID: {}", status, userId);
         List<Card> cardsByUser = getCardUseCase.findByUserAndStatus(userId, status);
-
-        log.info("Found " + cardsByUser.size() + " cards.");
-
+        log.info("Found {} cards with status:{} for user with ID: {}",cardsByUser.size() , status, userId);
         return new ResponseEntity<>(cardsByUser.stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList()), OK);
@@ -84,45 +77,44 @@ public class CardController extends ExceptionHandling {
     @PostMapping
     @PreAuthorize("hasAnyAuthority('FINANCE_WRITE_ALL', 'FINANCE_WRITE') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<CardDto> addCard(@RequestBody CardDto cardDto) {
-        log.info("Try add new card.");
+        log.info("Request to add a new card received with data: {}", cardDto);
 
-        Card card = mapper.toDomain(cardDto);
-        Card result = addCardUseCase.addCard(card);
+        Card cardToAdd = mapper.toDomain(cardDto);
+        log.debug("Mapped Card DTO to domain object: {}", cardToAdd);
 
-        log.info(result.getId() > 0 ? "Card added with id = " + result : "No card added!");
+        Card addedCard = addCardUseCase.addCard(cardToAdd);
+        log.info("Card added successfully: {}", addedCard);
 
-        if (result.getId() <= 0)
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-
-        return new ResponseEntity<>(mapper.toDto(result), HttpStatus.CREATED);
+        return new ResponseEntity<>(mapper.toDto(addedCard), HttpStatus.CREATED);
     }
 
     @PutMapping
     @PreAuthorize("hasAnyAuthority('FINANCE_WRITE_ALL', 'FINANCE_WRITE') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<CardDto> updateCard(@RequestBody CardDto cardDto) {
-        log.info("Try update card with id: {}", cardDto.getId());
+        log.info("Request to edit a card received with data: {}", cardDto);
 
-        Card card = updateCardUseCase.updateCard(mapper.toDomain(cardDto));
-        return new ResponseEntity<>(mapper.toDto(card), OK);
+        Card updatedCard = updateCardUseCase.updateCard(mapper.toDomain(cardDto));
+        log.info("Card updated successfully: {}", updatedCard);
+        return new ResponseEntity<>(mapper.toDto(updatedCard), OK);
     }
 
     @PutMapping("/status/{id}")
     @PreAuthorize("hasAnyAuthority('FINANCE_WRITE_ALL', 'FINANCE_WRITE') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<HttpResponse> updateCardStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
-        log.info("Try update perchase status.");
+        log.info("Request to update card status with ID: {}, new status: {}", id, basicDto);
 
         updateCardUseCase.updateCardStatus(id, ActiveStatus.valueOf(basicDto.getValue()));
+        log.info("Card status updated successfully");
         return response(HttpStatus.OK, "Zaaktualizowano status karty.");
     }
 
     @DeleteMapping("/{idCard}")
     @PreAuthorize("hasAnyAuthority('FINANCE_DELETE_ALL', 'FINANCE_DELETE') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<HttpResponse> deleteCard(@PathVariable int idCard) {
-        log.info("Try delete card with id: " + idCard);
+        log.info("Request to delete card with id: {}", idCard);
 
         deleteCardUseCase.deleteCard(idCard);
-
-        log.info("Deleted bank with id = " + idCard);
+        log.info("Card with id: {} deleted successfully", idCard);
 
         return response(HttpStatus.NO_CONTENT, "Karta usunięty.");
     }

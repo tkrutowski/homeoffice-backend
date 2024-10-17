@@ -61,7 +61,7 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
         String existingTitles = bookService.findAllBooksInSeries(series).stream()
                 .map(Book::getTitle)
                 .collect(Collectors.joining(";"));
-        log.debug("Found new books in series with titles {}", existingTitles);
+        log.debug("Found existing books in series with titles {}", existingTitles);
         List<Book> booksInSeries = scraperService.findBooksInSeries(urlSeries, existingTitles);
         log.debug("Found new books in series with titles {}", booksInSeries.stream().map(Book::getTitle).collect(Collectors.joining(";")));
 
@@ -206,7 +206,7 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
                 .filter(series -> !series.getHasNewBooks())
                 .toList();
 
-        log.debug("Series to process: {}", seriesToProcess.size());
+        log.info("Series to process: {}", seriesToProcess.size());
         try (ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor()) {
             for (int i = 0; i < seriesToProcess.size(); i++) {
                 Optional<String[]> urlsOptional = Optional.ofNullable(seriesToProcess.get(i).getUrl())

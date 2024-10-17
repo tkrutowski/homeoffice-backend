@@ -1,6 +1,6 @@
 package net.focik.homeoffice.library.domain.scraper;
 
-import net.focik.homeoffice.library.domain.exception.ScraperBlockedException;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.model.BookDto;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
+@Slf4j
 @Component
 public class LegimiScrapper implements Scraper{
 
@@ -32,7 +32,7 @@ public class LegimiScrapper implements Scraper{
                         .collect(Collectors.toList());
             }
         } catch (Exception exception) {
-            throw new ScraperBlockedException(exception.getMessage());
+            log.error(exception.getMessage());
         }
 
         return booksUrl;
@@ -64,7 +64,7 @@ public class LegimiScrapper implements Scraper{
             }
 
         } catch (Exception exception) {
-            throw new ScraperBlockedException(exception.getMessage());
+            log.error(exception.getMessage());
         }
         return book;
     }

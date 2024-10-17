@@ -57,6 +57,11 @@ public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase
     }
 
     @Override
+    public List<Purchase> findByCard(int idCard) {
+        return purchaseService.findByCard(idCard);
+    }
+
+    @Override
     public Map<LocalDate, List<Purchase>> findByUserMap(String userName, PaymentStatus paymentStatus, LocalDate date) {
         AppUser user = userFacade.findUserByUsername(userName);
         List<Purchase> purchasesByUser = purchaseService.findPurchasesByUser(Math.toIntExact(user.getId()), paymentStatus, date);

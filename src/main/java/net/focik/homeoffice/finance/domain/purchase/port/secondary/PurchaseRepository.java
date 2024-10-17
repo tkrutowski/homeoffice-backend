@@ -1,6 +1,5 @@
 package net.focik.homeoffice.finance.domain.purchase.port.secondary;
 
-import net.focik.homeoffice.finance.domain.card.Card;
 import net.focik.homeoffice.finance.domain.purchase.Purchase;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.stereotype.Component;
@@ -22,6 +21,8 @@ public interface PurchaseRepository {
     List<Purchase> findPurchaseByUserIdAndDeadline(Integer idUser, LocalDate deadline);
 
     List<Purchase> findAll();
+
+    List<Purchase> findByCard(Integer idCard);
 
     void deletePurchaseById(int idCard);
 

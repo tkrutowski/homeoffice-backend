@@ -7,6 +7,7 @@ import net.focik.homeoffice.finance.domain.payment.Payment;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import net.focik.homeoffice.utils.share.PaymentType;
 import org.javamoney.moneta.Money;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,9 +25,11 @@ public class Loan implements FinancialTransaction {
     private int idUser;
     private String name;
     private Money amount;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
     private String loanNumber;
     private String accountNumber;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate firstPaymentDate;
     private Integer numberOfInstallments;
     private Money installmentAmount;

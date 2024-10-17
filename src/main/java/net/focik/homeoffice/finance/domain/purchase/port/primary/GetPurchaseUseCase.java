@@ -12,6 +12,7 @@ public interface GetPurchaseUseCase {
     Purchase findById(int idPurchase);
 
     List<Purchase> findByUser(String userName, PaymentStatus paymentStatus, LocalDate date);
+    List<Purchase> findByCard(int idCard);
     Map<LocalDate, List<Purchase>> findByUserMap(String userName, PaymentStatus paymentStatus, LocalDate date);
     Map<LocalDate, List<Purchase>> findByUserMap(Integer userId, PaymentStatus paymentStatus, LocalDate date);
 

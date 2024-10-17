@@ -68,6 +68,13 @@ class PurchaseRepositoryAdapter implements PurchaseRepository {
     }
 
     @Override
+    public List<Purchase> findByCard(Integer idCard) {
+        return purchaseDtoRepository.findAllByIdCard(idCard).stream()
+                .map(loanDto -> mapper.toDomain(loanDto))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public void deletePurchaseById(int idLoan) {
         purchaseDtoRepository.deleteById(idLoan);
     }

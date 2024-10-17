@@ -20,14 +20,15 @@ public class ApiCardMapper {
                 .idBank(dto.getIdBank())
                 .idUser(dto.getIdUser())
                 .cardName(dto.getName())
-                .activationDate(LocalDate.parse(dto.getActivationDate()))
-                .limit(BigDecimal.valueOf(Double.parseDouble(dto.getLimit())))
+                .activationDate(dto.getActivationDate())
+                .limit(dto.getLimit())
                 .repaymentDay(dto.getRepaymentDay())
-                .expirationDate(calculateDate(dto.getExpirationDate()))
+                .expirationDate(calculateDate(dto.getExpirationDate().toString()))
                 .otherInfo(dto.getOtherInfo())
                 .activeStatus(ActiveStatus.valueOf(dto.getActiveStatus()))
                 .cardNumber(dto.getCardNumber())
                 .closingDay(dto.getClosingDay())
+                .imageUrl(dto.getImageUrl())
                 .build();
     }
 
@@ -46,23 +47,24 @@ public class ApiCardMapper {
                 .idBank(card.getIdBank())
                 .idUser(card.getIdUser())
                 .name(card.getCardName())
-                .activationDate(card.getActivationDate().toString())
-                .limit(String.format("%.2f", card.getLimit()).replace(",", "."))
+                .activationDate(card.getActivationDate())
+                .limit(card.getLimit())
                 .repaymentDay(card.getRepaymentDay())
-                .expirationDate(card.getExpirationDate().toString())
+                .expirationDate(card.getExpirationDate())
                 .otherInfo(card.getOtherInfo() == null ? "" : card.getOtherInfo())
                 .activeStatus(card.getActiveStatus().toString())
                 .cardNumber(card.getCardNumber())
                 .closingDay(card.getClosingDay())
+                .imageUrl(card.getImageUrl())
                 .build();
     }
 
     private void valid(CardDto dto) {
         if (dto.getIdUser() == 0)
             throw new LoanNotValidException("IdUser can't be null.");
-        if (dto.getActivationDate().isEmpty())
-            throw new LoanNotValidException("Date can't be empty.");
-        if (dto.getExpirationDate().isEmpty())
-            throw new LoanNotValidException("Date can't be empty.");
+//        if (dto.getActivationDate())
+//            throw new LoanNotValidException("Date can't be empty.");
+//        if (dto.getExpirationDate().isEmpty())
+//            throw new LoanNotValidException("Date can't be empty.");
     }
 }

@@ -11,6 +11,8 @@ interface PurchaseDtoRepository extends JpaRepository<PurchaseDbDto, Integer> {
 
     List<PurchaseDbDto> findAllByIdUser(Integer idUser);
 
+    List<PurchaseDbDto> findAllByIdCard(Integer idCard);
+
     List<PurchaseDbDto> findAllByIdUserAndPaymentStatus(Integer idUser, PaymentStatus status);
 
     List<PurchaseDbDto> findAllByIdUserAndPaymentDeadline(Integer idUser, LocalDate deadline);

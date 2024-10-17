@@ -21,6 +21,7 @@ public class JpaCardMapper {
                 .activeStatus(card.getActiveStatus())
                 .cardNumber(card.getCardNumber())
                 .closingDay(card.getClosingDay())
+                .imageUrl(card.getImageUrl())
                 .build();
     }
 
@@ -38,6 +39,7 @@ public class JpaCardMapper {
                 .activeStatus(dto.getActiveStatus())
                 .cardNumber(dto.getCardNumber())
                 .closingDay(dto.getClosingDay())
+                .imageUrl(dto.getImageUrl())
                 .build();
     }
 }

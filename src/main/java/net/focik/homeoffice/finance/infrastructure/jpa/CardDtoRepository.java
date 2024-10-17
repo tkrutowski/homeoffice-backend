@@ -9,4 +9,5 @@ import java.util.Optional;
 interface CardDtoRepository extends JpaRepository<CardDbDto, Integer> {
 
     List<CardDbDto> findAllByIdUser(Integer idUser);
+    List<CardDbDto> findAllByCardName(String name);
 }

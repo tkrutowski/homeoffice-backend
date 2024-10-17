@@ -49,7 +49,7 @@ class PurchaseService {
         deadlines.forEach(date -> list.addAll(purchaseRepository.findPurchaseByUserIdAndDeadline(idUser,date)
                 .stream()
                 .filter(purchase -> purchase.getPaymentStatus().equals(PaymentStatus.TO_PAY))
-                .collect(Collectors.toList())));
+                .toList()));
         return list;
     }
 
@@ -84,5 +84,9 @@ class PurchaseService {
         if (Objects.equals(purchase.getAmount(), BigDecimal.ZERO))
             return true;
         return purchase.getPurchaseDate() == null && purchase.getPaymentDeadline() == null && purchase.getPaymentDate() == null;
+    }
+
+    public List<Purchase> findByCard(int idCard) {
+        return purchaseRepository.findByCard(idCard);
     }
 }

@@ -1,8 +1,7 @@
 package net.focik.homeoffice.library.domain.scraper;
 
-import net.focik.homeoffice.library.domain.exception.ScraperBlockedException;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.model.BookDto;
-import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -15,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 public class UpolujebookaScrapper implements Scraper{
 
@@ -37,7 +37,7 @@ public class UpolujebookaScrapper implements Scraper{
                         .collect(Collectors.toList());
             }
         }catch (Exception exception) {
-            throw new ScraperBlockedException(exception.getMessage());
+            log.error(exception.getMessage());
         }
 
         return booksUrl;
@@ -81,7 +81,7 @@ public class UpolujebookaScrapper implements Scraper{
 
             }
         } catch (Exception exception) {
-            throw new ScraperBlockedException(exception.getMessage());
+            log.error(exception.getMessage());
         }
         return book;
     }

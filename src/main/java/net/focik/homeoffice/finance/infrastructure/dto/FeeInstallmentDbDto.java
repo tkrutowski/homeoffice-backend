@@ -4,6 +4,8 @@ import lombok.*;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -23,7 +25,9 @@ public class FeeInstallmentDbDto {
     private BigDecimal installmentAmountToPay;
     @Column(name = "amount_paid")
     private BigDecimal installmentAmountPaid;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate paymentDeadline;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate paymentDate;
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;

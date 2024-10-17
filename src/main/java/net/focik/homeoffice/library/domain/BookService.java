@@ -17,6 +17,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -25,10 +26,13 @@ class BookService {
     private final BookRepository bookRepository;
     @Value("${covers.directory}")
     private final String coverCatalogUrl;
+    @Value("${covers.url}")
+    private final String homeUrl;
 
-    BookService(BookRepository bookRepository, @Value("${covers.directory}") String coverCatalogUrl) {
+    BookService(BookRepository bookRepository, @Value("${covers.directory}") String coverCatalogUrl,  @Value("${covers.url}")String homeUrl) {
         this.bookRepository = bookRepository;
         this.coverCatalogUrl = coverCatalogUrl;
+        this.homeUrl = homeUrl;
     }
 
     public Book addBook(Book book) {
@@ -63,16 +67,17 @@ class BookService {
             String path = url.getPath();
             String extension = path.substring(path.lastIndexOf("."));
 
-            String fileName = "cover_" + title.trim().replace(" ", "_") + extension; // Generowanie unikalnej nazwy pliku
+            String fileName = title.trim().replace(" ", "_") + UUID.randomUUID() + extension; // Generowanie unikalnej nazwy pliku
             File outputFile = new File(coverCatalogUrl + "/" + fileName);
             // Pobierz plik z URL i zapisz go na dysku
             FileUtils.copyURLToFile(url, outputFile, 10000, 10000);
 
-            return "https://focikhome.synology.me/covers/" + fileName;
+            return homeUrl + fileName;
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error downloading ans saving image (return null)",e);
             return null;
         } catch (URISyntaxException e) {
+            log.error("Error downloading ans saving image",e);
             throw new RuntimeException(e);
         }
     }

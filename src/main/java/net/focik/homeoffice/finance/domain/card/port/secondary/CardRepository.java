@@ -14,6 +14,8 @@ public interface CardRepository {
 
     List<Card> findCardByUserId(Integer idUser);
 
+    List<Card> findCardByName(String cardName);
+
     List<Card> findAll();
 
     void deleteCardById(int idCard);
