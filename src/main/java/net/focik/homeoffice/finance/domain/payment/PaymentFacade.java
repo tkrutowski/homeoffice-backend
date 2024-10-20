@@ -34,7 +34,7 @@ public class PaymentFacade {
 
         boolean hasAdminAccess = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN") ||
-                        (grantedAuthority.getAuthority().equals("FINANCE_FEE_READ_ALL") && grantedAuthority.getAuthority().equals("FINANCE_LOAN_READ_ALL")));
+                        (grantedAuthority.getAuthority().equals("FINANCE_PAYMENT_READ_ALL")));
 
         if (hasAdminAccess) {
             List<Fee> fees = feeFacade.getFeesByStatus(paymentStatus, true);

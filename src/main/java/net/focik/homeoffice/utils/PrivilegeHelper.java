@@ -14,6 +14,10 @@ public class PrivilegeHelper {
 
     public static final String FINANCE_FEE_READ_ALL = "FINANCE_FEE_READ_ALL";
     public static final String FINANCE_FEE_READ = "FINANCE_FEE_READ";
+    public static final String FINANCE_LOAN_READ_ALL = "FINANCE_LOAN_READ_ALL";
+    public static final String FINANCE_LOAN_READ = "FINANCE_LOAN_READ";
+    public static final String FINANCE_PAYMENT_READ_ALL = "FINANCE_PAYMENT_READ_ALL";
+    public static final String FINANCE_PAYMENT_READ = "FINANCE_PAYMENT_READ";
 
     public static final String GO_INVOICE_DELETE_ALL = "GO_INVOICE_DELETE_ALL";
     public static final String GO_INVOICE_READ_ALL = "GOAHEAD_READ_ALL";

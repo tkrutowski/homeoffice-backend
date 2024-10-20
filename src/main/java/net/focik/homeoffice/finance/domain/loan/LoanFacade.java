@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static net.focik.homeoffice.utils.PrivilegeHelper.*;
+
 @AllArgsConstructor
 @Component
 public class LoanFacade implements AddLoanUseCase, GetLoanUseCase, UpdateLoanUseCase, DeleteLoanUseCase {
@@ -49,7 +51,9 @@ public class LoanFacade implements AddLoanUseCase, GetLoanUseCase, UpdateLoanUse
     @Override
     public List<Loan> getLoansByStatus(PaymentStatus loanStatus, boolean withInstallment) {
         boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN") || grantedAuthority.getAuthority().equals("HR_FINANCE_LOAN_READ_ALL"));
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(ROLE_ADMIN)
+                        || grantedAuthority.getAuthority().equals(FINANCE_LOAN_READ_ALL)
+                        || grantedAuthority.getAuthority().equals(FINANCE_PAYMENT_READ_ALL));
 
         if (isAdmin) {
             return loanService.findLoansByStatus(loanStatus, withInstallment);
