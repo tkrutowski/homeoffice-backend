@@ -4,9 +4,8 @@ import net.focik.homeoffice.finance.api.dto.FirmDto;
 import net.focik.homeoffice.finance.domain.firm.Firm;
 import org.springframework.stereotype.Component;
 
-@Component
 public class ApiFirmMapper {
-    public Firm toDomain(FirmDto dto) {
+    public static Firm toDomain(FirmDto dto) {
         Firm build = Firm.builder()
                 .id(dto.getId())
                 .name(dto.getName())
@@ -20,7 +19,7 @@ public class ApiFirmMapper {
         return build;
     }
 
-    public FirmDto toDto(Firm c) {
+    public static FirmDto toDto(Firm c) {
         return FirmDto.builder()
                 .id(c.getId())
                 .name(c.getName())
@@ -36,7 +35,7 @@ public class ApiFirmMapper {
                 .build();
     }
 
-    private String convertIfNull(String valueToCheck) {
+    private static String convertIfNull(String valueToCheck) {
         return valueToCheck == null ? "" : valueToCheck;
     }
 }

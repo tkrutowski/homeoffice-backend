@@ -28,7 +28,6 @@ import static org.springframework.http.HttpStatus.OK;
 //@CrossOrigin
 public class FirmController extends ExceptionHandling {
 
-    private final ApiFirmMapper mapper;
     private final AddFirmUseCase addFirmUseCase;
     private final UpdateFirmUseCase updateFirmUseCase;
     private final GetFirmUseCase getFirmUseCase;
@@ -49,7 +48,7 @@ public class FirmController extends ExceptionHandling {
         if (firm == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(mapper.toDto(firm), OK);
+        return new ResponseEntity<>(ApiFirmMapper.toDto(firm), OK);
     }
 
     @GetMapping()
@@ -62,7 +61,7 @@ public class FirmController extends ExceptionHandling {
         log.info("Found " + firmList.size() + " firms.");
 
         return new ResponseEntity<>(firmList.stream()
-                .map(mapper::toDto)
+                .map(ApiFirmMapper::toDto)
                 .collect(Collectors.toList()), OK);
     }
 
@@ -71,7 +70,7 @@ public class FirmController extends ExceptionHandling {
     public ResponseEntity<FirmDto> addFirm(@RequestBody FirmDto firmDto) {
         log.info("Try add new firm.");
 
-        Firm firm = mapper.toDomain(firmDto);
+        Firm firm = ApiFirmMapper.toDomain(firmDto);
         Firm result = addFirmUseCase.addFirm(firm);
 
         log.info(result.getId() > 0 ? "Firm added with id = " + result : "No firm added!");
@@ -79,7 +78,7 @@ public class FirmController extends ExceptionHandling {
         if (result.getId() <= 0)
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
 
-        return new ResponseEntity<>(mapper.toDto(result), HttpStatus.CREATED);
+        return new ResponseEntity<>(ApiFirmMapper.toDto(result), HttpStatus.CREATED);
     }
 
     @PutMapping
@@ -87,8 +86,8 @@ public class FirmController extends ExceptionHandling {
     public ResponseEntity<FirmDto> updateFirm(@RequestBody FirmDto firmDto) {
         log.info("Try update firm with id: {}", firmDto.getId());
 
-        Firm firm = updateFirmUseCase.updateFirm(mapper.toDomain(firmDto));
-        return new ResponseEntity<>(mapper.toDto(firm), OK);
+        Firm firm = updateFirmUseCase.updateFirm(ApiFirmMapper.toDomain(firmDto));
+        return new ResponseEntity<>(ApiFirmMapper.toDto(firm), OK);
     }
 
     @DeleteMapping("/{idFirm}")
