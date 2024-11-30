@@ -28,7 +28,7 @@ public class LogsController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('LOGS_READ_ALL','LOGS_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<List<LogEntry>> getTodayLogs(@RequestParam(value = "levels", required = false) Set<LogLevel> levels) {
-        log.info("Request to get today's logs: {}", levels);
+        log.info("Request to get today's logs: levels = {}", levels);
         List<LogEntry> logs = getLogsUseCase.getLogs(levels);
         if (logs.isEmpty()) {
             log.info("No logs found.");
