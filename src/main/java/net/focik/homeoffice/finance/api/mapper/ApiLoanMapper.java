@@ -92,7 +92,7 @@ public class ApiLoanMapper {
                 .installmentAmountToPay(l.getInstallmentAmountToPay().getNumber().doubleValue())
                 .installmentAmountPaid(l.getInstallmentAmountPaid().getNumber().doubleValue())
                 .paymentDeadline(l.getPaymentDeadline())
-                .paymentDate(l.getPaymentDate() != null ? l.getPaymentDate() : LocalDate.MIN)
+                .paymentDate(l.getPaymentDate())
                 .paymentStatus(new PaymentStatusDto(l.getPaymentStatus().toString(), l.getPaymentStatus().getViewValue()))
                 .build();
     }

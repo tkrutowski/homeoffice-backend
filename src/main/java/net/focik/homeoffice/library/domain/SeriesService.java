@@ -100,4 +100,10 @@ public class SeriesService {
             return new ObjectNotSavedException("Cykl nie zapisany: " + series.getTitle());
         });
     }
+
+    public void updateSeries(Series series, boolean hasNewBooks) {
+        log.debug("Trying to update series status with id: {}, and status: {}", series.getId(), hasNewBooks);
+        series.setHasNewBooks(hasNewBooks);
+        updateSeries(series);
+    }
 }

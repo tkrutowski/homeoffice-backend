@@ -161,7 +161,11 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
 
     @Override
     public UserBook updateUserBook(UserBook userBook) {
-        return userBookService.updateUserBook(userBook);
+        UserBook updatedUserBook = userBookService.updateUserBook(userBook);
+        if(updatedUserBook.getReadingStatus().equals(ReadingStatus.READ)) {
+            seriesService.updateSeries(updatedUserBook.getBook().getSeries(), false);
+        }
+        return updatedUserBook;
     }
 
     @Override

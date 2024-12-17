@@ -99,8 +99,8 @@ public class PurchaseController extends ExceptionHandling {
     public ResponseEntity<PurchaseDto> addPurchase(@RequestBody PurchaseDto purchaseDto) {
         log.info("Try add new purchase.");
 
-        Purchase card = mapper.toDomain(purchaseDto);
-        Purchase result = addPurchaseUseCase.addPurchase(card);
+        Purchase purchase = mapper.toDomain(purchaseDto);
+        Purchase result = addPurchaseUseCase.addPurchase(purchase);
 
         log.info(result.getId() > 0 ? "purchase added with id = " + result : "No purchase added!");
 

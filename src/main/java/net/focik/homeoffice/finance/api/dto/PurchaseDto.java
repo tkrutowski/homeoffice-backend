@@ -1,7 +1,10 @@
 package net.focik.homeoffice.finance.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+
+import java.time.LocalDate;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,10 +17,13 @@ public class PurchaseDto {
     private int idFirm;
     private int idUser;
     private String name;
-    private String purchaseDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Europe/Warsaw")
+    private LocalDate purchaseDate;
     private String amount;
-    private String paymentDeadline;
-    private String paymentDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Europe/Warsaw")
+    private LocalDate paymentDeadline;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Europe/Warsaw")
+    private LocalDate paymentDate;
     private String otherInfo;
     private PaymentStatusDto paymentStatus;
     @JsonProperty("installment")

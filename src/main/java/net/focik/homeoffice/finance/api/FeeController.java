@@ -1,13 +1,8 @@
 package net.focik.homeoffice.finance.api;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import net.focik.homeoffice.finance.api.dto.BasicDto;
-import net.focik.homeoffice.finance.api.dto.FeeDto;
-import net.focik.homeoffice.finance.api.dto.FeeInstallmentDto;
-import net.focik.homeoffice.finance.api.dto.FrequencyDto;
+import net.focik.homeoffice.finance.api.dto.*;
 import net.focik.homeoffice.finance.api.mapper.ApiFeeMapper;
 import net.focik.homeoffice.finance.domain.fee.Fee;
 import net.focik.homeoffice.finance.domain.fee.FeeFrequencyEnum;
@@ -92,10 +87,10 @@ class FeeController {
     }
 
     @GetMapping("/frequency")
-    ResponseEntity<List<FrequencyDto>> getFrequency() {
+    ResponseEntity<List<FeeFrequencyDto>> getFrequency() {
         FeeFrequencyEnum[] collect = (FeeFrequencyEnum.values());
-        List<FrequencyDto> statusDtos = Arrays.stream(collect)
-                .map(type -> new FrequencyDto(type.name(), type.getViewValue()))
+        List<FeeFrequencyDto> statusDtos = Arrays.stream(collect)
+                .map(type -> new FeeFrequencyDto(type.name(), type.getViewValue(), type.getFrequencyNumber()))
                 .collect(Collectors.toList());
         return new ResponseEntity<>(statusDtos, OK);
     }

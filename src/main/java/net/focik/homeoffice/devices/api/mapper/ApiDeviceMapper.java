@@ -9,8 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
-import static net.focik.homeoffice.utils.share.Commons.MIN_LOCAL_DATE;
-
 @Component
 @RequiredArgsConstructor
 public class ApiDeviceMapper {
@@ -40,10 +38,10 @@ public class ApiDeviceMapper {
                 .name(dev.getName())
                 .purchaseDate(dev.getPurchaseDate())
                 .purchaseAmount(dev.getPurchaseAmount().getNumber().doubleValue())
-                .sellDate(dev.getSellDate() != null ? dev.getSellDate() : MIN_LOCAL_DATE)
+                .sellDate(dev.getSellDate())
                 .sellAmount(dev.getSellAmount().getNumber().doubleValue())
-                .warrantyEndDate(dev.getWarrantyEndDate() != null ? dev.getWarrantyEndDate() : MIN_LOCAL_DATE)
-                .insuranceEndDate(dev.getInsuranceEndDate() != null ? dev.getInsuranceEndDate() : MIN_LOCAL_DATE)
+                .warrantyEndDate(dev.getWarrantyEndDate())
+                .insuranceEndDate(dev.getInsuranceEndDate())
                 .otherInfo(dev.getOtherInfo())
                 .activeStatus(dev.getActiveStatus())
                 .build();

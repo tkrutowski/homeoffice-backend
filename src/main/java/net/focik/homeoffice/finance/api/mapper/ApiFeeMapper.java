@@ -68,7 +68,7 @@ public class ApiFeeMapper {
                 .installmentAmountToPay(fee.getInstallmentAmountToPay().getNumber().doubleValue())
                 .installmentAmountPaid(fee.getInstallmentAmountPaid().getNumber().doubleValue())
                 .paymentDeadline(fee.getPaymentDeadline())
-                .paymentDate(fee.getPaymentDate() != null ? fee.getPaymentDate() : LocalDate.MIN)
+                .paymentDate(fee.getPaymentDate())
                 .paymentStatus(new PaymentStatusDto(fee.getPaymentStatus().toString(), fee.getPaymentStatus().getViewValue()))
                 .build();
     }
