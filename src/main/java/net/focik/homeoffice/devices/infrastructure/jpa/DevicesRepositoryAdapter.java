@@ -2,7 +2,6 @@ package net.focik.homeoffice.devices.infrastructure.jpa;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.focik.homeoffice.devices.domain.model.Computer;
 import net.focik.homeoffice.devices.domain.model.Device;
 import net.focik.homeoffice.devices.domain.port.secondary.DeviceRepository;
 import net.focik.homeoffice.devices.infrastructure.dto.DeviceDbDto;
@@ -20,11 +19,6 @@ public class DevicesRepositoryAdapter implements DeviceRepository {
 
     private final DevicesDtoRepository devicesDtoRepository;
     private final JpaDeviceMapper mapper;
-
-    @Override
-    public Computer saveComputer(Computer computer) {
-            return null;
-    }
 
     @Override
     public Device saveDevice(Device device) {
@@ -49,16 +43,6 @@ public class DevicesRepositoryAdapter implements DeviceRepository {
                 .map(mapper::toDomain)
                 .peek(devicesDto -> log.debug("Mapped device {}", devicesDto))
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Computer> findAllComputers() {
-        return List.of();
-    }
-
-    @Override
-    public List<Computer> findComputersByUser(int userId) {
-        return List.of();
     }
 
     @Override

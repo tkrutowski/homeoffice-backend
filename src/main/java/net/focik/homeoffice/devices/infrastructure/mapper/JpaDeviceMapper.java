@@ -7,6 +7,7 @@ import net.focik.homeoffice.devices.infrastructure.dto.DeviceDbDto;
 import net.focik.homeoffice.devices.infrastructure.dto.DeviceTypeDbDto;
 import net.focik.homeoffice.finance.domain.firm.Firm;
 import net.focik.homeoffice.finance.infrastructure.dto.FirmDbDto;
+import net.focik.homeoffice.utils.StringHelper;
 import org.javamoney.moneta.Money;
 import org.javamoney.moneta.spi.MoneyUtils;
 import org.modelmapper.ModelMapper;
@@ -31,6 +32,8 @@ public class JpaDeviceMapper {
                 .insuranceEndDate(device.getInsuranceEndDate())
                 .otherInfo(device.getOtherInfo())
                 .activeStatus(device.getActiveStatus())
+                .details(StringHelper.mapToString(device.getDetails(), ";;"))
+                .imageUrl(device.getImageUrl())
                 .build();
     }
 
@@ -48,6 +51,8 @@ public class JpaDeviceMapper {
                 .insuranceEndDate(dto.getInsuranceEndDate())
                 .otherInfo(dto.getOtherInfo())
                 .activeStatus(dto.getActiveStatus())
+                .imageUrl(dto.getImageUrl())
+                .details(StringHelper.stringToMap(dto.getDetails(), ";;"))
                 .build();
     }
 

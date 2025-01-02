@@ -10,6 +10,7 @@ import net.focik.homeoffice.utils.share.ActiveStatus;
 import org.javamoney.moneta.Money;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,4 +29,6 @@ public class Device {
         private LocalDate insuranceEndDate;
         private String otherInfo;
         private ActiveStatus activeStatus;
+        private Map<String, String> details;
+        private String imageUrl;
 }

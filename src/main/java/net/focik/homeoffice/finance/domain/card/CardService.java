@@ -1,6 +1,7 @@
 package net.focik.homeoffice.finance.domain.card;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.finance.domain.card.port.secondary.CardRepository;
 import net.focik.homeoffice.finance.domain.exception.CardAlreadyExistException;
@@ -9,38 +10,24 @@ import net.focik.homeoffice.finance.domain.exception.CardNotFoundException;
 import net.focik.homeoffice.finance.domain.exception.CardNotValidException;
 import net.focik.homeoffice.finance.domain.purchase.Purchase;
 import net.focik.homeoffice.finance.domain.purchase.PurchaseFacade;
+import net.focik.homeoffice.utils.FileHelper;
 import net.focik.homeoffice.utils.share.ActiveStatus;
-import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Value;
+import net.focik.homeoffice.utils.share.Module;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 class CardService {
 
     private final CardRepository cardRepository;
     private final PurchaseFacade purchaseFacade;
-    @Value("${cards.directory}")
-    private final String cardCatalogUrl;
-    @Value("${cards.url}")
-    private final String homeUrl;
+    private final FileHelper fileHelper;
 
-    public CardService(CardRepository cardRepository, PurchaseFacade purchaseFacade, @Value("${cards.directory}")String cardCatalogUrl, @Value("${cards.url}")String homeUrl) {
-        this.cardRepository = cardRepository;
-        this.purchaseFacade = purchaseFacade;
-        this.cardCatalogUrl = cardCatalogUrl;
-        this.homeUrl = homeUrl;
-    }
 
     Card addCard(Card card) {
         log.debug("Adding card {}", card);
@@ -49,7 +36,7 @@ class CardService {
         if(!cardRepository.findCardByName(card.getCardName()).isEmpty())
             throw new CardAlreadyExistException("Karta o tej nazwie już istnieje.");
 
-        card.setImageUrl(downloadAndSaveImage(card.getImageUrl(), card.getCardName()));
+        card.setImageUrl(fileHelper.downloadAndSaveImage(card.getImageUrl(), card.getCardName(), Module.CARD));
         return cardRepository.saveCard(card);
     }
 
@@ -120,32 +107,5 @@ class CardService {
         if (card.getLimit() == 0)
             return true;
         return card.getActivationDate() == null && card.getExpirationDate() == null;
-    }
-
-    public String downloadAndSaveImage(String imageUrl, String name) {
-        try {
-            log.debug("Downloading image {}", imageUrl);
-            URI uri = new URI(imageUrl);
-            URL url = uri.toURL();
-
-            // Pobieranie rozszerzenia pliku z URL
-            String path = url.getPath();
-            String extension = path.substring(path.lastIndexOf("."));
-
-            String fileName = "image_" + name.trim().replace(" ", "_") + UUID.randomUUID() + extension; // Generowanie unikalnej nazwy pliku
-            File outputFile = new File(cardCatalogUrl + "/" + fileName);
-            log.debug("Saving image {} in {}", fileName, outputFile);
-            // Pobierz plik z URL i zapisz go na dysku
-            FileUtils.copyURLToFile(url, outputFile, 10000, 10000);
-
-            log.debug("URL saved file: {}", homeUrl + fileName);
-            return homeUrl + fileName;
-        } catch (IOException e) {
-            log.error("Error downloading ans saving image (return null)",e);
-            return null;
-        } catch (URISyntaxException e) {
-            log.error("Error downloading ans saving image",e);
-            throw new RuntimeException(e);
-        }
     }
 }

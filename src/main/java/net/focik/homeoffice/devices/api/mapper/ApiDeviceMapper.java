@@ -27,6 +27,8 @@ public class ApiDeviceMapper {
                 .insuranceEndDate(dto.getInsuranceEndDate())
                 .otherInfo(dto.getOtherInfo())
                 .activeStatus(dto.getActiveStatus())
+                .details(dto.getDetails())
+                .imageUrl(dto.getImageUrl())
                 .build();
     }
 
@@ -44,6 +46,8 @@ public class ApiDeviceMapper {
                 .insuranceEndDate(dev.getInsuranceEndDate())
                 .otherInfo(dev.getOtherInfo())
                 .activeStatus(dev.getActiveStatus())
+                .details(dev.getDetails())
+                .imageUrl(dev.getImageUrl())
                 .build();
     }
 }

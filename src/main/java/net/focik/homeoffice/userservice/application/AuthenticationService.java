@@ -58,6 +58,7 @@ public class AuthenticationService {
                             .refreshToken(refreshToken)
                             .build();
                     log.info("Successfully refreshed token for user: {}", username);
+                    return authenticationResponse;
                 }
             }
         } catch (ExpiredJwtException e) {

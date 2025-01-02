@@ -1,8 +1,14 @@
 package net.focik.homeoffice.utils;
 
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+@Slf4j
 public class StringHelper {
 
     /**
@@ -86,5 +92,41 @@ public class StringHelper {
         }
 
         return url.substring(lastDotIndex + 1);
+    }
+
+    public static String mapToString(Map<String, String> map, String separator) {
+        if (map == null || map.isEmpty()) {
+            log.warn("Provided map is null or empty.");
+            return "";
+        }
+        String result = map.entrySet().stream()
+                .map(entry -> entry.getKey() + "=" + entry.getValue())
+                .collect(Collectors.joining(separator));
+
+        log.debug("Result: {}", result);
+        return result;
+    }
+
+    public static Map<String, String> stringToMap(String input, String regex) {
+        Map<String, String> map = new LinkedHashMap<>();
+        if (input == null || input.trim().isEmpty()) {
+            log.warn("Input string is null or empty.");
+            return map;
+        }
+        log.info("Processing input string: {}", input);
+        String[] pairs = input.split(regex);
+        log.debug("Split input into pairs: {}", (Object) pairs);
+        for (String pair : pairs) {
+            log.debug("Processing pair: {}", pair);
+            String[] keyValue = pair.split("=");
+            if (keyValue.length == 2) {
+                log.debug("Added entry to map: {} -> {}", keyValue[0], keyValue[1]);
+                map.put(keyValue[0], keyValue[1]);
+            } else {
+                log.error("Invalid input format for pair: {}", pair);
+                throw new IllegalArgumentException("Invalid input format: " + pair);
+            }
+        }
+        return map;
     }
 }

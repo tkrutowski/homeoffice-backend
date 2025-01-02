@@ -1,12 +1,15 @@
 package net.focik.homeoffice.devices.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.*;
 import net.focik.homeoffice.devices.domain.model.DeviceType;
 import net.focik.homeoffice.finance.api.dto.FirmDto;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,4 +33,7 @@ public class DeviceDto {
     private LocalDate insuranceEndDate;
     private String otherInfo;
     private ActiveStatus activeStatus;
+    @JsonDeserialize(as = LinkedHashMap.class)
+    private Map<String, String> details;
+    private String imageUrl;
 }

@@ -46,4 +46,6 @@ class DeviceDbDto {
     private String otherInfo;
     @Enumerated(EnumType.STRING)
     private ActiveStatus activeStatus;
+    private String imageUrl;
+    private String details;
 }

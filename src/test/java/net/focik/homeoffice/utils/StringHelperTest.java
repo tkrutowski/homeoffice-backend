@@ -2,6 +2,9 @@ package net.focik.homeoffice.utils;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class StringHelperTest {
@@ -88,5 +91,61 @@ class StringHelperTest {
         assertEquals("", result5);
         assertEquals("", result6);
         assertEquals("", result7);
+    }
+
+    @Test
+    void testMapToString() {
+        Map<String, String> map = LinkedHashMap.newLinkedHashMap(10);
+        map.put("key1", "value1");
+        map.put("key2", "value2");
+        map.put("key3", "value3");
+
+        String expected = "key1=value1;;key2=value2;;key3=value3";
+        assertEquals(expected, StringHelper.mapToString(map, ";;"));
+    }
+
+    @Test
+    void testMapToStringEmptyMap() {
+        Map<String, String> map = Map.of();
+        String expected = "";
+        assertEquals(expected, StringHelper.mapToString(map, ";;"));
+    }
+
+    @Test
+    void testStringToMap() {
+        String input = "key1=value1;;key2=value2;;key3=value3";
+        Map<String, String> expected = Map.of(
+                "key1", "value1",
+                "key2", "value2",
+                "key3", "value3"
+        );
+        assertEquals(expected, StringHelper.stringToMap(input, ";;"));
+    }
+
+    @Test
+    void testStringToMapEmptyString() {
+        String input = "";
+        Map<String, String> expected = Map.of();
+        assertEquals(expected, StringHelper.stringToMap(input, ";;"));
+    }
+
+    @Test
+    void testStringToMapInvalidFormat() {
+        String input = "key1=value1;; key2=value2;; key3";
+        assertThrows(IllegalArgumentException.class, () -> {
+            StringHelper.stringToMap(input, ";;");
+        });
+    }
+
+    @Test
+    void testBothConversions() {
+        Map<String, String> originalMap = Map.of(
+                "key1", "value1",
+                "key2", "value2",
+                "key3", "value3"
+        );
+        String mapAsString = StringHelper.mapToString(originalMap, ";;");
+        Map<String, String> convertedBackMap = StringHelper.stringToMap(mapAsString, ";;");
+        assertEquals(originalMap, convertedBackMap);
     }
 }

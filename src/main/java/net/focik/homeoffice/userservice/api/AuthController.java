@@ -27,9 +27,15 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthenticationResponse> refreshToken(@RequestBody RefreshRequest refreshRequest) throws IOException {
+    public ResponseEntity<AuthenticationResponse> refreshToken(@RequestBody RefreshRequest refreshRequest) {
         log.info("Attempt to refresh token");
         AuthenticationResponse refreshedToken = authenticationService.refreshToken(refreshRequest);
         return ResponseEntity.ok(refreshedToken);
+    }
+
+    @PostMapping("/test")
+    public ResponseEntity<String> test() {
+        log.info("Test ping");
+        return ResponseEntity.ok("OK");
     }
 }

@@ -1,45 +1,34 @@
 package net.focik.homeoffice.library.domain;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.exception.BookAlreadyExistException;
 import net.focik.homeoffice.library.domain.exception.BookNotFoundException;
 import net.focik.homeoffice.library.domain.model.Book;
 import net.focik.homeoffice.library.domain.model.Series;
 import net.focik.homeoffice.library.domain.port.secondary.BookRepository;
-import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Value;
+import net.focik.homeoffice.utils.FileHelper;
+import net.focik.homeoffice.utils.share.Module;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 class BookService {
 
     private final BookRepository bookRepository;
-    @Value("${covers.directory}")
-    private final String coverCatalogUrl;
-    @Value("${covers.url}")
-    private final String homeUrl;
+    private final FileHelper fileHelper;
 
-    BookService(BookRepository bookRepository, @Value("${covers.directory}") String coverCatalogUrl,  @Value("${covers.url}")String homeUrl) {
-        this.bookRepository = bookRepository;
-        this.coverCatalogUrl = coverCatalogUrl;
-        this.homeUrl = homeUrl;
-    }
+
 
     public Book addBook(Book book) {
         log.debug("Adding book {}", book);
         if (isBookExist(book))
             throw new BookAlreadyExistException(book);
-        book.setCover(downloadAndSaveImage(book.getCover(), book.getTitle()));
+        book.setCover(fileHelper.downloadAndSaveImage(book.getCover(), book.getTitle(), Module.BOOK));
         return Optional.of(bookRepository.add(book))
                 .get().orElse(null);
     }
@@ -57,30 +46,6 @@ class BookService {
         return false;
     }
 
-    public String downloadAndSaveImage(String imageUrl, String title) {
-        try {
-            log.debug("Downloading image {}", imageUrl);
-            URI uri = new URI(imageUrl);
-            URL url = uri.toURL();
-
-            // Pobieranie rozszerzenia pliku z URL
-            String path = url.getPath();
-            String extension = path.substring(path.lastIndexOf("."));
-
-            String fileName = title.trim().replace(" ", "_") + UUID.randomUUID() + extension; // Generowanie unikalnej nazwy pliku
-            File outputFile = new File(coverCatalogUrl + "/" + fileName);
-            // Pobierz plik z URL i zapisz go na dysku
-            FileUtils.copyURLToFile(url, outputFile, 10000, 10000);
-
-            return homeUrl + fileName;
-        } catch (IOException e) {
-            log.error("Error downloading ans saving image (return null)",e);
-            return null;
-        } catch (URISyntaxException e) {
-            log.error("Error downloading ans saving image",e);
-            throw new RuntimeException(e);
-        }
-    }
 
     public Book findBook(Integer id) {
         log.debug("Finding book with id {}", id);
@@ -101,7 +66,7 @@ class BookService {
         log.debug("Updating book {}", book);
         Book bookToEdit = findBook(book.getId());
         if (!book.getCover().contains("focikhome")) {
-            bookToEdit.setCover(downloadAndSaveImage(book.getCover(), book.getTitle()));
+            bookToEdit.setCover(fileHelper.downloadAndSaveImage(book.getCover(), book.getTitle(), Module.BOOK));
         } else {
             bookToEdit.setCover(book.getCover());
         }
