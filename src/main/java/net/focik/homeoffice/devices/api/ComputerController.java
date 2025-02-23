@@ -81,7 +81,7 @@ public class ComputerController {
         log.info("Request to edit a computer received with data: {}", computerDto);
 
         Computer computerToUpdate = apiComputerMapper.toDomain(computerDto);
-        log.debug("Mapped Device DTO to domain object: {}", computerToUpdate);
+        log.debug("Mapped Computer DTO to domain object: {}", computerToUpdate);
 
         Computer updatedComputer = saveComputerUseCase.update(computerToUpdate);
         log.info("Computer updated successfully: {}", updatedComputer);

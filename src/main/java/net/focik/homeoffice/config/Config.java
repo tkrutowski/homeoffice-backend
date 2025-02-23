@@ -17,7 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @Configuration
 @RequiredArgsConstructor
 class Config {
-    private final IAppUserRepository userRepository;;
+    private final IAppUserRepository userRepository;
     @Bean
     public ModelMapper modelMapper() {
         return new ModelMapper();

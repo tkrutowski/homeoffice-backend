@@ -64,16 +64,11 @@ class BookService {
 
     public Book updateBook(Book book) {
         log.debug("Updating book {}", book);
-        Book bookToEdit = findBook(book.getId());
         if (!book.getCover().contains("focikhome")) {
-            bookToEdit.setCover(fileHelper.downloadAndSaveImage(book.getCover(), book.getTitle(), Module.BOOK));
-        } else {
-            bookToEdit.setCover(book.getCover());
+            book.setCover(fileHelper.downloadAndSaveImage(book.getCover(), book.getTitle(), Module.BOOK));
         }
-        bookToEdit.setDescription(book.getDescription());
-        bookToEdit.setTitle(book.getTitle());
 
-        Optional<Book> updatedBook = bookRepository.update(bookToEdit);
+        Optional<Book> updatedBook = bookRepository.update(book);
         if (updatedBook.isEmpty()) {
             throw new BookNotFoundException(book.getTitle());
         }
