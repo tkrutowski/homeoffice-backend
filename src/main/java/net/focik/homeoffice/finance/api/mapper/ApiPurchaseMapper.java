@@ -1,10 +1,8 @@
 package net.focik.homeoffice.finance.api.mapper;
 
-import net.focik.homeoffice.finance.api.dto.PaymentStatusDto;
 import net.focik.homeoffice.finance.api.dto.PurchaseDto;
 import net.focik.homeoffice.finance.domain.exception.PurchaseNotValidException;
 import net.focik.homeoffice.finance.domain.purchase.Purchase;
-import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -30,7 +28,7 @@ public class ApiPurchaseMapper {
                 .paymentDeadline(dto.getPaymentDeadline())
                 .paymentDate(dto.getPaymentDate())
                 .otherInfo(dto.getOtherInfo())
-                .paymentStatus(PaymentStatus.valueOf(dto.getPaymentStatus().getName()))
+                .paymentStatus(dto.getPaymentStatus())
                 .isInstallment(dto.isInstallment())
                 .build();
     }
@@ -47,7 +45,7 @@ public class ApiPurchaseMapper {
                 .paymentDeadline(purchase.getPaymentDeadline())
                 .paymentDate(purchase.getPaymentDate())
                 .otherInfo(purchase.getOtherInfo() == null ? "" : purchase.getOtherInfo())
-                .paymentStatus(new PaymentStatusDto(purchase.getPaymentStatus().toString(), purchase.getPaymentStatus().getViewValue()))
+                .paymentStatus(purchase.getPaymentStatus())
                 .isInstallment(purchase.isInstallment())
                 .build();
     }

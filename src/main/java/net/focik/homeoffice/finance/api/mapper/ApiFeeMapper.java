@@ -4,17 +4,14 @@ import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.finance.api.dto.FeeDto;
 import net.focik.homeoffice.finance.api.dto.FeeFrequencyDto;
 import net.focik.homeoffice.finance.api.dto.FeeInstallmentDto;
-import net.focik.homeoffice.finance.api.dto.PaymentStatusDto;
 import net.focik.homeoffice.finance.domain.exception.FeeNotValidException;
 import net.focik.homeoffice.finance.domain.fee.Fee;
 import net.focik.homeoffice.finance.domain.fee.FeeFrequencyEnum;
 import net.focik.homeoffice.finance.domain.fee.FeeInstallment;
-import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.javamoney.moneta.Money;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
@@ -36,7 +33,7 @@ public class ApiFeeMapper {
                 .amount(Money.of(BigDecimal.valueOf(dto.getAmount().doubleValue()), "PLN"))
                 .firstPaymentDate(dto.getFirstPaymentDate())
                 .accountNumber(dto.getAccountNumber())
-                .feeStatus(PaymentStatus.valueOf(dto.getFeeStatus().getName()))
+                .feeStatus(dto.getFeeStatus())
                 .otherInfo(dto.getOtherInfo())
                 .build();
     }
@@ -54,7 +51,7 @@ public class ApiFeeMapper {
                 .amount(fee.getAmount().getNumber().doubleValue())
                 .firstPaymentDate(fee.getFirstPaymentDate())
                 .accountNumber(fee.getAccountNumber())
-                .feeStatus(new PaymentStatusDto(fee.getFeeStatus().toString(), fee.getFeeStatus().getViewValue()))
+                .feeStatus(fee.getFeeStatus())
                 .otherInfo(fee.getOtherInfo() == null ? "" : fee.getOtherInfo())
                 .installmentList(fee.getInstallments() != null ? fee.getInstallments()
                         .stream().map(this::toDto).collect(Collectors.toList()) : new ArrayList<>())
@@ -69,7 +66,7 @@ public class ApiFeeMapper {
                 .installmentAmountPaid(fee.getInstallmentAmountPaid().getNumber().doubleValue())
                 .paymentDeadline(fee.getPaymentDeadline())
                 .paymentDate(fee.getPaymentDate())
-                .paymentStatus(new PaymentStatusDto(fee.getPaymentStatus().toString(), fee.getPaymentStatus().getViewValue()))
+                .paymentStatus(fee.getPaymentStatus())
                 .build();
     }
 
@@ -82,7 +79,7 @@ public class ApiFeeMapper {
                 .installmentAmountPaid(Money.of(BigDecimal.valueOf(dto.getInstallmentAmountPaid().doubleValue()), "PLN"))
                 .paymentDeadline(dto.getPaymentDeadline())
                 .paymentDate(dto.getPaymentDate())
-                .paymentStatus(PaymentStatus.valueOf(dto.getPaymentStatus().getName()))
+                .paymentStatus(dto.getPaymentStatus())
                 .build();
     }
 

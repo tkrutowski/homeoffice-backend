@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.goahead.api.dto.BasicDto;
 import net.focik.homeoffice.goahead.api.dto.InvoiceDto;
-import net.focik.homeoffice.goahead.api.dto.PaymentMethodDto;
 import net.focik.homeoffice.goahead.api.mapper.ApiInvoiceMapper;
 import net.focik.homeoffice.goahead.domain.invoice.Invoice;
 import net.focik.homeoffice.goahead.domain.invoice.InvoicePdf;
@@ -27,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -174,14 +172,12 @@ public class InvoiceController extends ExceptionHandling {
     }
 
     @GetMapping("/paymenttype")
-    ResponseEntity<List<PaymentMethodDto>> getPaymentTypes() {
+    ResponseEntity<List<PaymentMethod>> getPaymentTypes() {
         log.info("Request to get all payment types.");
         PaymentMethod[] collect = (PaymentMethod.values());
-        List<PaymentMethodDto> paymentTypeDtos = Arrays.stream(collect)
-                .map(type -> new PaymentMethodDto(type.name(), type.getViewValue()))
-                .collect(Collectors.toList());
-        log.info("Found {} payment types.", paymentTypeDtos.size());
-        return new ResponseEntity<>(paymentTypeDtos, OK);
+        List<PaymentMethod> paymentTypes = List.of(PaymentMethod.values());
+        log.info("Found {} payment types.", paymentTypes.size());
+        return new ResponseEntity<>(paymentTypes, OK);
     }
 
     private ResponseEntity<HttpResponse> response(HttpStatus status, String message) {

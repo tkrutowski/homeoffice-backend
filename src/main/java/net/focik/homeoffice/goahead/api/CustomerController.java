@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.focik.homeoffice.goahead.api.dto.BasicDto;
 import net.focik.homeoffice.goahead.api.dto.CustomerDto;
-import net.focik.homeoffice.goahead.api.dto.CustomerTypeDto;
 import net.focik.homeoffice.goahead.api.mapper.ApiCustomerMapper;
 import net.focik.homeoffice.goahead.domain.customer.Customer;
 import net.focik.homeoffice.goahead.domain.customer.CustomerStatus;
@@ -20,7 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -116,14 +114,11 @@ public class CustomerController extends ExceptionHandling {
     }
 
     @GetMapping("/customertype")
-    ResponseEntity<List<CustomerTypeDto>> getCustomerTypes() {
-
-        CustomerType[] collect = (CustomerType.values());
-
-        List<CustomerTypeDto> customerTypeDtos = Arrays.stream(collect)
-                .map(type -> new CustomerTypeDto(type.name(), type.getViewValue()))
-                .collect(Collectors.toList());
-        return new ResponseEntity<>(customerTypeDtos, OK);
+    ResponseEntity<List<CustomerType>> getCustomerTypes() {
+        log.info("Request to retrieve customer types.");
+        List<CustomerType> types = List.of(CustomerType.values());
+        log.info("Retrieved {} customer types.", types.size());
+        return new ResponseEntity<>(types, OK);
     }
 
     @PutMapping("/customerstatus/{id}")

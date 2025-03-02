@@ -2,9 +2,6 @@ package net.focik.homeoffice.library.api;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.focik.homeoffice.library.api.dto.EditionTypeDto;
-import net.focik.homeoffice.library.api.dto.OwnershipStatusDto;
-import net.focik.homeoffice.library.api.dto.ReadingStatusDto;
 import net.focik.homeoffice.library.api.dto.UserBookApiDto;
 import net.focik.homeoffice.library.api.mapper.ApiUserBookMapper;
 import net.focik.homeoffice.library.domain.model.EditionType;
@@ -21,7 +18,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -152,36 +148,27 @@ public class UserBookController {
     }
 
     @GetMapping("/reading_status")
-    ResponseEntity<List<ReadingStatusDto>> getReadingStatus() {
+    ResponseEntity<List<ReadingStatus>> getReadingStatus() {
         log.info("Request to retrieve reading statuses.");
-        ReadingStatus[] collect = (ReadingStatus.values());
-        List<ReadingStatusDto> statusDtos = Arrays.stream(collect)
-                .map(type -> new ReadingStatusDto(type.name(), type.getViewValue()))
-                .collect(Collectors.toList());
-        log.info("Retrieved {} reading statuses.", statusDtos.size());
-        return new ResponseEntity<>(statusDtos, OK);
+        List<ReadingStatus> statuses = List.of(ReadingStatus.values());
+        log.info("Retrieved {} reading statuses.", statuses.size());
+        return new ResponseEntity<>(statuses, OK);
     }
 
     @GetMapping("/ownership_status")
-    ResponseEntity<List<OwnershipStatusDto>> getOwnershipStatus() {
+    ResponseEntity<List<OwnershipStatus>> getOwnershipStatus() {
         log.info("Request to retrieve ownership statuses.");
-        OwnershipStatus[] collect = (OwnershipStatus.values());
-        List<OwnershipStatusDto> statusDtos = Arrays.stream(collect)
-                .map(type -> new OwnershipStatusDto(type.name(), type.getViewValue()))
-                .collect(Collectors.toList());
-        log.info("Retrieved {} ownership statuses.", statusDtos.size());
-        return new ResponseEntity<>(statusDtos, OK);
+        List<OwnershipStatus> statuses = List.of(OwnershipStatus.values());
+        log.info("Retrieved {} ownership statuses.", statuses.size());
+        return new ResponseEntity<>(statuses, OK);
     }
 
     @GetMapping("/edition_type")
-    ResponseEntity<List<EditionTypeDto>> getEditionType() {
+    ResponseEntity<List<EditionType>> getEditionType() {
         log.info("Request to retrieve edition types.");
-        EditionType[] collect = (EditionType.values());
-        List<EditionTypeDto> statusDtos = Arrays.stream(collect)
-                .map(type -> new EditionTypeDto(type.name(), type.getViewName()))
-                .collect(Collectors.toList());
-        log.info("Retrieved {} edition types.", statusDtos.size());
-        return new ResponseEntity<>(statusDtos, OK);
+        List<EditionType> types = List.of(EditionType.values());
+        log.info("Retrieved {} edition types.", types.size());
+        return new ResponseEntity<>(types, OK);
     }
 
     @DeleteMapping("/{id}")

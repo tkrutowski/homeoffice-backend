@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.focik.homeoffice.utils.share.PaymentStatus;
 
 import java.time.LocalDate;
 
@@ -21,5 +22,5 @@ public class FeeInstallmentDto implements InstallmentDto {
     private LocalDate paymentDeadline;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Europe/Warsaw")
     private LocalDate paymentDate;
-    private PaymentStatusDto paymentStatus;
+    private PaymentStatus paymentStatus;
 }

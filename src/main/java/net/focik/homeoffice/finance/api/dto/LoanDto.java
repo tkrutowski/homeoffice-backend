@@ -2,6 +2,7 @@ package net.focik.homeoffice.finance.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
+import net.focik.homeoffice.utils.share.PaymentStatus;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,7 +26,7 @@ public class LoanDto {
     private LocalDate firstPaymentDate;
     private int numberOfInstallments;
     private Number installmentAmount;
-    private PaymentStatusDto loanStatus;
+    private PaymentStatus loanStatus;
     private Number loanCost;//prowizja itp
     private String otherInfo;
     private String amountToPay;

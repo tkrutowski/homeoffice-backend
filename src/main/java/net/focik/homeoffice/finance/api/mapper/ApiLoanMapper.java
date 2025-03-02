@@ -3,7 +3,6 @@ package net.focik.homeoffice.finance.api.mapper;
 import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.finance.api.dto.LoanDto;
 import net.focik.homeoffice.finance.api.dto.LoanInstallmentDto;
-import net.focik.homeoffice.finance.api.dto.PaymentStatusDto;
 import net.focik.homeoffice.finance.domain.exception.LoanNotValidException;
 import net.focik.homeoffice.finance.domain.loan.Loan;
 import net.focik.homeoffice.finance.domain.loan.LoanInstallment;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Component;
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,7 +37,7 @@ public class ApiLoanMapper {
                 .firstPaymentDate(dto.getFirstPaymentDate())
                 .numberOfInstallments(dto.getNumberOfInstallments())
                 .installmentAmount(Money.of(BigDecimal.valueOf(dto.getInstallmentAmount().doubleValue()), "PLN"))
-                .loanStatus(PaymentStatus.valueOf(dto.getLoanStatus().getName()))
+                .loanStatus(dto.getLoanStatus())
                 .otherInfo(dto.getOtherInfo())
                 .loanCost(Money.of(BigDecimal.valueOf(dto.getLoanCost().doubleValue()), "PLN"))
                 .build();
@@ -58,7 +56,7 @@ public class ApiLoanMapper {
                 .firstPaymentDate(l.getFirstPaymentDate())
                 .numberOfInstallments(l.getNumberOfInstallments())
                 .installmentAmount(l.getInstallmentAmount().getNumber().doubleValue())
-                .loanStatus(new PaymentStatusDto(l.getLoanStatus().toString(), l.getLoanStatus().getViewValue()))
+                .loanStatus(l.getLoanStatus())
                 .loanCost(l.getLoanCost().getNumber().doubleValue())
                 .otherInfo(l.getOtherInfo() == null ? "" : l.getOtherInfo())
                 .installmentList(l.getInstallments() != null ? l.getInstallments()
@@ -93,7 +91,7 @@ public class ApiLoanMapper {
                 .installmentAmountPaid(l.getInstallmentAmountPaid().getNumber().doubleValue())
                 .paymentDeadline(l.getPaymentDeadline())
                 .paymentDate(l.getPaymentDate())
-                .paymentStatus(new PaymentStatusDto(l.getPaymentStatus().toString(), l.getPaymentStatus().getViewValue()))
+                .paymentStatus(l.getPaymentStatus())
                 .build();
     }
 
@@ -107,7 +105,7 @@ public class ApiLoanMapper {
                 .installmentAmountPaid(Money.of(BigDecimal.valueOf(dto.getInstallmentAmountPaid().doubleValue()), "PLN"))
                 .paymentDeadline(dto.getPaymentDeadline())
                 .paymentDate(dto.getPaymentDate())
-                .paymentStatus(PaymentStatus.valueOf(dto.getPaymentStatus().getName()))
+                .paymentStatus(dto.getPaymentStatus())
                 .build();
     }
 
