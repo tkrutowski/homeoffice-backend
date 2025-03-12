@@ -18,19 +18,28 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @RequiredArgsConstructor
 class Config {
     private final IAppUserRepository userRepository;
+
     @Bean
     public ModelMapper modelMapper() {
-        return new ModelMapper();
+        ModelMapper modelMapper = new ModelMapper();
+
+        modelMapper.addConverter(new MoneyToDoubleConverter());
+        modelMapper.addConverter(new MoneyToBigDecimalConverter());
+        modelMapper.addConverter(new BigDecimalToMoneyConverter());
+        modelMapper.addConverter(new DoubleToMoneyConverter());
+        return modelMapper;
+//        return new ModelMapper();
     }
-//
-@Bean
-public ObjectMapper objectMapper() {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.registerModule(new JavaTimeModule());
-    return mapper;
-}
+
     @Bean
-    public BCryptPasswordEncoder passwordEncoder(){
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        return mapper;
+    }
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
@@ -39,6 +48,7 @@ public ObjectMapper objectMapper() {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+
     @Bean
     public UserDetailsService userDetailsService() {
         return userRepository::findUserByUsername;
