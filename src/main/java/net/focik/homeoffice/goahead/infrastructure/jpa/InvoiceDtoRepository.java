@@ -8,7 +8,7 @@ import java.util.Optional;
 
 interface InvoiceDtoRepository extends JpaRepository<InvoiceDbDto, Integer> {
 
-    List<InvoiceDbDto> findAllByIdCustomer(Integer idCustomer);
+    List<InvoiceDbDto> findAllByCustomer_Id(Integer customerId);
 
     Optional<InvoiceDbDto> findByNumber(String number);
 }

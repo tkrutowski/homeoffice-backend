@@ -401,7 +401,7 @@ public class InvoicePdf {
         table.addCell(cellStr);
 
 
-        PdfPCell cellSum = new PdfPCell(new Phrase(String.format("%.2f", invoice.getAmount().getNumberStripped()), FONT_10));
+        PdfPCell cellSum = new PdfPCell(new Phrase(String.format("%.2f", invoice.getAmountSum().getNumberStripped()), FONT_10));
         cellSum.setHorizontalAlignment(Element.ALIGN_CENTER);
         cellSum.setVerticalAlignment(Element.ALIGN_MIDDLE);
         table.addCell(cellSum);
@@ -420,7 +420,7 @@ public class InvoicePdf {
         //to pay
         Phrase toPay = new Phrase();
         Chunk toPay1 = new Chunk("Razem do zapłaty: ", FONT_10);
-        Chunk toPay2 =  new Chunk(MoneyUtils.mapMoneyToString(invoice.getAmount()), FONT_10_BOLD);
+        Chunk toPay2 =  new Chunk(MoneyUtils.mapMoneyToString(invoice.getAmountSum()), FONT_10_BOLD);
         toPay.add(toPay1);
         toPay.add(toPay2);
         toPay.add(Chunk.NEWLINE);
@@ -449,7 +449,7 @@ public class InvoicePdf {
         Phrase toPayByWord = new Phrase();
         Chunk toPayByWord1 = new Chunk("Słownie: ", FONT_10);
 //        Chunk toPayByWord2 = new Chunk("Test", mainFontBold);
-        Chunk toPayByWord2 = new Chunk(MoneyUtils.amountByWords(invoice.getAmount()), FONT_10_BOLD);
+        Chunk toPayByWord2 = new Chunk(MoneyUtils.amountByWords(invoice.getAmountSum()), FONT_10_BOLD);
         toPayByWord.add(toPayByWord1);
         toPayByWord.add(toPayByWord2);
         toPayByWord.add(Chunk.NEWLINE);

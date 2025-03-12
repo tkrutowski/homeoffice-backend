@@ -1,6 +1,7 @@
 package net.focik.homeoffice.goahead.infrastructure.dto;
 
 import lombok.*;
+import net.focik.homeoffice.addresses.infrastructure.dto.AddressDbDto;
 import net.focik.homeoffice.goahead.domain.customer.CustomerStatus;
 import net.focik.homeoffice.goahead.domain.customer.CustomerType;
 
@@ -18,7 +19,9 @@ public class CustomerDbDto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
-    private Integer idAddress;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "idAddress")
+    private AddressDbDto address;
     private String name;
     private String firstName;
     private String nip;

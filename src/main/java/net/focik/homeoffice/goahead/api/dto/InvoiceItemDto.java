@@ -12,8 +12,7 @@ public class InvoiceItemDto {
     private long id;
     private int idInvoice;
     private String name;
-    private String jm;
+    private String unit;
     private Number quantity;
-    private Number amount;//brutto
-    private Number amountSum;//brutto
+    private Double amount;//brutto
 }

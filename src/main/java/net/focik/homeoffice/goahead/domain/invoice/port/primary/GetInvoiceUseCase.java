@@ -8,9 +8,7 @@ import java.util.List;
 public interface GetInvoiceUseCase {
     Invoice findById(Integer id);
 
-    Invoice findFullById(Integer idInvoice);
-
     int getNewInvoiceNumber(int year);
 
-    List<Invoice> findAllBy(PaymentStatus status, Boolean getItems, Boolean getCustomer);
+    List<Invoice> findAllBy(PaymentStatus status);
 }

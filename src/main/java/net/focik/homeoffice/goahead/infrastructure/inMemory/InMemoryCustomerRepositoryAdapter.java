@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class InMemoryCustomerRepositoryAdapter implements CustomerRepository {
 
     //    JpaAdvanceMapper jpaMapper = new JpaAdvanceMapper();
-    private final JpaCustomerMapper mapper = new JpaCustomerMapper();
+    private final JpaCustomerMapper mapper = new JpaCustomerMapper(new ModelMapper());
 
     @Override
     public Customer save(Customer customer) {

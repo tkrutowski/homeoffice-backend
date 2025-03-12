@@ -33,15 +33,15 @@ public class CustomerFacade implements AddCustomerUseCase, UpdateCustomerUseCase
         customerService.deleteCustomer(id);
     }
 
-    public Customer findById(Integer id, Boolean isAddress) {
-        return customerService.findById(id, isAddress);
+    public Customer findById(Integer id) {
+        return customerService.findById(id);
     }
 
     public List<Customer> findByName(String name) {
         return customerService.findByName(name);
     }
 
-    public List<Customer> findByAll(CustomerStatus customerStatus, Boolean isGetAddress, CustomerType customerType) {
-        return customerService.findByAll(customerStatus, isGetAddress, customerType);
+    public List<Customer> findByAll(CustomerStatus customerStatus, CustomerType customerType) {
+        return customerService.findByAll(customerStatus, customerType);
     }
 }

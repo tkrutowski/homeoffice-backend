@@ -1,7 +1,6 @@
 package net.focik.homeoffice.goahead.infrastructure.dto;
 
 import lombok.*;
-import org.javamoney.moneta.Money;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
@@ -18,10 +17,13 @@ public class InvoiceItemDbDto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long idInvoiceItem;
-    private Integer idInvoice;
     private String name;
     private String pkwiu;
     private String unit;
     private Float quantity;
     private BigDecimal amount;//brutto
+
+    @ManyToOne
+    @JoinColumn(name = "id_invoice", nullable = false) // Klucz obcy
+    private InvoiceDbDto invoice;
 }

@@ -62,7 +62,7 @@ public class InvoiceController extends ExceptionHandling {
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
     ResponseEntity<?> getPdfById(@PathVariable int id) {
         log.info("Request to generate PDF for invoice with id: {}", id);
-        Invoice invoice = getInvoiceUseCase.findFullById(id);
+        Invoice invoice = getInvoiceUseCase.findById(id);
 
         if (invoice == null) {
             log.warn("Invoice with id {} not found", id);
@@ -105,8 +105,7 @@ public class InvoiceController extends ExceptionHandling {
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
     ResponseEntity<List<InvoiceDto>> getAllInvoices(@RequestParam PaymentStatus status) {
         log.info("Request to find all invoices with PaymentStatus: {}", status);
-        List<Invoice> invoices;
-        invoices = getInvoiceUseCase.findAllBy(status, true, false);
+        List<Invoice> invoices = getInvoiceUseCase.findAllBy(status);
         log.info("Found {} invoices with PaymentStatus: {}", invoices.size(), status);
 
         return new ResponseEntity<>(invoices.stream()

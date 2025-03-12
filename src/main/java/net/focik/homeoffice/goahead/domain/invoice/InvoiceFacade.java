@@ -17,30 +17,24 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
     private final InvoiceService invoiceService;
 
     public Invoice addInvoice(Invoice invoice) {
-        int idInvoice = invoiceService.saveInvoice(invoice).getIdInvoice();
-        return  findFullById(idInvoice);
+        return invoiceService.saveInvoice(invoice);
     }
 
     public Invoice findById(Integer id) {
         return invoiceService.findById(id);
     }
 
-    public Invoice findFullById(Integer id) {
-        return invoiceService.findFullById(id);
-    }
-
     public int getNewInvoiceNumber(int year) {
         return invoiceService.getNewInvoiceNumber(year);
     }
 
-    public List<Invoice> findAllBy(PaymentStatus status, Boolean getItems, Boolean getCustomer) {
-        return invoiceService.findByAll(status, getItems, getCustomer);
+    public List<Invoice> findAllBy(PaymentStatus status) {
+        return invoiceService.findByAll(status);
     }
 
     @Override
     public Invoice updateInvoice(Invoice invoice) {
-        int idInvoice = invoiceService.updateInvoice(invoice).getIdInvoice();
-        return findFullById(idInvoice);
+        return invoiceService.updateInvoice(invoice);
     }
 
     @Override

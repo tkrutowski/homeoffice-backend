@@ -7,8 +7,8 @@ import net.focik.homeoffice.utils.share.PaymentMethod;
 import jakarta.persistence.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Builder
 @NoArgsConstructor
@@ -22,9 +22,10 @@ public class InvoiceDbDto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer idInvoice;
-    private Integer idCustomer;
+    @ManyToOne
+    @JoinColumn(name = "id_customer")
+    private CustomerDbDto customer;
     private String number;
-    private BigDecimal amount;//brutto
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate sellDate;//data sprzedaży
     @DateTimeFormat(pattern = "yyyy-MM-dd")
@@ -36,4 +37,7 @@ public class InvoiceDbDto {
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
     private String otherInfo;
+
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InvoiceItemDbDto> invoiceItems;
 }

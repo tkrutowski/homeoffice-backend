@@ -45,12 +45,11 @@ public class CustomerController extends ExceptionHandling {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
-    ResponseEntity<CustomerDto> getById(@PathVariable int id,
-                                        @RequestParam Boolean isAddress) {
+    ResponseEntity<CustomerDto> getById(@PathVariable int id) {
 
         log.info("Try find customer by id: " + id);
 
-        Customer customer = getCustomerUseCase.findById(id, isAddress);
+        Customer customer = getCustomerUseCase.findById(id);
 
         log.info(customer != null ? "Found customer for id = " + id : "Not found customer for id = " + id);
 
@@ -63,11 +62,10 @@ public class CustomerController extends ExceptionHandling {
     @GetMapping()
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
     ResponseEntity<List<CustomerDto>> getAllCustomers(@RequestParam(required = false) CustomerStatus status,
-                                                      @RequestParam(required = false) CustomerType type,
-                                                      @RequestParam(required = false) Boolean address) {
+                                                      @RequestParam(required = false) CustomerType type) {
         log.info("Try find all employee by EmploymentStatus = " + status);
 
-        List<Customer> customerList = getCustomerUseCase.findByAll(status, address, type);
+        List<Customer> customerList = getCustomerUseCase.findByAll(status, type);
 
         log.info("Found " + customerList.size() + " employees.");
 

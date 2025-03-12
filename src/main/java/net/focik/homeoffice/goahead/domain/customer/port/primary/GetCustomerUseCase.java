@@ -7,7 +7,7 @@ import net.focik.homeoffice.goahead.domain.customer.CustomerType;
 import java.util.List;
 
 public interface GetCustomerUseCase {
-    Customer findById(Integer id, Boolean isAddress);
+    Customer findById(Integer id);
     List<Customer> findByName(String name);
-    List<Customer> findByAll(CustomerStatus customerStatus, Boolean isGetAddress, CustomerType customerType);
+    List<Customer> findByAll(CustomerStatus customerStatus, CustomerType customerType);
 }
