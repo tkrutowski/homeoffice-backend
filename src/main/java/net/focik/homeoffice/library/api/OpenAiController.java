@@ -43,7 +43,7 @@ public class OpenAiController {
         PromptTemplate promptTemplate = new PromptTemplate(text);
         Prompt prompt = promptTemplate.create(Map.of("link", link));
         System.out.println(prompt.getContents());
-        return chatModel.call(prompt).getResult().getOutput().getContent();
+        return "";//chatModel.call(prompt).getResult().getOutput().getContent();
     }
 
     @GetMapping("/findbook5")
@@ -58,10 +58,11 @@ public class OpenAiController {
                 """;
         PromptTemplate promptTemplate = new PromptTemplate(text);
         Message message = promptTemplate.createMessage(Map.of("link", link));
-        return chatClient.prompt()
-                .user(message.getContent())
-                .call()
-                .entity(SeriesDto.class);
+//        return chatClient.prompt()
+//                .user(message.getContent())
+//                .call()
+//                .entity(SeriesDto.class);
+        return new SeriesDto();
     }
 
     //prompt
@@ -74,7 +75,7 @@ public class OpenAiController {
 
         PromptTemplate promptTemplate = new PromptTemplate(message);
         Prompt prompt =  promptTemplate.create(Map.of("genre", genre));
-        return chatModel.call(prompt).getResult().getOutput().getContent();
+        return "";//chatModel.call(prompt).getResult().getOutput().getContent();
     }
 
 
@@ -99,7 +100,7 @@ public class OpenAiController {
 //        PromptTemplate promptTemplate = new PromptTemplate(bookPromptResource);
         PromptTemplate promptTemplate = new PromptTemplate(message);
         Prompt prompt = promptTemplate.create(Map.of("link", link));
-        return chatModel.call(prompt).getResult().getOutput().getContent();
+        return "";//chatModel.call(prompt).getResult().getOutput().getContent();
     }
 
     //to samo
@@ -108,7 +109,7 @@ public class OpenAiController {
     String getById2(@RequestParam(value = "message", defaultValue = "Tell me a joke") String message) {
 //        Book book = findBookUseCase.findBook(id);
 //        return new ResponseEntity<>(BookApiDto.builder().build(), HttpStatus.OK);
-        return chatModel.call(new Prompt(message)).getResult().getOutput().getContent();
+        return "";//chatModel.call(new Prompt(message)).getResult().getOutput().getContent();
     }
 
     @GetMapping("/findbook")
