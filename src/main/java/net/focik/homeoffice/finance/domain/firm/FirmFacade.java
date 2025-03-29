@@ -31,18 +31,18 @@ public class FirmFacade implements AddFirmUseCase, UpdateFirmUseCase, GetFirmUse
     }
 
     @Override
-    public Firm findById(Integer id, Boolean isAddress) {
-        return firmService.findById(id, isAddress);
+    public Firm findById(Integer id) {
+        return firmService.findById(id);
     }
 
     @Override
-    public Firm findByName(String name, Boolean isAddress) {
-        return firmService.findByName(name, isAddress);
+    public Firm findByName(String name) {
+        return firmService.findByName(name);
     }
 
     @Override
-    public List<Firm> findByAll(Boolean isGetAddress) {
-        return firmService.findByAll(isGetAddress);
+    public List<Firm> findByAll() {
+        return firmService.findByAll();
     }
 
 }

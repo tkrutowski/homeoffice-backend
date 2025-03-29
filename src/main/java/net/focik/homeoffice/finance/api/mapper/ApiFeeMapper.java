@@ -18,12 +18,13 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class ApiFeeMapper {
+    private final ApiFirmMapper firmMapper;
 
     public Fee toDomain(FeeDto dto) {
         valid(dto);
         return Fee.builder()
                 .id(dto.getId())
-                .firm(ApiFirmMapper.toDomain(dto.getFirm()))
+                .firm(firmMapper.toDomain(dto.getFirm()))
                 .idUser(dto.getIdUser())
                 .name(dto.getName())
                 .feeNumber(dto.getFeeNumber())
@@ -41,7 +42,7 @@ public class ApiFeeMapper {
     public FeeDto toDto(Fee fee) {
         return FeeDto.builder()
                 .id(fee.getId())
-                .firm(ApiFirmMapper.toDto(fee.getFirm()))
+                .firm(firmMapper.toDto(fee.getFirm()))
                 .idUser(fee.getIdUser())
                 .name(fee.getName())
                 .feeNumber(fee.getFeeNumber())

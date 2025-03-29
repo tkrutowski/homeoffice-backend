@@ -17,8 +17,6 @@ public class FirmDto {
     private String mail;
     private String fax;
     private String otherInfo;
-    private String city;
-    private String street;
-    private String zip;
+    private AddressDto address;
     private String www;
 }

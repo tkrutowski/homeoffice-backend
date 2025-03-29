@@ -5,9 +5,9 @@ import net.focik.homeoffice.finance.domain.firm.Firm;
 import java.util.List;
 
 public interface GetFirmUseCase {
-    Firm findById(Integer id, Boolean isAddress);
+    Firm findById(Integer id);
 
-    Firm findByName(String name, Boolean isAddress);
+    Firm findByName(String name);
 
-    List<Firm> findByAll(Boolean isGetAddress);
+    List<Firm> findByAll();
 }

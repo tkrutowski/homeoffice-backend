@@ -12,12 +12,13 @@ import java.math.BigDecimal;
 @Component
 @RequiredArgsConstructor
 public class ApiDeviceMapper {
+    private final ApiFirmMapper firmMapper;
 
     public Device toDomain(DeviceDto dto) {
         return Device.builder()
                 .id(dto.getId())
                 .deviceType(dto.getDeviceType())
-                .firm(ApiFirmMapper.toDomain(dto.getFirm()))
+                .firm(firmMapper.toDomain(dto.getFirm()))
                 .name(dto.getName())
                 .purchaseDate(dto.getPurchaseDate())
                 .purchaseAmount(Money.of(BigDecimal.valueOf(dto.getPurchaseAmount().doubleValue()), "PLN"))
@@ -36,7 +37,7 @@ public class ApiDeviceMapper {
         return DeviceDto.builder()
                 .id(dev.getId())
                 .deviceType(dev.getDeviceType())
-                .firm(ApiFirmMapper.toDto(dev.getFirm()))
+                .firm(firmMapper.toDto(dev.getFirm()))
                 .name(dev.getName())
                 .purchaseDate(dev.getPurchaseDate())
                 .purchaseAmount(dev.getPurchaseAmount().getNumber().doubleValue())

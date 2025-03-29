@@ -32,62 +32,64 @@ public class FirmController extends ExceptionHandling {
     private final UpdateFirmUseCase updateFirmUseCase;
     private final GetFirmUseCase getFirmUseCase;
     private final DeleteFirmUseCase deleteFirmUseCase;
+    private final ApiFirmMapper apiFirmMapper;
 
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('FINANCE_READ_ALL', 'FINANCE_READ') or hasRole('ROLE_ADMIN')")
-    ResponseEntity<FirmDto> getById(@PathVariable int id,
-                                    @RequestParam(required = false) Boolean isAddress) {
+    ResponseEntity<FirmDto> getById(@PathVariable int id) {
 
         log.info("Try find firm by id: " + id);
 
-        Firm firm = getFirmUseCase.findById(id, isAddress);
+        Firm firm = getFirmUseCase.findById(id);
 
         log.info(firm != null ? "Found firm for id = " + id : "Not found firm for id = " + id);
 
         if (firm == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(ApiFirmMapper.toDto(firm), OK);
+        return new ResponseEntity<>(apiFirmMapper.toDto(firm), OK);
     }
 
     @GetMapping()
     @PreAuthorize("hasAnyAuthority('ROLE_FINANCE', 'ROLE_ADMIN')")
-    ResponseEntity<List<FirmDto>> getAll(@RequestParam(required = false) Boolean address) {
-        log.info("Try get all firms - Address = " + address);
+    ResponseEntity<List<FirmDto>> getAll() {
+        log.info("Try get all firms ");
 
-        List<Firm> firmList = getFirmUseCase.findByAll(address);
+        List<Firm> firmList = getFirmUseCase.findByAll();
 
         log.info("Found " + firmList.size() + " firms.");
 
         return new ResponseEntity<>(firmList.stream()
-                .map(ApiFirmMapper::toDto)
+                .map(apiFirmMapper::toDto)
                 .collect(Collectors.toList()), OK);
     }
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('FINANCE_WRITE_ALL', 'FINANCE_WRITE') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<FirmDto> addFirm(@RequestBody FirmDto firmDto) {
-        log.info("Try add new firm.");
+        log.info("Request to add new firm: {}", firmDto);
 
-        Firm firm = ApiFirmMapper.toDomain(firmDto);
+        Firm firm = apiFirmMapper.toDomain(firmDto);
         Firm result = addFirmUseCase.addFirm(firm);
 
-        log.info(result.getId() > 0 ? "Firm added with id = " + result : "No firm added!");
+        if (result.getId() <= 0) {
+            log.warn("No firm was added!");
+            return ResponseEntity.badRequest().build();
+        }
 
-        if (result.getId() <= 0)
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-
-        return new ResponseEntity<>(ApiFirmMapper.toDto(result), HttpStatus.CREATED);
+        log.info("Firm added successfully with ID = {}", result.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiFirmMapper.toDto(result));
     }
+
 
     @PutMapping
     @PreAuthorize("hasAnyAuthority('FINANCE_WRITE_ALL', 'FINANCE_WRITE', 'ROLE_ADMIN')")
     public ResponseEntity<FirmDto> updateFirm(@RequestBody FirmDto firmDto) {
         log.info("Try update firm with id: {}", firmDto.getId());
 
-        Firm firm = updateFirmUseCase.updateFirm(ApiFirmMapper.toDomain(firmDto));
-        return new ResponseEntity<>(ApiFirmMapper.toDto(firm), OK);
+        Firm firm = updateFirmUseCase.updateFirm(apiFirmMapper.toDomain(firmDto));
+        return new ResponseEntity<>(apiFirmMapper.toDto(firm), OK);
     }
 
     @DeleteMapping("/{idFirm}")

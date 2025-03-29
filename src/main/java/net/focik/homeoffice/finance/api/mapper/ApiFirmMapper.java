@@ -1,12 +1,20 @@
 package net.focik.homeoffice.finance.api.mapper;
 
+import lombok.RequiredArgsConstructor;
+import net.focik.homeoffice.addresses.domain.Address;
+import net.focik.homeoffice.finance.api.dto.AddressDto;
 import net.focik.homeoffice.finance.api.dto.FirmDto;
 import net.focik.homeoffice.finance.domain.firm.Firm;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
+@Component
+@RequiredArgsConstructor
 public class ApiFirmMapper {
-    public static Firm toDomain(FirmDto dto) {
-        Firm build = Firm.builder()
+    private final ModelMapper mapper;
+
+    public Firm toDomain(FirmDto dto) {
+        return Firm.builder()
                 .id(dto.getId())
                 .name(dto.getName())
                 .phone(dto.getPhone())
@@ -14,24 +22,21 @@ public class ApiFirmMapper {
                 .mail(dto.getMail())
                 .fax(dto.getFax())
                 .otherInfo(dto.getOtherInfo())
+                .address(dto.getAddress() != null ? mapper.map(dto.getAddress(), Address.class) : null)
                 .build();
-        build.setAddress(dto.getCity(), dto.getStreet(), dto.getZip());
-        return build;
     }
 
-    public static FirmDto toDto(Firm c) {
+    public FirmDto toDto(Firm firm) {
         return FirmDto.builder()
-                .id(c.getId())
-                .name(c.getName())
-                .phone(convertIfNull(c.getPhone()))
-                .phone2(convertIfNull(c.getPhone2()))
-                .otherInfo(convertIfNull(c.getOtherInfo()))
-                .mail(convertIfNull(c.getMail()))
-                .fax(convertIfNull(c.getFax()))
-                .www(convertIfNull(c.getWww()))
-                .city(convertIfNull(c.getAddress().getCity()))
-                .street(convertIfNull(c.getAddress().getStreet()))
-                .zip(convertIfNull(c.getAddress().getZip()))
+                .id(firm.getId())
+                .name(firm.getName())
+                .phone(convertIfNull(firm.getPhone()))
+                .phone2(convertIfNull(firm.getPhone2()))
+                .otherInfo(convertIfNull(firm.getOtherInfo()))
+                .mail(convertIfNull(firm.getMail()))
+                .fax(convertIfNull(firm.getFax()))
+                .www(convertIfNull(firm.getWww()))
+                .address(firm.getAddress() != null ? mapper.map(firm.getAddress(), AddressDto.class) : null)
                 .build();
     }
 
