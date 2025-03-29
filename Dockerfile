@@ -12,7 +12,7 @@ ENV DEBUG=false
 ENV SCHEDULER_CRON="0 0 8 * * FRI"
 
 WORKDIR /app
-COPY target/homeoffice-3.5.0.jar .
+COPY target/homeoffice-3.5.1.jar .
 COPY src/main/resources ./src/main/resources
 EXPOSE 8077
-CMD  java -jar homeoffice-3.5.0.jar
+CMD  java -jar homeoffice-3.5.1.jar

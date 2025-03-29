@@ -10,7 +10,7 @@
     </parent>
     <groupId>net.focik</groupId>
     <artifactId>homeoffice</artifactId>
-    <version>3.5.0</version>
+    <version>3.5.1</version>
     <name>homeoffice</name>
     <description>homeoffice</description>
     <properties>
@@ -42,6 +42,7 @@
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
