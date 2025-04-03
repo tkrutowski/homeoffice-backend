@@ -82,12 +82,12 @@ public class PurchaseController extends ExceptionHandling {
         return new ResponseEntity<>(mapper.toDto(purchaseMap), OK);
     }
 
-    @GetMapping("/current")
+    @GetMapping("/current/{username}")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
-    ResponseEntity<Map<String, List<PurchaseDto>>> getCurrent() {
+    ResponseEntity<Map<String, List<PurchaseDto>>> getCurrent(@PathVariable String username) {
         log.info(String.format("Try get current purchases"));
 
-        Map<LocalDate, List<Purchase>> purchaseMap = getPurchaseUseCase.findCurrent();
+        Map<LocalDate, List<Purchase>> purchaseMap = getPurchaseUseCase.findCurrent(username);
 
         log.info("Found " + purchaseMap.size() + " purchases.");
 
