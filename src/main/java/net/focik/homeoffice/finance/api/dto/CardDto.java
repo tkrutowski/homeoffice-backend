@@ -27,4 +27,5 @@ public class CardDto {
     private String cardNumber;
     private int closingDay;
     private String imageUrl;
+    private boolean multi;
 }

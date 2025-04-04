@@ -29,6 +29,7 @@ public class Card {
     private String cardNumber;
     private int closingDay;
     private String imageUrl;
+    private boolean multi;
 
     public void changeActiveStatus(ActiveStatus activeStatus) {
         this.activeStatus = activeStatus;

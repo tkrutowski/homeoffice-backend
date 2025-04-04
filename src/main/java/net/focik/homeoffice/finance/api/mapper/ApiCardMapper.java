@@ -29,6 +29,7 @@ public class ApiCardMapper {
                 .cardNumber(dto.getCardNumber())
                 .closingDay(dto.getClosingDay())
                 .imageUrl(dto.getImageUrl())
+                .multi(dto.isMulti())
                 .build();
     }
 
@@ -56,6 +57,7 @@ public class ApiCardMapper {
                 .cardNumber(card.getCardNumber())
                 .closingDay(card.getClosingDay())
                 .imageUrl(card.getImageUrl())
+                .multi(card.isMulti())
                 .build();
     }
 

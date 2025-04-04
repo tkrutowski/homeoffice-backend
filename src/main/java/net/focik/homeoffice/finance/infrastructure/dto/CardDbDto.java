@@ -6,7 +6,6 @@ import net.focik.homeoffice.utils.share.ActiveStatus;
 import jakarta.persistence.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @AllArgsConstructor
@@ -36,4 +35,5 @@ public class CardDbDto {
     private String cardNumber;
     private Integer closingDay;
     private String imageUrl;
+    private Boolean multi;
 }
