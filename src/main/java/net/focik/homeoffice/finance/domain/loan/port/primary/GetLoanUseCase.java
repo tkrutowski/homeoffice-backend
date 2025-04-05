@@ -4,7 +4,6 @@ import net.focik.homeoffice.finance.domain.loan.Loan;
 import net.focik.homeoffice.finance.domain.loan.LoanInstallment;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public interface GetLoanUseCase {
@@ -19,4 +18,6 @@ public interface GetLoanUseCase {
     LoanInstallment getLoanInstallment(int idLoanInstallment);
 
     List<LoanInstallment> getLoanInstallments(int idLoan);
+
+    List<Loan> getLoansByBank(Integer idBank);
 }

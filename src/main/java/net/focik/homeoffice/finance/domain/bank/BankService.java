@@ -1,14 +1,15 @@
 package net.focik.homeoffice.finance.domain.bank;
 
 import lombok.RequiredArgsConstructor;
-import net.focik.homeoffice.addresses.domain.Address;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.finance.domain.bank.port.secondary.BankRepository;
+import net.focik.homeoffice.finance.domain.card.Card;
+import net.focik.homeoffice.finance.domain.card.CardFacade;
 import net.focik.homeoffice.finance.domain.exception.BankAlreadyExistException;
 import net.focik.homeoffice.finance.domain.exception.BankCanNotBeDeletedException;
 import net.focik.homeoffice.finance.domain.exception.BankNotFoundException;
 import net.focik.homeoffice.finance.domain.loan.Loan;
 import net.focik.homeoffice.finance.domain.loan.LoanFacade;
-import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -16,12 +17,14 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 class BankService {
 
     private final BankRepository bankRepository;
-    LoanFacade loanFacade;
+    private final LoanFacade loanFacade;
+    private final CardFacade cardFacade;
 
     @Transactional
     public Bank addBank(Bank bank) {
@@ -51,18 +54,24 @@ class BankService {
 
     @Transactional
     public void deleteBank(Integer id) {
-        canBeDeleted(id);
-        bankRepository.delete(id);
-
+        if(canBeDeleted(id)){
+            bankRepository.delete(id);
+        }
     }
 
-    private void canBeDeleted(Integer id) {
-        List<Loan> loansByBank = loanFacade.getLoansByStatus(PaymentStatus.ALL, false)
-                .stream().filter(loan -> loan.getBank().getId()==id)
-                .toList();
+    private boolean canBeDeleted(Integer idBank) {
+        log.debug("Checking if bank with ID {} can be deleted...", idBank);
+        List<Loan> loansByBank = loanFacade.getLoansByBank(idBank);
         if(!loansByBank.isEmpty()){
-             throw new BankCanNotBeDeletedException("kredyty");
+            log.warn("Bank with ID {} cannot be deleted — associated loans found (count: {}).", idBank, loansByBank.size());
+             throw new BankCanNotBeDeletedException("kredyty.");
         }
+        List<Card> cardsByBank = cardFacade.getCardsByBank(idBank);
+        if(!cardsByBank.isEmpty()){
+            log.warn("Bank with ID {} cannot be deleted — associated cards found (count: {}).", idBank, cardsByBank.size());
+            throw new BankCanNotBeDeletedException("karty.");
+        }
+        return true;
     }
 
     public Bank findById(Integer id) {

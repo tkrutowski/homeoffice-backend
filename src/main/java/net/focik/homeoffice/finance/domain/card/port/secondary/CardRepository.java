@@ -20,4 +20,5 @@ public interface CardRepository {
 
     void deleteCardById(int idCard);
 
+    List<Card> findCardByBankId(Integer idBank);
 }

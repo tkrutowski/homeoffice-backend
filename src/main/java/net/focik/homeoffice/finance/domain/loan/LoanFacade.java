@@ -69,6 +69,11 @@ public class LoanFacade implements AddLoanUseCase, GetLoanUseCase, UpdateLoanUse
     }
 
     @Override
+    public List<Loan> getLoansByBank(Integer idBank) {
+        return loanService.getLoansByBank(idBank);
+    }
+
+    @Override
     public Loan updateLoan(Loan loan) {
         loanService.updateLoan(loan);
         return loanService.findLoanById(loan.getId(), true);

@@ -9,4 +9,6 @@ import java.util.List;
 interface LoanDtoRepository extends JpaRepository<LoanDbDto, Integer> {
 
     List<LoanDbDto> findAllByIdUser(Integer idUser);
+
+    List<LoanDbDto> findAllByBank_Id(Integer bankId);
 }

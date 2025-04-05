@@ -108,4 +108,9 @@ class CardService {
             return true;
         return card.getActivationDate() == null && card.getExpirationDate() == null;
     }
+
+    public List<Card> findCardsByBank(Integer idBank) {
+        log.debug("Finding cards by bankId {}", idBank);
+        return cardRepository.findCardByBankId(idBank);
+    }
 }

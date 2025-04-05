@@ -10,8 +10,6 @@ import net.focik.homeoffice.finance.infrastructure.mapper.JpaLoanMapper;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -48,25 +46,25 @@ class LoanRepositoryAdapter implements LoanRepository {
     @Override
     public Optional<Loan> findLoanById(Integer id) {
         Optional<LoanDbDto> loanById = loanDtoRepository.findById(id);
-        if (loanById.isEmpty())
-            return Optional.empty();
-
-        return Optional.of(mapper.toDomain(loanById.get()));
+        return loanById.map(loanDbDto -> mapper.toDomain(loanDbDto));
     }
 
     @Override
     public Optional<LoanInstallment> findLoanInstallmentById(Integer id) {
         Optional<LoanInstallmentDbDto> byId = loanInstallmentDtoRepository.findById(id);
-
-        if (byId.isEmpty())
-            return Optional.empty();
-
-        return Optional.of(mapper.toDomain(byId.get()));
+        return byId.map(loanInstallmentDbDto -> mapper.toDomain(loanInstallmentDbDto));
     }
 
     @Override
     public List<Loan> findLoanByUserId(Integer idUser) {
         return loanDtoRepository.findAllByIdUser(idUser).stream()
+                .map(loanDto -> mapper.toDomain(loanDto))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Loan> findLoanByBankId(Integer idBank) {
+        return loanDtoRepository.findAllByBank_Id(idBank).stream()
                 .map(loanDto -> mapper.toDomain(loanDto))
                 .collect(Collectors.toList());
     }

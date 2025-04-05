@@ -4,7 +4,6 @@ import net.focik.homeoffice.finance.domain.loan.Loan;
 import net.focik.homeoffice.finance.domain.loan.LoanInstallment;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +20,8 @@ public interface LoanRepository {
     Optional<LoanInstallment> findLoanInstallmentById(Integer id);
 
     List<Loan> findLoanByUserId(Integer idUser);
+
+    List<Loan> findLoanByBankId(Integer idBank);
 
     List<Loan> findAll();
 

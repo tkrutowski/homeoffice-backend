@@ -58,4 +58,10 @@ public class CardFacade implements AddCardUseCase, UpdateCardUseCase, GetCardUse
         AppUser user = userFacade.findUserByUsername(UserHelper.getUserName());
         return cardService.findCardsByUserAndStatus(userId, status);
     }
+
+    @Override
+    public List<Card> getCardsByBank(Integer idBank) {
+        return cardService.findCardsByBank(idBank);
+
+    }
 }

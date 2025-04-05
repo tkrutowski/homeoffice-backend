@@ -3,7 +3,6 @@ package net.focik.homeoffice.finance.infrastructure.jpa;
 import lombok.AllArgsConstructor;
 import net.focik.homeoffice.finance.domain.card.Card;
 import net.focik.homeoffice.finance.domain.card.port.secondary.CardRepository;
-import net.focik.homeoffice.finance.domain.exception.CardNotFoundException;
 import net.focik.homeoffice.finance.infrastructure.dto.CardDbDto;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaCardMapper;
 import org.springframework.context.annotation.Primary;
@@ -37,7 +36,6 @@ class CardRepositoryAdapter implements CardRepository {
 
     @Override
     public List<Card> findCardByUserId(Integer idUser) {
-
         List<CardDbDto> allByIdUser = cardDtoRepository.findAllByIdUser(idUser);
         return allByIdUser.stream()
                 .map(mapper::toDomain)
@@ -62,6 +60,13 @@ class CardRepositoryAdapter implements CardRepository {
     @Override
     public void deleteCardById(int idCard) {
         cardDtoRepository.deleteById(idCard);
+    }
+
+    @Override
+    public List<Card> findCardByBankId(Integer idBank) {
+        return cardDtoRepository.findAllByIdBank(idBank).stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 
 }

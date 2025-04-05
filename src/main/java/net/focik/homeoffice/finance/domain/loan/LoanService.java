@@ -178,4 +178,8 @@ class LoanService {
         }
         return loanInstallmentById.get();
     }
+
+    public List<Loan> getLoansByBank(Integer idBank) {
+        return loanRepository.findLoanByBankId(idBank);
+    }
 }
