@@ -46,6 +46,15 @@ public class DevicesRepositoryAdapter implements DeviceRepository {
     }
 
     @Override
+    public List<Device> findAllDevicesByFirm(Integer idFirm) {
+        return devicesDtoRepository.findAllByFirm_Id(idFirm).stream()
+                .peek(devicesDto -> log.debug("Found device {}", devicesDto))
+                .map(mapper::toDomain)
+                .peek(devicesDto -> log.debug("Mapped device {}", devicesDto))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public void deleteDevice(Integer idDevice) {
         devicesDtoRepository.deleteById(idDevice);
     }

@@ -37,6 +37,11 @@ public class DeviceFacade implements FindDeviceUseCase, SaveDeviceUseCase, Delet
     }
 
     @Override
+    public List<Device> getDevicesByFirm(Integer idFirm) {
+        return deviceService.getDevicesByFirm(idFirm);
+    }
+
+    @Override
     public DeviceType add(DeviceType deviceType) {
         return deviceTypeService.add(deviceType);
     }

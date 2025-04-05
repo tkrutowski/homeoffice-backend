@@ -178,4 +178,24 @@ class FeeService {
         }
         return installmentById.get();
     }
+
+    public List<Fee> getFeesByFirm(int idFirm, boolean withInstallment, PaymentStatus paymentStatus) {
+        List<Fee> feeByFirmId = feeRepository.findFeeByFirmId(idFirm);
+
+        if (withInstallment) {
+            for (Fee l : feeByFirmId) {
+                List<FeeInstallment> feeInstallmentByFeeId = findFeeInstallmentByFeeId(l.getId());
+                l.addFeeInstallment(feeInstallmentByFeeId);
+            }
+        }
+
+        if (paymentStatus == null || paymentStatus.equals(PaymentStatus.ALL))
+            return feeByFirmId;
+
+        feeByFirmId = feeByFirmId.stream()
+                .filter(fee -> fee.getFeeStatus().equals(paymentStatus))
+                .collect(Collectors.toList());
+
+        return feeByFirmId;
+    }
 }

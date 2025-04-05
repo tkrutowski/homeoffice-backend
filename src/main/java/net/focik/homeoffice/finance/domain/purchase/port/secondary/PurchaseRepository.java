@@ -22,7 +22,9 @@ public interface PurchaseRepository {
 
     List<Purchase> findAll();
 
-    List<Purchase> findByCard(Integer idCard);
+    List<Purchase> findAllByCard(Integer idCard);
+
+    List<Purchase> findAllByFirm(Integer idFirm);
 
     void deletePurchaseById(int idCard);
 

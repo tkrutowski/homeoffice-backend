@@ -9,4 +9,6 @@ import java.util.List;
 interface FeeDtoRepository extends JpaRepository<FeeDbDto, Integer> {
 
     List<FeeDbDto> findAllByIdUser(Integer idUser);
+
+    List<FeeDbDto> findAllByFirm_Id(Integer firmId);
 }

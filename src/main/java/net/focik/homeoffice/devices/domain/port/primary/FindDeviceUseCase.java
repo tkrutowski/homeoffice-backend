@@ -14,4 +14,6 @@ public interface FindDeviceUseCase {
     DeviceType findDeviceType(Integer id);
 
     List<DeviceType> getAllDeviceTypes();
+
+    List<Device> getDevicesByFirm(Integer id);
 }

@@ -7,7 +7,6 @@ import net.focik.homeoffice.finance.domain.purchase.port.primary.GetPurchaseUseC
 import net.focik.homeoffice.finance.domain.purchase.port.primary.UpdatePurchaseUseCase;
 import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.UserFacade;
-import net.focik.homeoffice.utils.UserHelper;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.stereotype.Component;
 
@@ -79,5 +78,10 @@ public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase
         AppUser user = userFacade.findUserByUsername(username);
         List<Purchase> currents = purchaseService.findCurrent(Math.toIntExact(user.getId()));
         return purchaseService.convertToMapByDeadline(currents);
+    }
+
+    @Override
+    public List<Purchase> getPurchasesByFirm(Integer idFirm) {
+        return purchaseService.getPurchasesByFirm(idFirm);
     }
 }

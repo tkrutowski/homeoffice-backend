@@ -72,6 +72,11 @@ public class FeeFacade implements AddFeeUseCase, GetFeeUseCase, UpdateFeeUseCase
     }
 
     @Override
+    public List<Fee> getFeesByFirm(int idFirm, boolean withInstallment) {
+        return feeService.getFeesByFirm(idFirm, withInstallment, null);
+    }
+
+    @Override
     public List<FeeInstallment> getFeeInstallments(int idUser, LocalDate date) {
         return feeService.getFeeInstallments(idUser, date);
     }

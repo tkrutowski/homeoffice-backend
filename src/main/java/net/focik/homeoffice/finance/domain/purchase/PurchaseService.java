@@ -87,6 +87,10 @@ class PurchaseService {
     }
 
     public List<Purchase> findByCard(int idCard) {
-        return purchaseRepository.findByCard(idCard);
+        return purchaseRepository.findAllByCard(idCard);
+    }
+
+    public List<Purchase> getPurchasesByFirm(Integer idFirm) {
+        return purchaseRepository.findAllByFirm(idFirm);
     }
 }

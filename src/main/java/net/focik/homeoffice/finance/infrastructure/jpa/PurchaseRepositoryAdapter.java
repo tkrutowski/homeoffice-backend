@@ -68,8 +68,15 @@ class PurchaseRepositoryAdapter implements PurchaseRepository {
     }
 
     @Override
-    public List<Purchase> findByCard(Integer idCard) {
+    public List<Purchase> findAllByCard(Integer idCard) {
         return purchaseDtoRepository.findAllByIdCard(idCard).stream()
+                .map(loanDto -> mapper.toDomain(loanDto))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Purchase> findAllByFirm(Integer idFirm) {
+        return purchaseDtoRepository.findAllByIdFirm(idFirm).stream()
                 .map(loanDto -> mapper.toDomain(loanDto))
                 .collect(Collectors.toList());
     }

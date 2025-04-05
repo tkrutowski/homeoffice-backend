@@ -48,20 +48,13 @@ class FeeRepositoryAdapter implements FeeRepository {
     @Override
     public Optional<Fee> findFeeById(Integer id) {
         Optional<FeeDbDto> byId = feeDtoRepository.findById(id);
-        if (byId.isEmpty())
-            return Optional.empty();
-
-        return Optional.of(mapper.toDomain(byId.get()));
+        return byId.map(feeDbDto -> mapper.toDomain(feeDbDto));
     }
 
     @Override
     public Optional<FeeInstallment> findFeeInstallmentById(Integer id) {
         Optional<FeeInstallmentDbDto> byId = feeInstallmentDtoRepository.findById(id);
-
-        if (byId.isEmpty())
-            return Optional.empty();
-
-        return Optional.of(mapper.toDomain(byId.get()));
+        return byId.map(feeInstallmentDbDto -> mapper.toDomain(feeInstallmentDbDto));
     }
 
     @Override
@@ -78,17 +71,12 @@ class FeeRepositoryAdapter implements FeeRepository {
                 .collect(Collectors.toList());
     }
 
-//    @Override
-//    public List<FeeInstallment> findFeeInstallmentByDate(LocalDate date) {
-//        List<FeeInstallmentDbDto> installmentDbDtos = feeInstallmentDtoRepository
-//                .findAllByPaymentDeadlineContaining(String.valueOf(date.getYear()));
-//
-//
-//
-//        return installmentDbDtos.stream()
-//                .map(l -> mapper.toDomain(l))
-//                .collect(Collectors.toList());
-//    }
+    @Override
+    public List<Fee> findFeeByFirmId(Integer idFirm) {
+        return feeDtoRepository.findAllByFirm_Id(idFirm).stream()
+                .map(loanDto -> mapper.toDomain(loanDto))
+                .collect(Collectors.toList());
+    }
 
     @Override
     public List<FeeInstallment> findFeeInstallmentByFeeId(Integer loanId) {

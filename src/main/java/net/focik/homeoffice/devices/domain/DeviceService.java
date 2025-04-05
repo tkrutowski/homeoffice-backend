@@ -63,4 +63,8 @@ class DeviceService {
         }
         throw new DeviceNotFoundException(idDevice);
     }
+
+    public List<Device> getDevicesByFirm(Integer idFirm) {
+        return deviceRepository.findAllDevicesByFirm(idFirm);
+    }
 }

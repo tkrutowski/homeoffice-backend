@@ -15,5 +15,7 @@ public interface DeviceRepository {
 
     List<Device> findAllDevices();
 
+    List<Device> findAllDevicesByFirm(Integer idFirm);
+
     void deleteDevice(Integer idDevice);
 }

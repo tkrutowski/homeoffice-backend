@@ -13,6 +13,8 @@ public interface GetFeeUseCase {
 
     List<Fee> getFeesByStatus(PaymentStatus paymentStatus, boolean withInstallment);
 
+    List<Fee> getFeesByFirm(int idFirm, boolean withInstallment);
+
     List<Fee> getFeesByUser(int idUser, boolean withInstallment);
 
     List<Fee> getFeesByUser(int idUser, PaymentStatus paymentStatus, boolean withInstallment);

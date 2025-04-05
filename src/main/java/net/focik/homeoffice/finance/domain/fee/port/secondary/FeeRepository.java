@@ -4,7 +4,6 @@ import net.focik.homeoffice.finance.domain.fee.Fee;
 import net.focik.homeoffice.finance.domain.fee.FeeInstallment;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +22,7 @@ public interface FeeRepository {
 
     List<Fee> findAll();
 
-//    List<FeeInstallment> findFeeInstallmentByDate(LocalDate date);
+    List<Fee> findFeeByFirmId(Integer idFirm);
 
     List<FeeInstallment> findFeeInstallmentByFeeId(Integer feeId);
 
