@@ -31,18 +31,18 @@ public class BankFacade implements AddBankUseCase, UpdateBankUseCase, GetBankUse
     }
 
     @Override
-    public Bank findById(Integer id, Boolean isAddress) {
-        return bankService.findById(id, isAddress);
+    public Bank findById(Integer id) {
+        return bankService.findById(id);
     }
 
     @Override
-    public Bank findByName(String name, Boolean isAddress) {
-        return bankService.findByName(name, isAddress);
+    public Bank findByName(String name) {
+        return bankService.findByName(name);
     }
 
     @Override
-    public List<Bank> findByAll(Boolean isGetAddress) {
-        return bankService.findByAll(isGetAddress);
+    public List<Bank> findByAll() {
+        return bankService.findByAll();
     }
 
 }

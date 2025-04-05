@@ -37,12 +37,11 @@ public class BankController extends ExceptionHandling {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('FINANCE_READ_ALL', 'FINANCE_READ') or hasRole('ROLE_ADMIN')")
-    ResponseEntity<BankDto> getById(@PathVariable int id,
-                                    @RequestParam(required = false) Boolean isAddress) {
+    ResponseEntity<BankDto> getById(@PathVariable int id) {
 
         log.info("Try find bank by id: " + id);
 
-        Bank bank = getBankUseCase.findById(id, isAddress);
+        Bank bank = getBankUseCase.findById(id);
 
         log.info(bank != null ? "Found bank for id = " + id : "Not found bank for id = " + id);
 
@@ -54,10 +53,10 @@ public class BankController extends ExceptionHandling {
 
     @GetMapping()
     @PreAuthorize("hasAnyAuthority('FINANCE_READ_ALL', 'FINANCE_READ') or hasRole('ROLE_ADMIN')")
-    ResponseEntity<List<BankDto>> getAll(@RequestParam(required = false) Boolean address) {
-        log.info("Try get all banks - Address = " + address);
+    ResponseEntity<List<BankDto>> getAll() {
+        log.info("Try get all banks");
 
-        List<Bank> bankList = getBankUseCase.findByAll(address);
+        List<Bank> bankList = getBankUseCase.findByAll();
 
         log.info("Found " + bankList.size() + " banks.");
 
