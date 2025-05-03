@@ -10,7 +10,7 @@ import java.util.List;
 
 @AllArgsConstructor
 @Component
-public class ComputerFacade implements FindComputerUseCase, SaveComputerUseCase {
+public class ComputerFacade implements FindComputerUseCase, SaveComputerUseCase, DeleteComputerUseCase {
     private final ComputerService computerService;
 
     @Override
@@ -41,5 +41,10 @@ public class ComputerFacade implements FindComputerUseCase, SaveComputerUseCase 
     @Override
     public Computer updateStatus(Integer idDevice, ActiveStatus status) {
         return computerService.updateStatus(idDevice, status);
+    }
+
+    @Override
+    public void deleteComputer(Integer idComputer) {
+        computerService.deleteComputer(idComputer);
     }
 }

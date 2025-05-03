@@ -21,6 +21,7 @@ import java.util.List;
 public class ComputerController {
     private final FindComputerUseCase findComputerUseCase;
     private final SaveComputerUseCase saveComputerUseCase;
+    private final DeleteComputerUseCase deleteComputerUseCase;
     private final ApiComputerMapper apiComputerMapper;
 
     @GetMapping
@@ -92,13 +93,13 @@ public class ComputerController {
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
-//    @DeleteMapping("/{id}")
-//    @PreAuthorize("hasAnyAuthority('COMPUTER_DELETE_ALL','COMPUTER_DELETE') or hasRole('ROLE_ADMIN')")
-//    public void deleteComputer(@PathVariable Integer id) {
-//        log.info("Request to delete computer with id: {}", id);
-//        deleteDeviceUseCase.deleteDevice(id);
-//        log.info("Device with id: {} deleted successfully", id);
-//    }
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('COMPUTER_DELETE_ALL','COMPUTER_DELETE') or hasRole('ROLE_ADMIN')")
+    public void deleteComputer(@PathVariable Integer id) {
+        log.info("Request to delete computer with id: {}", id);
+        deleteComputerUseCase.deleteComputer(id);
+        log.info("Device with id: {} deleted successfully", id);
+    }
 
 
     @PutMapping("/status/{id}")

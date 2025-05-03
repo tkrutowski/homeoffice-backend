@@ -45,10 +45,6 @@ class ComputerService {
         return savedDevice;
     }
 
-//    public void deleteDevice(Integer idDevice) {
-//        computerRepository.deleteDevice(idDevice);
-//    }
-
     public Computer updateStatus(Integer id, ActiveStatus status) {
         Optional<Computer> computerById = computerRepository.findComputerById(id);
         if(computerById.isPresent()) {
@@ -56,5 +52,9 @@ class ComputerService {
             return computerRepository.saveComputer(computerById.get());
         }
         throw new DeviceNotFoundException(id);
+    }
+
+    public void deleteComputer(Integer idComputer) {
+        computerRepository.deleteComputer(idComputer);
     }
 }

@@ -21,7 +21,7 @@ public class ComputerDto {
     private List<Integer> disk;
     private Integer power;
     private List<Integer> cooling;
-    private List<Integer> monitor;
+    private List<Integer> display;
     private Integer keyboard;
     private Integer mouse;
     private Integer computerCase;
