@@ -8,6 +8,9 @@ ENV TZ=Europe/Warsaw
 # Możesz ustawić domyślną wartość zmiennej
 ENV DEBUG=false
 
+ARG APP_VERSION=latest
+ENV APP_VERSION=${APP_VERSION}
+
 # Set default cron value if not provided
 ENV SCHEDULER_CRON="0 0 8 * * FRI"
 
