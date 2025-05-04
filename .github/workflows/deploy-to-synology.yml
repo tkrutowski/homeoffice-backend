@@ -67,12 +67,18 @@ jobs:
 #          homeoffice-${{ steps.get_version.outputs.version }}.tar \
 #          ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }}:/volume1/docker/images/
 
-      - name: Copy image TAR to Synology
-        run: |
-          scp -o StrictHostKeyChecking=no \
-            homeoffice-${{ steps.get_version.outputs.version }}.tar \
-            ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }}:/volume1/docker/images/
+#      - name: Copy image TAR to Synology
+#        run: |
+#          scp -o StrictHostKeyChecking=no \
+#            homeoffice-${{ steps.get_version.outputs.version }}.tar \
+#            ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }}:/volume1/docker/images/
         #
+      - name: Copy TAR into home
+        run: |
+         scp -o StrictHostKeyChecking=no \
+         -i id_rsa_deploy \
+         homeoffice-${{ steps.get_version.outputs.version }}.tar \
+         ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }}:~/homeoffice.tar
 
         #      - name: Save image to TAR
         #        run: |
