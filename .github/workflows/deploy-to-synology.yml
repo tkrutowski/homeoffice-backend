@@ -83,7 +83,7 @@ jobs:
          scp -o StrictHostKeyChecking=no \
           -i id_rsa_deploy \
          homeoffice-${{ steps.get_version.outputs.version }}.tar \
-         ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }}:/upload/
+         ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }}:~/upload/homeoffice.tar
 
         #      - name: Save image to TAR
         #        run: |
