@@ -1,0 +1,82 @@
+# .github/workflows/deploy-to-synology.yml
+name: CI/CD → Synology
+on:
+  push:
+    branches: [ master ]
+    # (opcjonalnie możesz dodać `workflow_dispatch:` żeby uruchamiać ręcznie)
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: 21
+          distribution: 'corretto'
+
+      - name: Build JAR with Maven
+        run: mvn -B clean package -DskipTests
+
+      - name: Read version from pom.xml
+        id: get_version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Update Dockerfile ARG
+        run: |
+          sed -i "s|ARG APP_VERSION=.*|ARG APP_VERSION=${{ steps.get_version.outputs.version }}|" Dockerfile
+
+      - name: Build Docker image
+        run: |
+          IMAGE=homeoffice:${{ steps.get_version.outputs.version }}
+          docker build --build-arg APP_VERSION=${{ steps.get_version.outputs.version }} -t $IMAGE .
+
+      - name: Save image to TAR
+        run: |
+          IMAGE=homeoffice:${{ steps.get_version.outputs.version }}
+          docker save $IMAGE -o homeoffice-${{ steps.get_version.outputs.version }}.tar
+
+      - name: Copy TAR to Synology
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SYNOLOGY_HOST }}
+          username: ${{ secrets.SYNOLOGY_USER }}
+          key: ${{ secrets.SYNOLOGY_SSH_KEY }}
+          #port: ${{ secrets.SYNOLOGY_PORT }}    # możesz usunąć, jeśli to 22
+          source: "homeoffice-${{ steps.get_version.outputs.version }}.tar"
+          target: "/volume1/docker/images/"
+
+      - name: Deploy on Synology via SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SYNOLOGY_HOST }}
+          username: ${{ secrets.SYNOLOGY_USER }}
+          key: ${{ secrets.SYNOLOGY_SSH_KEY }}
+          #port: ${{ secrets.SYNOLOGY_PORT }}
+          script: |
+            sudo docker load -i /volume1/docker/images/homeoffice-${{ steps.get_version.outputs.version }}.tar
+            sudo docker rm -f homeoffice || true
+            sudo docker run -d \
+              --name homeoffice \
+              --restart unless-stopped \              # autorestart
+              -p 8077:8077 \
+            # montowanie dysków
+              -v /web/homeoffice:/app/homeoffice \     # ⇦ Twój volume
+              -v /web/logs:/app/logs \                 # ⇦ i drugi volume
+            # wrażliwe z GitHub Secrets
+              -e JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} \
+              -e OPENIA_API_KEY=${{ secrets.OPENIA_API_KEY }} \
+              -e HOME_URL=${{ secrets.HOME_URL }} \
+              -e DB_URL=${{ secrets.DB_URL }} \
+              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              homeoffice:${{ steps.get_version.outputs.version }}
+
+
