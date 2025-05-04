@@ -49,6 +49,17 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SYNOLOGY_SSH_KEY }}
 
+
+
+      - name: Debug SSH from runner
+        run: |
+          ssh -v -o StrictHostKeyChecking=no \
+            ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }} \
+            'echo SSH OK'
+
+
+
+
       - name: Copy image TAR to Synology
         run: |
           scp -o StrictHostKeyChecking=no \
