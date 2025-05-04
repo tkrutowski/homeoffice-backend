@@ -82,7 +82,7 @@ jobs:
         run: |
          scp -o StrictHostKeyChecking=no \
          homeoffice-${{ steps.get_version.outputs.version }}.tar \
-         ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }}:~
+         ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }}:/upload/
 
         #      - name: Save image to TAR
         #        run: |
