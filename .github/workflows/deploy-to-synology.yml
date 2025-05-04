@@ -45,7 +45,7 @@ jobs:
           chmod 644 homeoffice-${{ steps.get_version.outputs.version }}.tar
 
       - name: Load SSH key into ssh-agent
-        uses: webfactory/ssh-agent@v0.7.3
+        uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SYNOLOGY_SSH_KEY }}
 
