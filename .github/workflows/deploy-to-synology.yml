@@ -42,6 +42,9 @@ jobs:
         run: |
           IMAGE=homeoffice:${{ steps.get_version.outputs.version }}
           docker save $IMAGE -o homeoffice-${{ steps.get_version.outputs.version }}.tar
+          
+          # to fix permission denied
+          chmod 644 homeoffice-${{ steps.get_version.outputs.version }}.tar 
 
       - name: Copy TAR to Synology
         uses: appleboy/scp-action@v0.1.6
