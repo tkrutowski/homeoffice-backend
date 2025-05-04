@@ -52,7 +52,7 @@ jobs:
           #port: ${{ secrets.SYNOLOGY_PORT }}    # możesz usunąć, jeśli to 22
           source: "homeoffice-${{ steps.get_version.outputs.version }}.tar"
           target: "/volume1/docker/images/"
-          debug: 'true'
+          debug: true
 
       - name: Deploy on Synology via SSH
         uses: appleboy/ssh-action@v0.1.7
