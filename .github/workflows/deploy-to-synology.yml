@@ -56,15 +56,14 @@ jobs:
 
       - name: Debug SSH from runner
         run: |
-          ssh -v -o StrictHostKeyChecking=no \
-            ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }} \
-            'echo SSH OK'
+          ssh -i id_rsa_deploy -v -o StrictHostKeyChecking=no \
+          ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }} \
+          'echo SSH OK'
 
 
       - name: Copy image TAR to Synology via scp -i
         run: |
-          scp -o StrictHostKeyChecking=no \
-          -i id_rsa_deploy \
+          scp -i id_rsa_deploy -o StrictHostKeyChecking=no \
           homeoffice-${{ steps.get_version.outputs.version }}.tar \
           ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }}:/volume1/docker/images/
 
