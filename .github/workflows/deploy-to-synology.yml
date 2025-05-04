@@ -73,6 +73,11 @@ jobs:
 #            homeoffice-${{ steps.get_version.outputs.version }}.tar \
 #            ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }}:/volume1/docker/images/
         #
+      - name: Save SSH key to file
+        run: |
+          echo "${{ secrets.SYNOLOGY_SSH_KEY }}" > id_rsa_deploy
+          chmod 600 id_rsa_deploy
+
       - name: Copy TAR into home
         run: |
          scp -o StrictHostKeyChecking=no \
