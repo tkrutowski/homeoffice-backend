@@ -44,7 +44,8 @@ jobs:
           docker save $IMAGE -o homeoffice-${{ steps.get_version.outputs.version }}.tar
 
       - name: Copy TAR to Synology
-        uses: appleboy/scp-action@v0.1.4
+        uses: appleboy/scp-action@v0.1.6
+        debug: true
         with:
           host: ${{ secrets.SYNOLOGY_HOST }}
           username: ${{ secrets.SYNOLOGY_USER }}
