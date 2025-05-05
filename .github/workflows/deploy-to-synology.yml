@@ -119,8 +119,7 @@ jobs:
               --name homeoffice \
               --restart unless-stopped \
               -p 8077:8077 \
-              -v /web/homeoffice:/app/homeoffice \
-              -v /web/logs:/app/logs \
+              -v /volume1/web/homeoffice:/app/homeoffice \
               -e JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
               -e OPENIA_API_KEY="${{ secrets.OPENIA_API_KEY }}" \
               -e HOME_URL="${{ secrets.HOME_URL }}" \
