@@ -3,7 +3,6 @@ name: CI/CD → Synology
 on:
   push:
     branches: [ master ]
-    # (opcjonalnie możesz dodać `workflow_dispatch:` żeby uruchamiać ręcznie)
   workflow_dispatch:
 
 jobs:
@@ -49,30 +48,12 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SYNOLOGY_SSH_KEY }}
 
-#      - name: Save SSH key to file
-#        run: |
-#          echo "${{ secrets.SYNOLOGY_SSH_KEY }}" > id_rsa_deploy
-#          chmod 600 id_rsa_deploy
-
       - name: Debug SSH from runner
         run: |
           ssh -i id_rsa_deploy -v -o StrictHostKeyChecking=no \
           ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }} \
           'echo SSH OK'
 
-
-#      - name: Copy image TAR to Synology via scp -i
-#        run: |
-#          scp -i id_rsa_deploy -o StrictHostKeyChecking=no \
-#          homeoffice-${{ steps.get_version.outputs.version }}.tar \
-#          ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }}:/volume1/docker/images/
-
-#      - name: Copy image TAR to Synology
-#        run: |
-#          scp -o StrictHostKeyChecking=no \
-#            homeoffice-${{ steps.get_version.outputs.version }}.tar \
-#            ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }}:/volume1/docker/images/
-        #
       - name: Save SSH key to file
         run: |
           echo "${{ secrets.SYNOLOGY_SSH_KEY }}" > id_rsa_deploy
@@ -84,25 +65,6 @@ jobs:
           -i id_rsa_deploy \
          homeoffice-${{ steps.get_version.outputs.version }}.tar \
          ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }}:docker/images/
-
-        #      - name: Save image to TAR
-        #        run: |
-        #          IMAGE=homeoffice:${{ steps.get_version.outputs.version }}
-        #          docker save $IMAGE -o homeoffice-${{ steps.get_version.outputs.version }}.tar
-        #
-        #          # to fix permission denied
-        #          chmod 644 homeoffice-${{ steps.get_version.outputs.version }}.tar
-        #
-        #      - name: Copy TAR to Synology
-        #        uses: appleboy/scp-action@v0.1.6
-        #        with:
-        #          host: ${{ secrets.SYNOLOGY_HOST }}
-        #          username: ${{ secrets.SYNOLOGY_USER }}
-        #          key: ${{ secrets.SYNOLOGY_SSH_KEY }}
-        #          #port: ${{ secrets.SYNOLOGY_PORT }}    # możesz usunąć, jeśli to 22
-        #          source: "homeoffice-${{ steps.get_version.outputs.version }}.tar"
-        #          target: "/volume1/docker/images/"
-        #          debug: true
 
       - name: Deploy on Synology via SSH
         uses: appleboy/ssh-action@v0.1.7
