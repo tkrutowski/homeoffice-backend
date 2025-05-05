@@ -113,9 +113,9 @@ jobs:
           port: ${{ secrets.SYNOLOGY_PORT }}
           script: |
             set -e
-            docker load -i /volume1/docker/images/homeoffice-${{ steps.get_version.outputs.version }}.tar
-            docker rm -f homeoffice || true
-            docker run -d \
+            /usr/local/bin/docker load -i /volume1/docker/images/homeoffice-${{ steps.get_version.outputs.version }}.tar
+            /usr/local/bin/docker rm -f homeoffice || true
+            /usr/local/bin/docker run -d \
               --name homeoffice \
               --restart unless-stopped \
               -p 8077:8077 \
