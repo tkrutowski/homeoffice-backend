@@ -25,6 +25,9 @@ public class BookRepositoryAdapter implements BookRepository {
     @Override
     public Optional<Book> add(Book book) {
         BookDbDto bookDbDtoToSave = bookMapper.toDto(book);
+        if (bookDbDtoToSave.getId() == 0){
+            bookDbDtoToSave.setId(null);
+        }
         BookDbDto savedBook = bookDtoRepository.save(bookDbDtoToSave);
         return Optional.of(savedBook)
                 .map(bookMapper::toDomain);

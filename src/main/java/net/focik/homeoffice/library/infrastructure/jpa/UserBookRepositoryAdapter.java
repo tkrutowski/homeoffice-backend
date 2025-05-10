@@ -23,6 +23,9 @@ public class UserBookRepositoryAdapter implements UserBookRepository {
     @Override
     public UserBook add(UserBook userBook) {
         UserBookDbDto userBookDbDto = mapper.toDto(userBook);
+        if (userBookDbDto.getId() == 0){
+            userBookDbDto.setId(null);
+        }
         UserBookDbDto save = userBookDtoRepository.save(userBookDbDto);
         return mapper.toDomain(save);
     }
