@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @ToString
 public class Purchase {
 
-    private int id;
+    private Integer id;
     private int idCard;
     private int idFirm;
     private int idUser;

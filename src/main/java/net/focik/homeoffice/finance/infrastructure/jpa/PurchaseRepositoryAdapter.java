@@ -26,6 +26,9 @@ class PurchaseRepositoryAdapter implements PurchaseRepository {
 
     @Override
     public Purchase savePurchase(Purchase purchase) {
+        if (purchase.getId() == 0){
+            purchase.setId(null);
+        }
         PurchaseDbDto saved = purchaseDtoRepository.save(mapper.toDto(purchase));
         return mapper.toDomain(saved);
     }
@@ -33,10 +36,7 @@ class PurchaseRepositoryAdapter implements PurchaseRepository {
     @Override
     public Optional<Purchase> findPurchaseById(Integer id) {
         Optional<PurchaseDbDto> byId = purchaseDtoRepository.findById(id);
-        if (byId.isEmpty())
-            return Optional.empty();
-
-        return Optional.of(mapper.toDomain(byId.get()));
+        return byId.map(purchaseDbDto -> mapper.toDomain(purchaseDbDto));
     }
 
     @Override
