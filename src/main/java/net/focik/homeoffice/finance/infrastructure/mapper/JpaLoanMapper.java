@@ -22,7 +22,7 @@ public class JpaLoanMapper {
 
     public LoanDbDto toDto(Loan loan) {
         return LoanDbDto.builder()
-                .id(loan.getId())
+                .id(loan.getId() == 0 ? null : loan.getId())
                 .bank(mapper.map(loan.getBank(), BankDbDto.class))
                 .idUser(loan.getIdUser())
                 .amount(MoneyUtils.getBigDecimal(loan.getAmount().getNumber()))

@@ -23,6 +23,9 @@ class CardRepositoryAdapter implements CardRepository {
     @Override
     public Card saveCard(Card card) {
         CardDbDto dbDto = mapper.toDto(card);
+        if (dbDto.getId() == 0){
+            dbDto.setId(null);
+        }
         CardDbDto saved = cardDtoRepository.save(dbDto);
         return mapper.toDomain(saved);
     }

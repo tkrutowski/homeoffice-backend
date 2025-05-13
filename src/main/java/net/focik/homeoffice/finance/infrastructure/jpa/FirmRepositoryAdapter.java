@@ -21,6 +21,9 @@ public class FirmRepositoryAdapter implements FirmRepository {
     @Override
     public Firm save(Firm firm) {
         FirmDbDto firmDbDto = mapper.toDto(firm);
+        if (firmDbDto.getId() == 0){
+            firmDbDto.setId(null);
+        }
         FirmDbDto save = firmDtoRepository.save(firmDbDto);
         return mapper.toDomain(save);
     }

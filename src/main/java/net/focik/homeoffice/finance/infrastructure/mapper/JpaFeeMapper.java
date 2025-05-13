@@ -21,7 +21,7 @@ public class JpaFeeMapper {
     private final ModelMapper mapper;
     public FeeDbDto toDto(Fee fee) {
         return FeeDbDto.builder()
-                .id(fee.getId())
+                .id(fee.getId() == 0 ? null : fee.getId())
                 .firm(mapper.map(fee.getFirm(), FirmDbDto.class))
                 .idUser(fee.getIdUser())
                 .name(fee.getName())

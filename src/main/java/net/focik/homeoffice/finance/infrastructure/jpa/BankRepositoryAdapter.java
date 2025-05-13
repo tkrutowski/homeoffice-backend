@@ -21,6 +21,9 @@ public class BankRepositoryAdapter implements BankRepository {
     @Override
     public Bank save(Bank bank) {
         BankDbDto bankDbDto = mapper.toDto(bank);
+        if (bankDbDto.getId() == 0){
+            bankDbDto.setId(null);
+        }
         BankDbDto save = bankDtoRepository.save(bankDbDto);
         return mapper.toDomain(save);
     }
