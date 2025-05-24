@@ -2,8 +2,11 @@ package net.focik.homeoffice.devices.domain;
 
 import lombok.AllArgsConstructor;
 import net.focik.homeoffice.devices.domain.model.Device;
+import net.focik.homeoffice.devices.domain.model.DeviceFile;
 import net.focik.homeoffice.devices.domain.model.DeviceType;
-import net.focik.homeoffice.devices.domain.port.primary.*;
+import net.focik.homeoffice.devices.domain.port.primary.DeleteDeviceUseCase;
+import net.focik.homeoffice.devices.domain.port.primary.FindDeviceUseCase;
+import net.focik.homeoffice.devices.domain.port.primary.SaveDeviceUseCase;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 import org.springframework.stereotype.Component;
 
@@ -59,6 +62,16 @@ public class DeviceFacade implements FindDeviceUseCase, SaveDeviceUseCase, Delet
     @Override
     public Device updateStatus(Integer idDevice, ActiveStatus status) {
         return deviceService.updateStatus(idDevice, status);
+    }
+
+    @Override
+    public Device addFiles(Integer deviceId, List<DeviceFile> files) {
+        Device deviceById = getDeviceById(deviceId);
+        if (deviceById != null) {
+            deviceById.addFiles(files);
+            return deviceService.update(deviceById);
+        }
+        return deviceById;
     }
 
     @Override

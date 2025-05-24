@@ -30,6 +30,7 @@ public class ApiDeviceMapper {
                 .activeStatus(dto.getActiveStatus())
                 .details(dto.getDetails())
                 .imageUrl(dto.getImageUrl())
+                .files(dto.getFiles())
                 .build();
     }
 
@@ -49,6 +50,7 @@ public class ApiDeviceMapper {
                 .activeStatus(dev.getActiveStatus())
                 .details(dev.getDetails())
                 .imageUrl(dev.getImageUrl())
+                .files(dev.getFiles())
                 .build();
     }
 }

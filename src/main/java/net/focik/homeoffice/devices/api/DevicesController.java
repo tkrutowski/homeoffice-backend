@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.devices.api.dto.DeviceDto;
 import net.focik.homeoffice.devices.api.mapper.ApiDeviceMapper;
 import net.focik.homeoffice.devices.domain.model.Device;
+import net.focik.homeoffice.devices.domain.model.DeviceFile;
 import net.focik.homeoffice.devices.domain.port.primary.DeleteDeviceUseCase;
 import net.focik.homeoffice.devices.domain.port.primary.FindDeviceUseCase;
 import net.focik.homeoffice.devices.domain.port.primary.SaveDeviceUseCase;
@@ -29,7 +30,7 @@ public class DevicesController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('DEVICE_READ_ALL','DEVICE_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<List<DeviceDto>> getDevices(@RequestParam(value = "status", defaultValue = "ALL") ActiveStatus activeStatus) {
-        log.info("Request to get devices with status: {}.",activeStatus);
+        log.info("Request to get devices with status: {}.", activeStatus);
         List<Device> devices = findDeviceUseCase.getDevices(activeStatus);
 
         if (devices.isEmpty()) {
@@ -116,5 +117,14 @@ public class DevicesController {
         log.debug("Mapped Device DTO to domain object: {}", dto);
 
         return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/files/{idDevice}")
+    public ResponseEntity<Device> addFile(@RequestBody List<DeviceFile> files, @PathVariable int idDevice) {
+        log.info("Adding {} files to device with ID: {}", files.size(), idDevice);
+        log.debug("Files to add: {}", files);
+        Device device = saveDeviceUseCase.addFiles(idDevice, files);
+        log.debug("Files successfully added to device: {}", device);
+        return ResponseEntity.ok(device);
     }
 }

@@ -36,7 +36,7 @@ class DeviceService {
 
     public Device add(Device device) {
         log.debug("Adding device {}", device);
-        device.setImageUrl(fileHelper.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE));
+        device.setImageUrl(fileHelper.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
         return deviceRepository.saveDevice(device);
     }
 
@@ -44,7 +44,7 @@ class DeviceService {
         log.debug("Updating device {}", device);
 
         if (!device.getImageUrl().contains("focikhome")) {
-            device.setImageUrl(fileHelper.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE));
+            device.setImageUrl(fileHelper.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
         }
         Device savedDevice = deviceRepository.saveDevice(device);
         log.debug("Updated device {}", savedDevice);

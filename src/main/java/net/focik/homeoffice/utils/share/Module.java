@@ -5,13 +5,14 @@ import lombok.Getter;
 @Getter
 public enum Module {
     CARD("/images/cards/"),
-    DEVICE("/images/devices/"),
+    DEVICE_IMAGES("devices/images/"),
+    DEVICE_FILES("devices/files/"),
     BOOK("/images/books/");
 
-    private final String imageDirectory;
+    private final String directory;
 
-    Module(String imageDirectory) {
-        this.imageDirectory = imageDirectory;
+    Module(String directory) {
+        this.directory = directory;
     }
 
 }

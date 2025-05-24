@@ -2,12 +2,16 @@ package net.focik.homeoffice.devices.infrastructure.dto;
 
 import jakarta.persistence.*;
 import lombok.*;
+import net.focik.homeoffice.fileService.infrastructure.dto.FileInfoDbDto;
 import net.focik.homeoffice.finance.infrastructure.dto.FirmDbDto;
 import net.focik.homeoffice.utils.share.ActiveStatus;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Builder
 @NoArgsConstructor
@@ -48,4 +52,9 @@ class DeviceDbDto {
     private ActiveStatus activeStatus;
     private String imageUrl;
     private String details;
+    @OneToMany
+    @JoinColumn(name = "owner_id")
+    @SQLRestriction("module = 'DEVICE_FILES'")
+    private Set<FileInfoDbDto> files = new HashSet<>();
+
 }

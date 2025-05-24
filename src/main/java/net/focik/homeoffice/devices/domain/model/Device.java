@@ -10,6 +10,7 @@ import net.focik.homeoffice.utils.share.ActiveStatus;
 import org.javamoney.moneta.Money;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 @NoArgsConstructor
@@ -31,4 +32,9 @@ public class Device {
         private ActiveStatus activeStatus;
         private Map<String, String> details;
         private String imageUrl;
+        private List<DeviceFile> files;
+
+        public void addFiles(List<DeviceFile> files) {
+                this.files.addAll(files);
+        }
 }

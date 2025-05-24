@@ -16,12 +16,12 @@ import java.util.UUID;
 @Slf4j
 @Service
 public class FileHelper {
-    @Value("${homeoffice.directory}")
+    @Value("${homeoffice.directory.public}")
     private final String mainCatalog;
     @Value("${homeoffice.url}")
     private final String homeUrl;
 
-    public FileHelper( @Value("${homeoffice.directory}") String mainCatalog, @Value("${homeoffice.url}") String homeUrl) {
+    public FileHelper(@Value("${homeoffice.directory.public}") String mainCatalog, @Value("${homeoffice.url}") String homeUrl) {
         this.mainCatalog = mainCatalog;
         this.homeUrl = homeUrl;
     }
@@ -37,12 +37,12 @@ public class FileHelper {
             String extension = path.substring(path.lastIndexOf("."));
 
             String fileName = name.trim().replace(" ", "_") + "_" + UUID.randomUUID() + extension; // Generowanie unikalnej nazwy pliku
-            File outputFile = new File(mainCatalog + module.getImageDirectory() + "/" + fileName);
+            File outputFile = new File(mainCatalog + module.getDirectory() + "/" + fileName);
             log.debug("Saving image {} in {}", fileName, outputFile);
             // Pobierz plik z URL i zapisz go na dysku
             FileUtils.copyURLToFile(url, outputFile, 10000, 10000);
             log.debug("URL saved file: {}", homeUrl + fileName);
-            return homeUrl + module.getImageDirectory() +fileName;
+            return homeUrl + module.getDirectory() +fileName;
         } catch (IOException e) {
             log.error("Error downloading ans saving image (return null)",e);
             return null;
