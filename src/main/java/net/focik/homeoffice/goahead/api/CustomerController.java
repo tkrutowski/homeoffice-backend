@@ -31,6 +31,8 @@ import static org.springframework.http.HttpStatus.OK;
 //@CrossOrigin
 public class CustomerController extends ExceptionHandling {
 
+    public static final String MAPPED_CUSTOMER_TO_CUSTOMER_DTO = "Mapped Customer to CustomerDto: {}";
+    public static final String MAPPED_CUSTOMER_DTO_TO_CUSTOMER_OBJECT = "Mapped CustomerDto to Customer object: {}";
     private final ApiCustomerMapper mapper;
     private final AddCustomerUseCase addCustomerUseCase;
     private final UpdateCustomerUseCase updateCustomerUseCase;
@@ -46,69 +48,75 @@ public class CustomerController extends ExceptionHandling {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
     ResponseEntity<CustomerDto> getById(@PathVariable int id) {
-
-        log.info("Try find customer by id: " + id);
+        log.info("Request to get customer by id: {}", id);
 
         Customer customer = getCustomerUseCase.findById(id);
 
-        log.info(customer != null ? "Found customer for id = " + id : "Not found customer for id = " + id);
-
-        if (customer == null)
+        if (customer == null) {
+            log.warn("No customer found with id: {}", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
 
-        return new ResponseEntity<>(mapper.toDto(customer), OK);
+        log.info("Found customer with id: {}", id);
+        CustomerDto dto = mapper.toDto(customer);
+        log.debug(MAPPED_CUSTOMER_TO_CUSTOMER_DTO, dto);
+        return new ResponseEntity<>(dto, OK);
     }
 
     @GetMapping()
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
     ResponseEntity<List<CustomerDto>> getAllCustomers(@RequestParam(required = false) CustomerStatus status,
                                                       @RequestParam(required = false) CustomerType type) {
-        log.info("Try find all employee by EmploymentStatus = " + status);
+        log.info("Request to find all employees with status: {} and type: {}", status, type);
 
         List<Customer> customerList = getCustomerUseCase.findByAll(status, type);
-
-        log.info("Found " + customerList.size() + " employees.");
+        log.info("Found {} employees.", customerList.size());
 
         return new ResponseEntity<>(customerList.stream()
+                .peek(customer -> log.debug("Found customer {}", customer))
                 .map(mapper::toDto)
+                .peek(dto -> log.debug("Mapped found customer {}", dto))
                 .collect(Collectors.toList()), OK);
     }
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
     public ResponseEntity<CustomerDto> addCustomer(@RequestBody CustomerDto customerDto) {
-        log.info("Try add new customer.");
+        log.info("Request to add a new customer received with data: {}", customerDto);
 
-        Customer customer = mapper.toDomain(customerDto);
-        Customer result = addCustomerUseCase.addCustomer(customer);
+        Customer customerToAdd = mapper.toDomain(customerDto);
+        log.debug(MAPPED_CUSTOMER_DTO_TO_CUSTOMER_OBJECT, customerToAdd);
 
-        log.info(result.getId() > 0 ? "Customer added with id = " + result.getId() : "No customer added!");
+        Customer result = addCustomerUseCase.addCustomer(customerToAdd);
+        log.info("Customer added successfully: {}", result);
 
-        if (result.getId() <= 0)
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-
-        return new ResponseEntity<>(mapper.toDto(result), HttpStatus.CREATED);
+        CustomerDto dto = mapper.toDto(result);
+        log.debug(MAPPED_CUSTOMER_TO_CUSTOMER_DTO, dto);
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
     @PutMapping
     @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
     public ResponseEntity<CustomerDto> updateEmployee(@RequestBody CustomerDto customerDto) {
-        log.info("Try update customer with id: {}", customerDto.getId());
+        log.info("Request to edit a customer received with data: {}", customerDto);
 
-        Customer customer = updateCustomerUseCase.updateCustomer(mapper.toDomain(customerDto));
-        return new ResponseEntity<>(mapper.toDto(customer), OK);
+        Customer customerToUpdate = mapper.toDomain(customerDto);
+        log.debug(MAPPED_CUSTOMER_DTO_TO_CUSTOMER_OBJECT, customerToUpdate);
+
+        Customer customer = updateCustomerUseCase.updateCustomer(customerToUpdate);
+        log.info("Customer updated successfully: {}", customer);
+
+        CustomerDto dto = mapper.toDto(customer);
+        log.debug(MAPPED_CUSTOMER_TO_CUSTOMER_DTO, dto);
+        return new ResponseEntity<>(dto, OK);
     }
 
     @DeleteMapping("/{idCustomer}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_DELETE_ALL')")
-    public ResponseEntity<HttpResponse> deleteCustomer(@PathVariable int idCustomer) {
-        log.info("Try delete customer with id: " + idCustomer);
-
+    public void deleteCustomer(@PathVariable int idCustomer) {
+        log.info("Request to delete customer with id: {}", idCustomer);
         deleteCustomerUseCase.deleteCustomer(idCustomer);
-
-        log.info("Deleted customer with id = " + idCustomer);
-
-        return response(HttpStatus.NO_CONTENT, "Klient usunięty.");
+        log.info("Customer with id: {} deleted successfully", idCustomer);
     }
 
     @GetMapping("/customertype")
@@ -121,15 +129,9 @@ public class CustomerController extends ExceptionHandling {
 
     @PutMapping("/customerstatus/{id}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
-    public ResponseEntity<HttpResponse> updateEmploymentStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
-        log.info("Try update customer status.");
-
+    public void updateCustomerStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
+        log.info("Request to update customer status for employee with id: {} from status: {}", id, basicDto.getValue());
         updateCustomerUseCase.updateCustomerStatus(id, CustomerStatus.valueOf(basicDto.getValue()));
-        return response(HttpStatus.OK, "Zaaktualizowano status pracownika.");
-    }
-
-    private ResponseEntity<HttpResponse> response(HttpStatus status, String message) {
-        HttpResponse body = new HttpResponse(status.value(), status, status.getReasonPhrase(), message);
-        return new ResponseEntity<>(body, status);
+        log.info("Customer status updated successfully for employee with id: {} to status: {}", id, basicDto.getValue());
     }
 }

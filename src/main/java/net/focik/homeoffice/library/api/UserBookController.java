@@ -36,7 +36,7 @@ public class UserBookController {
     private final ApiUserBookMapper userBookMapper;
 
     @GetMapping("/check")
-    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ')")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<List<UserBookApiDto>> checkIfUserbook(@RequestParam(name = "id") int id) {
         String userName = UserHelper.getUserName();
         log.info("Request to check user books for book ID: {} by user: {}", id, userName);
@@ -48,7 +48,7 @@ public class UserBookController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ')")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<UserBookApiDto> findById(@PathVariable int id) {
         log.info("Request to find user book with ID: {}", id);
         UserBook userBook = findUserBookUseCase.findUserBook(id);
@@ -61,7 +61,7 @@ public class UserBookController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ')")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<List<UserBookApiDto>> getAllUserBooks() {
         String userName = UserHelper.getUserName();
         log.info("Request to get all books for user: {}", userName);
@@ -75,12 +75,14 @@ public class UserBookController {
         allBooks.sort(Comparator.comparing(UserBook::getReadFrom, Comparator.nullsLast(Comparator.naturalOrder())));
         log.info("Found {} books for user: {}", allBooks.size(), userName);
         return new ResponseEntity<>(allBooks.stream()
+                .peek(userBook -> log.debug("Found user book {}", userBook))
                 .map(userBookMapper::toDto)
+                .peek(dto -> log.debug("Mapped found user book {}", dto))
                 .collect(Collectors.toList()), HttpStatus.OK);
     }
 
     @GetMapping("/status")
-    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ')")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<List<UserBookApiDto>> getAllUserBooksByStatusAndYear(@RequestParam(name = "status") ReadingStatus readingStatus,
                                                          @RequestParam(name = "year", required = false) Integer year) {
         String userName = UserHelper.getUserName();
@@ -104,12 +106,14 @@ public class UserBookController {
         log.info("Found {} books for user: {} with status: {} and year: {}", allBooks.size(), userName, readingStatus, targetYear);
 
         return new ResponseEntity<>(allBooks.stream()
+                .peek(userBook -> log.debug("Found user book {}", userBook))
                 .map(userBookMapper::toDto)
+                .peek(dto -> log.debug("Mapped found user book {}", dto))
                 .collect(Collectors.toList()), HttpStatus.OK);
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ')")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<UserBookApiDto> addUserBook(@RequestBody UserBookApiDto userBookDto) {
         String userName = UserHelper.getUserName();
         log.info("Request to add a new book for user: {}", userName);
@@ -118,33 +122,28 @@ public class UserBookController {
         log.debug("Mapped UserBookApiDto to domain object: {}", userBook);
 
         UserBook saved = saveUserBookUseCase.addUserBook(userBook, userName);
+        log.info("User book added successfully: {}", saved);
 
-        if (saved != null) {
-            log.info("User book added successfully for user: {} with book id: {}", userName, saved.getId());
-        } else {
-            log.warn("Failed to add user book for user: {}", userName);
-        }
-
-        return new ResponseEntity<>(userBookMapper.toDto(saved), HttpStatus.OK);
+        UserBookApiDto dto = userBookMapper.toDto(saved);
+        log.debug("Mapped saved user book to DTO: {}", dto);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @PutMapping()
-    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ')")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<UserBookApiDto> editUserBook(@RequestBody UserBookApiDto userBookDto) {
         log.info("Request to edit book for user.");
 
-        UserBook userBook = userBookMapper.toDomain(userBookDto);
-        log.debug("Mapped UserBookApiDto to domain object: {}", userBook);
+        UserBook userBookToAdd = userBookMapper.toDomain(userBookDto);
+        log.debug("Mapped UserBookApiDto to domain object: {}", userBookToAdd);
 
-        UserBook saved = saveUserBookUseCase.updateUserBook(userBook);
+        UserBook saved = saveUserBookUseCase.updateUserBook(userBookToAdd);
+        log.info("Book updated successfully: {}", saved);
 
-        if (saved != null) {
-            log.info("User book with id {} updated successfully.", saved.getId());
-        } else {
-            log.warn("Failed to update user book.");
-        }
-        assert saved != null;
-        return new ResponseEntity<>(userBookMapper.toDto(saved), HttpStatus.OK);
+        UserBookApiDto dto = userBookMapper.toDto(saved);
+        log.debug("Mapped saved book to DTO: {}", dto);
+
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @GetMapping("/reading_status")
@@ -172,11 +171,11 @@ public class UserBookController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ')")
-    public ResponseEntity<String> deleteUserBook(@PathVariable Integer id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
+    public void deleteUserBook(@PathVariable Integer id) {
         log.info("Request to delete user book with id: {}", id);
         deleteUserBookUseCase.deleteUserBook(id);
         log.info("User book with id: {} deleted successfully.", id);
-        return new ResponseEntity<>("Książka usunięta", OK);
     }
 }

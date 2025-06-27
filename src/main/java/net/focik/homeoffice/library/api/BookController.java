@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.api.dto.BookApiDto;
 import net.focik.homeoffice.library.api.mapper.ApiBookMapper;
-import net.focik.homeoffice.library.domain.LibraryFacade;
 import net.focik.homeoffice.library.domain.model.Book;
 import net.focik.homeoffice.library.domain.port.primary.DeleteBookUseCase;
 import net.focik.homeoffice.library.domain.port.primary.FindBookUseCase;
@@ -31,13 +30,6 @@ public class BookController {
     private final ModelMapper mapper;
     private final ApiBookMapper bookMapper;
 
-    private final  LibraryFacade testFacade;
-
-
-    @GetMapping("/test")
-    public void test()    {
-        testFacade.findNewBooksInSeriesScheduler();
-    }
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<BookApiDto> getById(@PathVariable int id) {
@@ -58,7 +50,11 @@ public class BookController {
         log.info("Request to get all books");
         List<Book> allBooks = findBookUseCase.findAllBooks();
         log.info("Found {} books", allBooks.size());
-        return new ResponseEntity<>(allBooks.stream().map(bookMapper::toDto).collect(Collectors.toList()), HttpStatus.OK);
+        return new ResponseEntity<>(allBooks.stream()
+                .peek(book -> log.debug("Found book {}", book))
+                .map(bookMapper::toDto)
+                .peek(dto -> log.debug("Mapped found book {}", dto))
+                .toList(), HttpStatus.OK);
     }
 
     @GetMapping("/url")
@@ -80,7 +76,9 @@ public class BookController {
     ResponseEntity<List<BookApiDto>> getAllBooksInSeries(@PathVariable int id) {
         log.info("Request to get all books in series with id: {}", id);
         List<BookApiDto> existedBooks = findBookUseCase.findAllBooksInSeries(id).stream()
+                .peek(book -> log.debug("Found book {}", book))
                 .map(bookMapper::toDto)
+                .peek(dto -> log.debug("Mapped found book {}", dto))
                 .toList();
         log.info("Found {} books in series with id: {}", existedBooks.size(), id);
         return new ResponseEntity<>(existedBooks.stream()
@@ -90,10 +88,12 @@ public class BookController {
 
     @GetMapping("/series/new/{id}")
     @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
-    ResponseEntity<List<BookApiDto>> getNewBooksInSeries(@PathVariable int id, @RequestParam( name = "url") String url) {
+    ResponseEntity<List<BookApiDto>> getNewBooksInSeries(@PathVariable int id, @RequestParam(name = "url") String url) {
         log.info("Request to get new books in series with id: {} and URL: {}", id, url);
         List<BookApiDto> newBooks = findBookUseCase.findNewBooksInSeriesByUrl(id, url).stream()
+                .peek(book -> log.debug("Found book {}", book))
                 .map(bookDto -> mapper.map(bookDto, BookApiDto.class))
+                .peek(dto -> log.debug("Mapped found book {}", dto))
                 .toList();
 
         log.info("Found {} new books in series with id: {} using URL: {}", newBooks.size(), id, url);
@@ -114,7 +114,9 @@ public class BookController {
         Book bookAdded = saveBookUseCase.addBook(bookToAdd);
         log.info("Book added successfully: {}", bookAdded);
 
-        return new ResponseEntity<>(bookMapper.toDto(bookAdded), HttpStatus.OK);
+        BookApiDto dto = bookMapper.toDto(bookAdded);
+        log.debug("Mapped added book to DTO: {}", dto);
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
     @PutMapping()
@@ -125,10 +127,12 @@ public class BookController {
         Book bookToUpdate = bookMapper.toDomain(bookDto);
         log.debug("Mapped Book DTO to domain object: {}", bookToUpdate);
 
-        Book updateBook = saveBookUseCase.updateBook(bookToUpdate);
-        log.info("Book updated successfully: {}", updateBook);
+        Book updatedBook = saveBookUseCase.updateBook(bookToUpdate);
+        log.info("Book updated successfully: {}", updatedBook);
 
-        return new ResponseEntity<>(bookMapper.toDto(updateBook), HttpStatus.OK);
+        BookApiDto dto = bookMapper.toDto(updatedBook);
+        log.debug("Mapped added book to DTO: {}", dto);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")

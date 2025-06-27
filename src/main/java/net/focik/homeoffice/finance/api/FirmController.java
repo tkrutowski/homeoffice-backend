@@ -28,6 +28,8 @@ import static org.springframework.http.HttpStatus.OK;
 //@CrossOrigin
 public class FirmController extends ExceptionHandling {
 
+    public static final String MAPPED_TO_FIRM_DTO = "Mapped to Firm DTO: {}";
+    public static final String MAPPED_FIRM_DTO_TO_DOMAIN_OBJECT = "Mapped Firm DTO to domain object: {}";
     private final AddFirmUseCase addFirmUseCase;
     private final UpdateFirmUseCase updateFirmUseCase;
     private final GetFirmUseCase getFirmUseCase;
@@ -38,30 +40,31 @@ public class FirmController extends ExceptionHandling {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('FINANCE_READ_ALL', 'FINANCE_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<FirmDto> getById(@PathVariable int id) {
-
-        log.info("Try find firm by id: " + id);
+        log.info("Request to get firm by id: {}", id);
 
         Firm firm = getFirmUseCase.findById(id);
-
-        log.info(firm != null ? "Found firm for id = " + id : "Not found firm for id = " + id);
-
-        if (firm == null)
+        if (firm == null) {
+            log.warn("No firm found with id: {}", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
 
-        return new ResponseEntity<>(apiFirmMapper.toDto(firm), OK);
+        log.info("Firm found: {}", firm);
+        FirmDto dto = apiFirmMapper.toDto(firm);
+        log.debug(MAPPED_TO_FIRM_DTO, dto);
+        return new ResponseEntity<>(dto, OK);
     }
 
     @GetMapping()
     @PreAuthorize("hasAnyAuthority('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<List<FirmDto>> getAll() {
-        log.info("Try get all firms ");
-
+        log.info("Request to get all firms");
         List<Firm> firmList = getFirmUseCase.findByAll();
-
-        log.info("Found " + firmList.size() + " firms.");
+        log.info("Found {} firms.", firmList.size());
 
         return new ResponseEntity<>(firmList.stream()
+                .peek(firm -> log.debug("Found firm {}", firm))
                 .map(apiFirmMapper::toDto)
+                .peek(dto -> log.debug("Mapped found firm {}", dto))
                 .collect(Collectors.toList()), OK);
     }
 
@@ -71,41 +74,39 @@ public class FirmController extends ExceptionHandling {
         log.info("Request to add new firm: {}", firmDto);
 
         Firm firm = apiFirmMapper.toDomain(firmDto);
+        log.debug(MAPPED_FIRM_DTO_TO_DOMAIN_OBJECT, firm);
+
         Firm result = addFirmUseCase.addFirm(firm);
+        log.info("Firm added successfully: {}", result);
 
-        if (result.getId() <= 0) {
-            log.warn("No firm was added!");
-            return ResponseEntity.badRequest().build();
-        }
+        FirmDto dto = apiFirmMapper.toDto(result);
+        log.debug(MAPPED_TO_FIRM_DTO, dto);
 
-        log.info("Firm added successfully with ID = {}", result.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(apiFirmMapper.toDto(result));
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
-
 
     @PutMapping
     @PreAuthorize("hasAnyAuthority('FINANCE_WRITE_ALL', 'FINANCE_WRITE', 'ROLE_ADMIN')")
     public ResponseEntity<FirmDto> updateFirm(@RequestBody FirmDto firmDto) {
-        log.info("Try update firm with id: {}", firmDto.getId());
+        log.info("Request to update firm: {}", firmDto);
 
-        Firm firm = updateFirmUseCase.updateFirm(apiFirmMapper.toDomain(firmDto));
-        return new ResponseEntity<>(apiFirmMapper.toDto(firm), OK);
+        Firm firm = apiFirmMapper.toDomain(firmDto);
+        log.debug(MAPPED_FIRM_DTO_TO_DOMAIN_OBJECT, firm);
+
+        Firm result = updateFirmUseCase.updateFirm(firm);
+        log.info("Firm updated successfully: {}", result);
+
+        FirmDto dto = apiFirmMapper.toDto(result);
+        log.debug(MAPPED_TO_FIRM_DTO, dto);
+
+        return new ResponseEntity<>(dto, OK);
     }
 
     @DeleteMapping("/{idFirm}")
     @PreAuthorize("hasAnyAuthority('FINANCE_DELETE_ALL', 'FINANCE_DELETE', 'ROLE_ADMIN')")
-    public ResponseEntity<HttpResponse> deleteFirm(@PathVariable int idFirm) {
-        log.info("Try delete firm with id: " + idFirm);
-
+    public void deleteFirm(@PathVariable int idFirm) {
+        log.info("Request to delete firm with id = {}", idFirm);
         deleteFirmUseCase.deleteFirm(idFirm);
-
-        log.info("Deleted firm with id = " + idFirm);
-
-        return response(HttpStatus.NO_CONTENT, "Firma usunięty.");
-    }
-
-    private ResponseEntity<HttpResponse> response(HttpStatus status, String message) {
-        HttpResponse body = new HttpResponse(status.value(), status, status.getReasonPhrase(), message);
-        return new ResponseEntity<>(body, status);
+        log.info("Firm with id = {} deleted successfully", idFirm);
     }
 }

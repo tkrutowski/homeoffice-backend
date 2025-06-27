@@ -59,7 +59,9 @@ public class CardController extends ExceptionHandling {
         List<Card> cardsByStatus = getCardUseCase.findByStatus(status);
         log.info("Found {} cards with status:{}",cardsByStatus.size() , status);
         return new ResponseEntity<>(cardsByStatus.stream()
+                .peek(card -> log.debug("Found card {}", card))
                 .map(mapper::toDto)
+                .peek(dto -> log.debug("Mapped found card {}", dto))
                 .collect(Collectors.toList()), OK);
     }
 
@@ -70,7 +72,9 @@ public class CardController extends ExceptionHandling {
         List<Card> cardsByUser = getCardUseCase.findByUserAndStatus(userId, status);
         log.info("Found {} cards with status:{} for user with ID: {}",cardsByUser.size() , status, userId);
         return new ResponseEntity<>(cardsByUser.stream()
+                .peek(card -> log.debug("Found card {}", card))
                 .map(mapper::toDto)
+                .peek(dto -> log.debug("Mapped found card {}", dto))
                 .collect(Collectors.toList()), OK);
     }
 
@@ -100,27 +104,20 @@ public class CardController extends ExceptionHandling {
 
     @PutMapping("/status/{id}")
     @PreAuthorize("hasAnyAuthority('FINANCE_WRITE_ALL', 'FINANCE_WRITE') or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<HttpResponse> updateCardStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
+    public void updateCardStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
         log.info("Request to update card status with ID: {}, new status: {}", id, basicDto);
 
         updateCardUseCase.updateCardStatus(id, ActiveStatus.valueOf(basicDto.getValue()));
         log.info("Card status updated successfully");
-        return response(HttpStatus.OK, "Zaaktualizowano status karty.");
     }
 
     @DeleteMapping("/{idCard}")
     @PreAuthorize("hasAnyAuthority('FINANCE_DELETE_ALL', 'FINANCE_DELETE') or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<HttpResponse> deleteCard(@PathVariable int idCard) {
+    public void deleteCard(@PathVariable int idCard) {
         log.info("Request to delete card with id: {}", idCard);
 
         deleteCardUseCase.deleteCard(idCard);
         log.info("Card with id: {} deleted successfully", idCard);
-
-        return response(HttpStatus.NO_CONTENT, "Karta usunięty.");
     }
 
-    private ResponseEntity<HttpResponse> response(HttpStatus status, String message) {
-        HttpResponse body = new HttpResponse(status.value(), status, status.getReasonPhrase(), message);
-        return new ResponseEntity<>(body, status);
-    }
 }

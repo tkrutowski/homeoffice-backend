@@ -30,6 +30,10 @@ import java.util.stream.Collectors;
 @CrossOrigin
 class LoanController {
 
+    public static final String MAPPED_DOMAIN_OBJECT_TO_LOAN_DTO = "Mapped domain object to Loan DTO: {}";
+    public static final String MAPPED_LOAN_DTO_TO_DOMAIN_OBJECT = "Mapped Loan DTO to domain object: {}";
+    public static final String MAPPED_DOMAIN_OBJECT_TO_LOAN_INSTALLMENT_DTO = "Mapped domain object to LoanInstallment DTO: {}";
+    public static final String MAPPED_LOAN_INSTALLMENT_DTO_TO_DOMAIN_OBJECT = "Mapped LoanInstallment DTO to domain object: {}";
     private final GetLoanUseCase getLoanUseCase;
     private final AddLoanUseCase addLoanUseCase;
     private final UpdateLoanUseCase updateLoanUseCase;
@@ -44,13 +48,15 @@ class LoanController {
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<List<LoanDto>> getLoansByStatus(@RequestParam(value = "status") PaymentStatus loanStatus,
                                                    @RequestParam(value = "installment", defaultValue = "false") boolean installment) {
-
-        log.info("Get loans with status: " + loanStatus);
+        log.info("Request to get loans with status: {}.",loanStatus);
 
         List<Loan> loans = getLoanUseCase.getLoansByStatus(loanStatus, installment);
+        log.info("Found {} loans.",loans.size());
 
         return new ResponseEntity<>(loans.stream()
+                .peek(loan -> log.debug("Found loan {}", loan))
                 .map(apiLoanMapper::toDto)
+                .peek(dto -> log.debug("Mapped found loan {}", dto))
                 .collect(Collectors.toList())
                 , HttpStatus.OK);
     }
@@ -58,60 +64,74 @@ class LoanController {
     @GetMapping("/{idLoan}")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<LoanDto> getLoanById(@PathVariable int idLoan) {
-
-        log.info("Get loan by id: " + idLoan);
+        log.info("Request to get loan by id: {}", idLoan);
 
         Loan loan = getLoanUseCase.getLoanById(idLoan, true);
-
-        return new ResponseEntity<>(apiLoanMapper.toDto(loan), HttpStatus.OK);
+        if (loan == null) {
+            log.warn("No loan found with id: {}", idLoan);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        log.info("Found loan {}", loan);
+        LoanDto dto = apiLoanMapper.toDto(loan);
+        log.info("Mapped to loan DTO: {}", dto);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<LoanDto> addLoan(@RequestBody LoanDto loanDto) {
-        log.info("Try add new loan.");
+        log.info("Request to add a new loan received with data: {}", loanDto);
 
-        Loan loan = apiLoanMapper.toDomain(loanDto);
-        Loan result = addLoanUseCase.addLoan(loan);
+        Loan loanToAdd = apiLoanMapper.toDomain(loanDto);
+        log.info(MAPPED_LOAN_DTO_TO_DOMAIN_OBJECT, loanToAdd);
 
-        log.info("Loan added with id = " + result.getId());
+        Loan result = addLoanUseCase.addLoan(loanToAdd);
+        log.info("Loan added successfully: {}", result);
 
-        return ResponseEntity.ok(apiLoanMapper.toDto(result));
+        LoanDto dto = apiLoanMapper.toDto(result);
+        log.info(MAPPED_DOMAIN_OBJECT_TO_LOAN_DTO, dto);
+
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
     @PutMapping
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<LoanDto> updateLoan(@RequestBody LoanDto loanDto) {
-        log.info("Try update loan.");
+        log.info("Request to edit a loan received with data: {}", loanDto);
 
         Loan loan = apiLoanMapper.toDomain(loanDto);
+        log.info(MAPPED_LOAN_DTO_TO_DOMAIN_OBJECT, loan);
+
         Loan result = updateLoanUseCase.updateLoan(loan);
+        log.info("Loan updated successfully: {}", result);
 
-        log.info("Loan updated with id = " + result.getId());
+        LoanDto dto = apiLoanMapper.toDto(result);
+        log.info(MAPPED_DOMAIN_OBJECT_TO_LOAN_DTO, dto);
 
-        return new ResponseEntity<>(apiLoanMapper.toDto(result), HttpStatus.OK);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @PutMapping("/status/{id}")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<LoanDto> updateLoanStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
-        log.info("Try update employment status.");
+        log.info("Request to edit a loan status received with data: {}", basicDto);
 
         Loan result = updateLoanUseCase.updateLoanStatus(id, PaymentStatus.valueOf(basicDto.getValue()));
-        return new ResponseEntity<>(apiLoanMapper.toDto(result), HttpStatus.OK);
+        log.debug("Loan updated: {}", result);
+
+        LoanDto dto = apiLoanMapper.toDto(result);
+        log.info(MAPPED_DOMAIN_OBJECT_TO_LOAN_DTO, dto);
+
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @DeleteMapping("/{idLoan}")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
-    public ResponseEntity<HttpResponse> deleteLoan(@PathVariable int idLoan) {
-        log.info("Try to delete loan with id: " + idLoan);
-
+    public void deleteLoan(@PathVariable int idLoan) {
+        log.info("Request to delete a loan received with id: {}", idLoan);
         deleteLoanUseCase.deleteLoanById(idLoan);
-
-        log.info("Deleted loan with id = " + idLoan);
-
-        return response(HttpStatus.NO_CONTENT, "Pożyczka usunięta.");
+        log.info("Loan deleted successfully with id: {}", idLoan);
     }
 
     //-----------------------------------------------------------------------------------------------------------
@@ -121,12 +141,15 @@ class LoanController {
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<List<LoanInstallmentDto>> getLoanInstallmentsByLoan(@PathVariable int idLoan) {
 
-        log.info("Get all loan installment by loan id: " + idLoan);
+        log.info("Request to get loan installments by loan id: {}", idLoan);
 
         List<LoanInstallment> loanInstallments = getLoanUseCase.getLoanInstallments(idLoan);
+        log.info("Found {} loan installments.", loanInstallments.size());
 
         return new ResponseEntity<>(loanInstallments.stream()
+                .peek(loanInstallment -> log.debug("Found loan installment {}", loanInstallment))
                 .map(apiLoanMapper::toDto)
+                .peek(dto -> log.debug("Mapped found loan installment {}", dto))
                 .collect(Collectors.toList())
                 , HttpStatus.OK);
     }
@@ -134,43 +157,40 @@ class LoanController {
     @PostMapping("/installment")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<LoanInstallmentDto> addLoanInstallment(@RequestBody LoanInstallmentDto loanInstallmentDto) {
-        log.info("Try add new loan installment.");
+        log.info("Request to add a new LoanInstallment with data: {}", loanInstallmentDto);
 
-        LoanInstallment loanInstallment = apiLoanMapper.toDomain(loanInstallmentDto);
-        LoanInstallment result = addLoanUseCase.addLoanInstallment(loanInstallment);
+        LoanInstallment loanInstallmentToAdd = apiLoanMapper.toDomain(loanInstallmentDto);
+        log.debug(MAPPED_LOAN_INSTALLMENT_DTO_TO_DOMAIN_OBJECT, loanInstallmentToAdd);
 
-        log.info("Loan installment added with id = " + result.getIdLoanInstallment());
+        LoanInstallment result = addLoanUseCase.addLoanInstallment(loanInstallmentToAdd);
+        log.debug("Loan installment added: {}", result);
 
-        return new ResponseEntity<>(apiLoanMapper.toDto(result), HttpStatus.CREATED);
+        LoanInstallmentDto dto = apiLoanMapper.toDto(result);
+        log.debug(MAPPED_DOMAIN_OBJECT_TO_LOAN_INSTALLMENT_DTO, dto);
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
     @PutMapping("/installment")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<LoanInstallmentDto> updateLoanInstallment(@RequestBody LoanInstallmentDto loanInstallmentDto) {
-        log.info("Try update loan installment.");
+        log.info("Request to edit a loan installment with data: {}", loanInstallmentDto);
 
         LoanInstallment loanInstallment = apiLoanMapper.toDomain(loanInstallmentDto);
+        log.debug(MAPPED_LOAN_INSTALLMENT_DTO_TO_DOMAIN_OBJECT, loanInstallment);
+
         LoanInstallment result = updateLoanUseCase.updateLoanInstallment(loanInstallment);
+        log.debug("Loan installment updated: {}", result);
 
-        log.info("Loan installment updated with id = " + result.getIdLoanInstallment());
-
-        return new ResponseEntity<>(apiLoanMapper.toDto(result), HttpStatus.CREATED);
+        LoanInstallmentDto dto = apiLoanMapper.toDto(result);
+        log.debug(MAPPED_DOMAIN_OBJECT_TO_LOAN_INSTALLMENT_DTO, dto);
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/installment/{idLoanInstallment}")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
-    public ResponseEntity<HttpResponse> deleteLoanInstallment(@PathVariable int idLoanInstallment) {
-        log.info("Try to delete loan installment with id: " + idLoanInstallment);
-
+    public void deleteLoanInstallment(@PathVariable int idLoanInstallment) {
+        log.info("Request to delete fee installment with id: {}", idLoanInstallment);
         deleteLoanUseCase.deleteLoanInstallmentById(idLoanInstallment);
-
-        log.info("Deleted loan with id = " + idLoanInstallment);
-
-        return response(HttpStatus.NO_CONTENT, "Pożyczka usunięta.");
-    }
-
-    private ResponseEntity<HttpResponse> response(HttpStatus status, String message) {
-        HttpResponse body = new HttpResponse(status.value(), status, status.getReasonPhrase(), message);
-        return new ResponseEntity<>(body, status);
+        log.info("Fee Installment with id: {} deleted successfully", idLoanInstallment);
     }
 }

@@ -19,6 +19,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/computer")
 public class ComputerController {
+    public static final String MAPPED_TO_COMPUTER_DTO = "Mapped to Computer DTO: {}";
+    public static final String MAPPED_COMPUTER_DTO_TO_DOMAIN_OBJECT = "Mapped Computer DTO to domain object: {}";
     private final FindComputerUseCase findComputerUseCase;
     private final SaveComputerUseCase saveComputerUseCase;
     private final DeleteComputerUseCase deleteComputerUseCase;
@@ -39,7 +41,7 @@ public class ComputerController {
         return new ResponseEntity<>(computers.stream()
                 .peek(computer -> log.debug("Found computer {}", computer))
                 .map(apiComputerMapper::toDto)
-                .peek(computerDto -> log.debug("Mapped found computer {}", computerDto))
+                .peek(dto -> log.debug("Mapped found computer {}", dto))
                 .toList(), HttpStatus.OK);
     }
 
@@ -55,7 +57,7 @@ public class ComputerController {
 
         log.info("Computer found: {}", computer);
         ComputerDto dto = apiComputerMapper.toDto(computer);
-        log.debug("Mapped to Computer dto: {}", dto);
+        log.debug(MAPPED_TO_COMPUTER_DTO, dto);
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
@@ -65,15 +67,15 @@ public class ComputerController {
         log.info("Request to add a new computer received with data: {}", computerDto);
 
         Computer computerToAdd = apiComputerMapper.toDomain(computerDto);
-        log.debug("Mapped Computer DTO to domain object: {}", computerToAdd);
+        log.debug(MAPPED_COMPUTER_DTO_TO_DOMAIN_OBJECT, computerToAdd);
 
         Computer computerAdded = saveComputerUseCase.add(computerToAdd);
         log.info("Computer added successfully: {}", computerAdded);
 
         ComputerDto dto = apiComputerMapper.toDto(computerAdded);
-        log.debug("Mapped Computer DTO to domain object: {}", dto);
+        log.debug(MAPPED_TO_COMPUTER_DTO, dto);
 
-        return new ResponseEntity<>(dto, HttpStatus.OK);
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
     @PutMapping()
@@ -82,13 +84,13 @@ public class ComputerController {
         log.info("Request to edit a computer received with data: {}", computerDto);
 
         Computer computerToUpdate = apiComputerMapper.toDomain(computerDto);
-        log.debug("Mapped Computer DTO to domain object: {}", computerToUpdate);
+        log.debug(MAPPED_COMPUTER_DTO_TO_DOMAIN_OBJECT, computerToUpdate);
 
         Computer updatedComputer = saveComputerUseCase.update(computerToUpdate);
         log.info("Computer updated successfully: {}", updatedComputer);
 
         ComputerDto dto = apiComputerMapper.toDto(updatedComputer);
-        log.debug("Mapped Computer DTO to domain object: {}", dto);
+        log.debug(MAPPED_TO_COMPUTER_DTO, dto);
 
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
@@ -98,7 +100,7 @@ public class ComputerController {
     public void deleteComputer(@PathVariable Integer id) {
         log.info("Request to delete computer with id: {}", id);
         deleteComputerUseCase.deleteComputer(id);
-        log.info("Device with id: {} deleted successfully", id);
+        log.info("Computer with id: {} deleted successfully", id);
     }
 
 
@@ -111,7 +113,7 @@ public class ComputerController {
         log.info("Computer updated successfully: {}", updatedComputer);
 
         ComputerDto dto = apiComputerMapper.toDto(updatedComputer);
-        log.debug("Mapped Computer DTO to domain object: {}", dto);
+        log.debug(MAPPED_TO_COMPUTER_DTO, dto);
 
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }

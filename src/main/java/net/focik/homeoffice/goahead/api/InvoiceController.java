@@ -38,6 +38,7 @@ import static org.springframework.http.HttpStatus.OK;
 //@CrossOrigin
 public class InvoiceController extends ExceptionHandling {
 
+    public static final String MAPPED_INVOICE_DTO_TO_DOMAIN_OBJECT = "Mapped InvoiceDto to domain object: {}";
     private final GetInvoiceUseCase getInvoiceUseCase;
     private final AddInvoiceUseCase addInvoiceUseCase;
     private final UpdateInvoiceUseCase updateInvoiceUseCase;
@@ -47,15 +48,17 @@ public class InvoiceController extends ExceptionHandling {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
     ResponseEntity<InvoiceDto> getById(@PathVariable int id) {
-        log.info("Request to get invoice with id: {}", id);
+        log.info("Request to get invoice by id: {}", id);
         Invoice invoice = getInvoiceUseCase.findById(id);
 
         if (invoice == null) {
-            log.warn("Invoice with id {} not found", id);
+            log.warn("No invoice found with id: {}", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        log.info("Invoice with id {} found: {}", id, invoice);
-        return new ResponseEntity<>(mapper.toDto(invoice), HttpStatus.OK);
+        log.info("Invoice found: {}", invoice);
+        InvoiceDto dto = mapper.toDto(invoice);
+        log.debug("Mapped found invoice to InvoiceDto: {}", dto);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @GetMapping("/pdf/{id}")
@@ -65,7 +68,7 @@ public class InvoiceController extends ExceptionHandling {
         Invoice invoice = getInvoiceUseCase.findById(id);
 
         if (invoice == null) {
-            log.warn("Invoice with id {} not found", id);
+            log.warn("No invoice found with id: {}", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
@@ -109,65 +112,57 @@ public class InvoiceController extends ExceptionHandling {
         log.info("Found {} invoices with PaymentStatus: {}", invoices.size(), status);
 
         return new ResponseEntity<>(invoices.stream()
+                .peek(invoice -> log.debug("Found invoice {}", invoice))
                 .map(mapper::toDto)
+                .peek(dto -> log.debug("Mapped found invoice {}", dto))
                 .collect(Collectors.toList()), HttpStatus.OK);
     }
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
     public ResponseEntity<InvoiceDto> addInvoice(@RequestBody InvoiceDto invoiceDto) {
-        log.info("Request to add a new invoice received.");
+        log.info("Request to add a new invoice received with data: {}", invoiceDto);
         Invoice invoice = mapper.toDomain(invoiceDto);
-        log.debug("Mapped InvoiceDto to domain object: {}", invoice);
+        log.debug(MAPPED_INVOICE_DTO_TO_DOMAIN_OBJECT, invoice);
 
         Invoice result = addInvoiceUseCase.addInvoice(invoice);
+        log.info("Invoice added successfully: {}", result);
 
-        if (result != null && result.getIdInvoice() > 0) {
-            log.info("Invoice added successfully with id = {}", result.getIdInvoice());
-        } else {
-            log.warn("Invoice addition failed.");
-        }
-
-        assert result != null;
-        return new ResponseEntity<>(mapper.toDto(result), HttpStatus.CREATED);
+        InvoiceDto dto = mapper.toDto(result);
+        log.debug("Mapped added invoice to InvoiceDto: {}", dto);
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
     @PutMapping
     @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
     public ResponseEntity<InvoiceDto> updateInvoice(@RequestBody InvoiceDto invoiceDto) {
-        log.info("Request to update invoice received.");
+        log.info("Request to edit a computer received with data: {}", invoiceDto);
 
         Invoice invoiceToUpdate = mapper.toDomain(invoiceDto);
-        log.debug("Mapped InvoiceDto to domain object: {}", invoiceToUpdate);
+        log.debug(MAPPED_INVOICE_DTO_TO_DOMAIN_OBJECT, invoiceToUpdate);
 
         Invoice updatedInvoice = updateInvoiceUseCase.updateInvoice(invoiceToUpdate);
+        log.info("Invoice updated successfully: {}", updatedInvoice);
 
-        if (updatedInvoice != null) {
-            log.info("Invoice with id {} updated successfully.", updatedInvoice.getIdInvoice());
-        } else {
-            log.warn("Invoice update failed.");
-        }
-
-        assert updatedInvoice != null;
-        return new ResponseEntity<>(mapper.toDto(updatedInvoice), HttpStatus.OK);
+        InvoiceDto dto = mapper.toDto(updatedInvoice);
+        log.debug("Mapped updated invoice to InvoiceDto: {}", dto);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @DeleteMapping("/{idInvoice}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_DELETE_ALL')")
-    public ResponseEntity<HttpResponse> deleteInvoice(@PathVariable int idInvoice) {
+    public void deleteInvoice(@PathVariable int idInvoice) {
         log.info("Request to delete invoice with id: {}", idInvoice);
         deleteInvoiceUseCase.deleteInvoice(idInvoice);
         log.info("Invoice with id {} deleted successfully.", idInvoice);
-        return response(HttpStatus.NO_CONTENT, "Faktura usunięta.");
     }
 
     @PutMapping("/paymentstatus/{id}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
-    public ResponseEntity<HttpResponse> updatePaymentStatus(@PathVariable int id,  @RequestBody BasicDto basicDto) {
+    public void updatePaymentStatus(@PathVariable int id,  @RequestBody BasicDto basicDto) {
         log.info("Request to update payment status for invoice with id: {}", id);
         updateInvoiceUseCase.updatePaymentStatus(id, PaymentStatus.valueOf(basicDto.getValue()));
         log.info("Payment status updated successfully for invoice with id: {} to status: {}", id, basicDto.getValue());
-        return response(HttpStatus.OK, "Zaaktualizowano status pracownika.");
     }
 
     @GetMapping("/paymenttype")

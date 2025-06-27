@@ -1,6 +1,7 @@
 package net.focik.homeoffice.library.api;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.api.dto.CategoryDto;
 import net.focik.homeoffice.library.domain.model.Category;
 import net.focik.homeoffice.library.domain.port.primary.FindCategoryUseCase;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/v1/library/category")
@@ -24,22 +26,30 @@ public class CategoryController {
     private final ModelMapper mapper;
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ')")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<List<CategoryDto>> getAllCategories() {
+        log.info("Request to get all categories.");
         List<Category> categories = findCategoryUseCase.getAll();
+        log.info("Found {} categories.", categories.size());
         return new ResponseEntity<>(categories.stream()
+                .peek(cat -> log.debug("Found category {}", cat))
                 .map(cat -> mapper.map(cat, CategoryDto.class))
+                .peek(dto -> log.debug("Mapped found category {}", dto))
                 .collect(Collectors.toList()), HttpStatus.OK);
     }
 
 //    CategoryService categoryService;
 //
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ')")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
     
     public  ResponseEntity<CategoryDto> addCategory(@RequestBody Category category) {
+        log.info("Request to add category: {}", category);
         Category added = saveCategoryUseCase.add(category);
-        return new ResponseEntity<>(mapper.map(added, CategoryDto.class),HttpStatus.CREATED);
+        log.info("Added category: {}", added);
+        CategoryDto dto = mapper.map(added, CategoryDto.class);
+        log.debug("Mapped domain object to Category DTO: {}", added);
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 //
 //    @PutMapping("/{id}")

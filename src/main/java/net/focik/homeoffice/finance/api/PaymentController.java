@@ -34,11 +34,10 @@ class PaymentController {
     ResponseEntity<Map<Integer, List<PaymentDto>>> getPaymentsByYear(@RequestParam(value = "date", required = false) String date,
                                                                      @RequestParam(value = "status", defaultValue = "TO_PAY") PaymentStatus status) {
         int year = date == null ? LocalDate.now().getYear() : Integer.parseInt(date);
-
-        log.info("Get payments for: " + year);
+        log.info("Get payments for year: {} and status: {}", year, status);
 
         Map<Integer, List<Payment>> paymentsByDate = paymentFacade.getPaymentsByDate(LocalDate.of(year, 1, 1), status);
-
+        log.info("Found {} payments.", paymentsByDate.size());
         return new ResponseEntity<>(mapper.toDto(paymentsByDate), HttpStatus.OK);
     }
 }

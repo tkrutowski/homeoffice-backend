@@ -42,29 +42,28 @@ public class PurchaseController extends ExceptionHandling {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<PurchaseDto> getById(@PathVariable int id) {
-
-        log.info("Try find purchase by id: " + id);
+        log.info("Request to get purchase by id: {}", id);
 
         Purchase purchase = getPurchaseUseCase.findById(id);
 
-        log.info(purchase != null ? "Found purchase for id = " + id : "Not found purchase for id = " + id);
-
-        if (purchase == null)
+        if (purchase == null) {
+            log.warn("No purchase found with id: {}", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-
-        return new ResponseEntity<>(mapper.toDto(purchase), OK);
+        }
+        log.info("Purchase found: {}", purchase);
+        PurchaseDto dto = mapper.toDto(purchase);
+        log.info("Mapped to Purchase DTO found: {}", dto);
+        return new ResponseEntity<>(dto, OK);
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<Map<String, List<PurchaseDto>>> getAll(@RequestParam PaymentStatus status,
                                                           @RequestParam(required = false) LocalDate date) {
-
-        log.info(String.format("Try get all purchase for user: '%s', status = '%s' and date = '%s", UserHelper.getUserName(), status, date));
+        log.info("Request to get all purchase with status: {} and date: {}", status, date);
 
         Map<LocalDate, List<Purchase>> purchaseMap = getPurchaseUseCase.findByUserMap(UserHelper.getUserName(), status, date);
-
-        log.info("Found " + purchaseMap.size() + " purchases.");
+        log.info("Found {} purchases.", purchaseMap.size());
 
         return new ResponseEntity<>(mapper.toDto(purchaseMap), OK);
     }
@@ -73,11 +72,10 @@ public class PurchaseController extends ExceptionHandling {
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<Map<String, List<PurchaseDto>>> getByUser(@PathVariable int userId, @RequestParam(required = false) PaymentStatus status,
                                                              @RequestParam(required = false) LocalDate date) {
-        log.info(String.format("Try get all purchase for userID: '%s', status = '%s' and date = '%s", userId, status, date));
+        log.info("Request to get all purchase with status: {} and date: {} for user with ID: {}", status, date, userId);
 
         Map<LocalDate, List<Purchase>> purchaseMap = getPurchaseUseCase.findByUserMap(userId, status, date);
-
-        log.info("Found " + purchaseMap.size() + " purchases.");
+        log.info("Found {} purchases.", purchaseMap.size());
 
         return new ResponseEntity<>(mapper.toDto(purchaseMap), OK);
     }
@@ -85,11 +83,10 @@ public class PurchaseController extends ExceptionHandling {
     @GetMapping("/current/{username}")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<Map<String, List<PurchaseDto>>> getCurrent(@PathVariable String username) {
-        log.info(String.format("Try get current purchases"));
+        log.info("Request to get current purchases for user: {}", username );
 
         Map<LocalDate, List<Purchase>> purchaseMap = getPurchaseUseCase.findCurrent(username);
-
-        log.info("Found " + purchaseMap.size() + " purchases.");
+        log.info("Found {} purchases.", purchaseMap.size());
 
         return new ResponseEntity<>(mapper.toDto(purchaseMap), OK);
     }

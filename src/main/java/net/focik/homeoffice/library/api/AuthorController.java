@@ -1,6 +1,7 @@
 package net.focik.homeoffice.library.api;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.api.dto.AuthorDto;
 import net.focik.homeoffice.library.api.mapper.ApiAuthorMapper;
 import net.focik.homeoffice.library.domain.model.Author;
@@ -12,8 +13,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+@Slf4j
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/v1/library/author")
@@ -22,20 +23,38 @@ public class AuthorController {
     private final ApiAuthorMapper authorMapper;
     private final SaveAuthorUseCase saveAuthorUseCase;
 
-    //
     @GetMapping
     @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<List<AuthorDto>> getAllAuthors() {
+        log.info("Request to get all authors.");
         List<Author> allAuthors = authorUseCase.getAllAuthors();
-        return new ResponseEntity<>(allAuthors.stream().map(authorMapper::toDto).collect(Collectors.toList()), HttpStatus.OK);
+        if (allAuthors.isEmpty()) {
+            log.warn("No authors found.");
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        log.info("Found {} authors.", allAuthors.size());
+        return new ResponseEntity<>(allAuthors.stream()
+                .peek(author -> log.debug("Found author {}", author))
+                .map(authorMapper::toDto)
+                .peek(dto -> log.debug("Mapped found author {}", dto))
+                .toList(), HttpStatus.OK);
     }
 
-    //
     @PostMapping
     @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<AuthorDto> addAuthor(@RequestBody AuthorDto author) {
-        Author added = saveAuthorUseCase.add(authorMapper.toDomain(author));
-        return new ResponseEntity<>(authorMapper.toDto(added), HttpStatus.CREATED);
+        log.info("Request to add author: {}", author);
+
+        Author authorToAdd = authorMapper.toDomain(author);
+        log.debug("Mapped Computer DTO to domain object: {}", authorToAdd);
+
+        Author added = saveAuthorUseCase.add(authorToAdd);
+        log.info("Added author: {}", added);
+
+        AuthorDto dto = authorMapper.toDto(added);
+        log.debug("Mapped domain object to Computer DTO: {}", added);
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
+
     }
 //
 //    @PutMapping

@@ -34,6 +34,10 @@ import static org.springframework.http.HttpStatus.OK;
 //@CrossOrigin
 class FeeController {
 
+    public static final String MAPPED_FEE_DTO_TO_DOMAIN_OBJECT = "Mapped Fee DTO to domain object: {}";
+    public static final String MAPPED_TO_FEE_DTO = "Mapped to Fee DTO: {}";
+    public static final String MAPPED_TO_FEE_INSTALLMENT_DTO = "Mapped to FeeInstallment DTO: {}";
+    public static final String MAPPED_FEE_INSTALLMENT_DTO_TO_DOMAIN_OBJECT = "Mapped FeeInstallment DTO to domain object: {}";
     private final GetFeeUseCase getFeeUseCase;
     private final AddFeeUseCase addFeeUseCase;
     private final UpdateFeeUseCase updateFeeUseCase;
@@ -49,12 +53,14 @@ class FeeController {
     ResponseEntity<List<FeeDto>> getFeeByStatus(@RequestParam(value = "status") PaymentStatus paymentStatus,
                                                   @RequestParam(value = "installment", defaultValue = "false") boolean installment) {
 
-        log.info("Get fee with status: " + paymentStatus);
+        log.info("Request to get fees with status: {}", paymentStatus);
 
         List<Fee> feesByStatus = getFeeUseCase.getFeesByStatus(paymentStatus, installment);
 
         return new ResponseEntity<>(feesByStatus.stream()
+                .peek(fee -> log.debug("Found fee {}", fee))
                 .map(apiFeeMapper::toDto)
+                .peek(dto -> log.debug("Mapped found fee {}", dto))
                 .collect(Collectors.toList())
                 , HttpStatus.OK);
     }
@@ -63,11 +69,17 @@ class FeeController {
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<FeeDto> getFeeById(@PathVariable int idFee) {
 
-        log.info("Get fee by id: " + idFee);
+        log.info("Request to get fee by id: {}", idFee);
 
         Fee fee = getFeeUseCase.getFeeById(idFee, true);
-
-        return new ResponseEntity<>(apiFeeMapper.toDto(fee), HttpStatus.OK);
+        if (fee == null) {
+            log.warn("No fee found with id: {}", idFee);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        log.info("Found fee {}", fee);
+        FeeDto dto = apiFeeMapper.toDto(fee);
+        log.debug(MAPPED_TO_FEE_DTO, dto);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @GetMapping("/{idUser}/status")
@@ -76,12 +88,14 @@ class FeeController {
                                                               @RequestParam(value = "paymentStatus") PaymentStatus paymentStatus,
                                                               @RequestParam(value = "installment") boolean installment) {
 
-        log.info("Get fees for user id: " + idUser);
-
+        log.info("Request to get fees for user id: {}", idUser);
         List<Fee> feesByUser = getFeeUseCase.getFeesByUser(idUser, paymentStatus, installment);
+        log.info("Found {} fee(s) for user id: {}", feesByUser.size(), idUser);
 
         return new ResponseEntity<>(feesByUser.stream()
+                .peek(fee -> log.debug("Found fee {}", fee))
                 .map(apiFeeMapper::toDto)
+                .peek(dto -> log.debug("Mapped found fee {}", dto))
                 .collect(Collectors.toList())
                 , HttpStatus.OK);
     }
@@ -98,48 +112,56 @@ class FeeController {
     @PostMapping
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<FeeDto> addFee(@RequestBody FeeDto feeDto) {
-        log.info("Try add new fee.");
+        log.info("Request to add a new fee received with data: {}", feeDto);
 
-        Fee fee = apiFeeMapper.toDomain(feeDto);
-        Fee result = addFeeUseCase.addFee(fee);
+        Fee feeToAdd = apiFeeMapper.toDomain(feeDto);
+        log.debug(MAPPED_FEE_DTO_TO_DOMAIN_OBJECT, feeToAdd);
 
-        log.info("Fee added with id = " + result.getId());
+        Fee addedFee = addFeeUseCase.addFee(feeToAdd);
+        log.debug("Fee added: {}", addedFee);
 
-        return new ResponseEntity<>(apiFeeMapper.toDto(result), HttpStatus.CREATED);
+        FeeDto dto = apiFeeMapper.toDto(addedFee);
+        log.debug(MAPPED_TO_FEE_DTO, dto);
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
     @PutMapping
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<FeeDto> updateFee(@RequestBody FeeDto feeDto) {
-        log.info("Try update fee.");
+        log.info("Request to edit a fee received with data: {}", feeDto);
 
         Fee fee = apiFeeMapper.toDomain(feeDto);
+        log.debug(MAPPED_FEE_DTO_TO_DOMAIN_OBJECT, fee);
+
         Fee result = updateFeeUseCase.updateFee(fee);
+        log.debug("Fee updated: {}", result);
 
-        log.info("Fee updated with id = " + result.getId());
+        FeeDto dto = apiFeeMapper.toDto(result);
+        log.debug(MAPPED_TO_FEE_DTO, dto);
 
-        return new ResponseEntity<>(apiFeeMapper.toDto(result), HttpStatus.CREATED);
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
     @PutMapping("/status/{id}")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<FeeDto> updateLFeeStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
-        log.info("Try update fee status.");
+        log.info("Request to edit a fee status received with data: {}", basicDto);
 
         Fee result = updateFeeUseCase.updateFeeStatus(id, PaymentStatus.valueOf(basicDto.getValue()));
-        return new ResponseEntity<>(apiFeeMapper.toDto(result), HttpStatus.OK);
+        log.debug("Fee updated: {}", result);
+
+        FeeDto dto = apiFeeMapper.toDto(result);
+        log.debug(MAPPED_TO_FEE_DTO, dto);
+
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @DeleteMapping("/{idFee}")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
-    public ResponseEntity<HttpResponse> deleteFee(@PathVariable int idFee) {
-        log.info("Try to delete fee with id: " + idFee);
-
+    public void deleteFee(@PathVariable int idFee) {
+        log.info("Request to delete fee with id: {}", idFee);
         deleteFeeUseCase.deleteFeeById(idFee);
-
-        log.info("Deleted fee with id = " + idFee);
-
-        return response(HttpStatus.NO_CONTENT, "Opłata usunięta.");
+        log.info("Fee with id: {} deleted successfully", idFee);
     }
 
     //-----------------------------------------------------------------------------------------------------------
@@ -150,26 +172,31 @@ class FeeController {
     ResponseEntity<List<FeeInstallmentDto>> getFeeInstallmentByUserAndDate(@PathVariable int idUser,
                                                                             @RequestParam(value = "date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
 
-        log.info("Get all fee installment by date for user id: " + idUser);
+        log.info("Request to get all fee installment by date for user id: {}", idUser);
 
         List<FeeInstallment> feeInstallments = new ArrayList<>(getFeeUseCase.getFeeInstallments(idUser, date));
+        log.info("Found {} fee installment(s) for user id: {}", feeInstallments.size(), idUser);
 
         return new ResponseEntity<>(feeInstallments.stream()
+                .peek(feeInstallment -> log.debug("Found fee installment {}", feeInstallment))
                 .map(apiFeeMapper::toDto)
+                .peek(dto -> log.debug("Mapped found fee installment {}", dto))
                 .collect(Collectors.toList())
                 , HttpStatus.OK);
     }
 
     @GetMapping("/installment/{idFee}")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
-    ResponseEntity<List<FeeInstallmentDto>> getFeeInstallmentsByLoan(@PathVariable int idFee) {
-
-        log.info("Get all fee installment by loan id: " + idFee);
+    ResponseEntity<List<FeeInstallmentDto>> getFeeInstallmentsByFee(@PathVariable int idFee) {
+        log.info("Request to get all fee installment by fee id: {}", idFee);
 
         List<FeeInstallment> feeInstallments = getFeeUseCase.getFeeInstallments(idFee);
+        log.info("Found {} fee installment(s) for fee id: {}", feeInstallments.size(), idFee);
 
         return new ResponseEntity<>(feeInstallments.stream()
+                .peek(feeInstallment -> log.debug("Found fee installment {}", feeInstallment))
                 .map(apiFeeMapper::toDto)
+                .peek(dto -> log.debug("Mapped found fee installment {}", dto))
                 .collect(Collectors.toList())
                 , HttpStatus.OK);
     }
@@ -177,43 +204,44 @@ class FeeController {
     @PostMapping("/installment")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<FeeInstallmentDto> addFeeInstallment(@RequestBody FeeInstallmentDto feeInstallmentDto) {
-        log.info("Try add new fee installment.");
+        log.info("Request to add a new FeeInstallment with data: {}", feeInstallmentDto);
 
-        FeeInstallment feeInstallment = apiFeeMapper.toDomain(feeInstallmentDto);
-        FeeInstallment result = addFeeUseCase.addFeeInstallment(feeInstallment);
+        FeeInstallment feeInstallmentToAdd = apiFeeMapper.toDomain(feeInstallmentDto);
+        log.debug(MAPPED_FEE_INSTALLMENT_DTO_TO_DOMAIN_OBJECT, feeInstallmentToAdd);
 
-        log.info("Fee installment added with id = " + result.getIdFeeInstallment());
+        FeeInstallment result = addFeeUseCase.addFeeInstallment(feeInstallmentToAdd);
+        log.debug("Fee installment added: {}", result);
 
-        return new ResponseEntity<>(apiFeeMapper.toDto(result), HttpStatus.CREATED);
+        FeeInstallmentDto dto = apiFeeMapper.toDto(result);
+        log.debug(MAPPED_TO_FEE_INSTALLMENT_DTO, dto);
+
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
     @PutMapping("/installment")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<FeeInstallmentDto> updateFeeInstallment(@RequestBody FeeInstallmentDto feeInstallmentDto) {
-        log.info("Try update fee installment.");
+        log.info("Request to edit a fee installment with data: {}", feeInstallmentDto);
 
         FeeInstallment feeInstallment = apiFeeMapper.toDomain(feeInstallmentDto);
+        log.debug(MAPPED_FEE_INSTALLMENT_DTO_TO_DOMAIN_OBJECT, feeInstallment);
+
         FeeInstallment result = updateFeeUseCase.updateFeeInstallment(feeInstallment);
+        log.debug("Fee installment updated: {}", result);
 
         log.info("Fee installment updated with id = " + result.getIdFeeInstallment());
 
-        return new ResponseEntity<>(apiFeeMapper.toDto(result), HttpStatus.CREATED);
+        FeeInstallmentDto dto = apiFeeMapper.toDto(result);
+        log.debug(MAPPED_TO_FEE_INSTALLMENT_DTO, dto);
+
+        return new ResponseEntity<>(dto, OK);
     }
 
     @DeleteMapping("/installment/{idFeeInstallment}")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
-    public ResponseEntity<HttpResponse> deleteFeeInstallment(@PathVariable int idFeeInstallment) {
-        log.info("Try to delete fee installment with id: " + idFeeInstallment);
-
+    public void deleteFeeInstallment(@PathVariable int idFeeInstallment) {
+        log.info("Request to delete fee installment with id: {}", idFeeInstallment);
         deleteFeeUseCase.deleteFeeInstallmentById(idFeeInstallment);
-
-        log.info("Deleted fee with id = " + idFeeInstallment);
-
-        return response(HttpStatus.NO_CONTENT, "Pożyczka usunięta.");
-    }
-
-    private ResponseEntity<HttpResponse> response(HttpStatus status, String message) {
-        HttpResponse body = new HttpResponse(status.value(), status, status.getReasonPhrase(), message);
-        return new ResponseEntity<>(body, status);
+        log.info("Fee Installment with id: {} deleted successfully", idFeeInstallment);
     }
 }
