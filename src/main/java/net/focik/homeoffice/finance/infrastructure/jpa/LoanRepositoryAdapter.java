@@ -1,6 +1,7 @@
 package net.focik.homeoffice.finance.infrastructure.jpa;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.finance.domain.loan.Loan;
 import net.focik.homeoffice.finance.domain.loan.LoanInstallment;
 import net.focik.homeoffice.finance.domain.loan.port.secondary.LoanRepository;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @Primary
 @AllArgsConstructor
@@ -26,7 +28,9 @@ class LoanRepositoryAdapter implements LoanRepository {
 
     @Override
     public Loan saveLoan(Loan loan) {
-        LoanDbDto saved = loanDtoRepository.save(mapper.toDto(loan));
+        LoanDbDto dto = mapper.toDto(loan);
+        log.debug("Mapping loan to DTO: {}", dto);
+        LoanDbDto saved = loanDtoRepository.save(dto);
         return mapper.toDomain(saved);
     }
 
@@ -38,7 +42,15 @@ class LoanRepositoryAdapter implements LoanRepository {
 
     @Override
     public List<LoanInstallment> saveLoanInstallment(List<LoanInstallment> loanInstallments) {
-        List<LoanInstallmentDbDto> dbDtoList = loanInstallments.stream().map(mapper::toDto).collect(Collectors.toList());
+        List<LoanInstallmentDbDto> dbDtoList = loanInstallments.stream()
+                .map(installment -> {
+                    LoanInstallmentDbDto dto = mapper.toDto(installment);
+                    if (dto.getId() == 0) {
+                        dto.setId(null);
+                    }
+                    return dto;
+                })
+                .collect(Collectors.toList());
         List<LoanInstallmentDbDto> loanInstallmentDbDtos = loanInstallmentDtoRepository.saveAll(dbDtoList);
         return loanInstallmentDbDtos.stream().map(mapper::toDomain).collect(Collectors.toList());
     }
