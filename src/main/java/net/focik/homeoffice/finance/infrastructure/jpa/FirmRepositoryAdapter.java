@@ -24,6 +24,9 @@ public class FirmRepositoryAdapter implements FirmRepository {
         if (firmDbDto.getId() == 0){
             firmDbDto.setId(null);
         }
+        if (firmDbDto.getAddress().getId() == 0){
+            firmDbDto.getAddress().setId(null);
+        }
         FirmDbDto save = firmDtoRepository.save(firmDbDto);
         return mapper.toDomain(save);
     }
