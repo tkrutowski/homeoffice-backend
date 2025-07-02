@@ -14,6 +14,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "Finance_Loan_Installment")
 @Getter
+@Setter
 @ToString
 @Builder
 public class LoanInstallmentDbDto {
