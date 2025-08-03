@@ -2,6 +2,7 @@ package net.focik.homeoffice.library.api;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.library.domain.model.BookStatisticDto;
 import net.focik.homeoffice.library.api.dto.UserBookApiDto;
 import net.focik.homeoffice.library.api.mapper.ApiUserBookMapper;
 import net.focik.homeoffice.library.domain.model.EditionType;
@@ -109,6 +110,24 @@ public class UserBookController {
                 .peek(userBook -> log.debug("Found user book {}", userBook))
                 .map(userBookMapper::toDto)
                 .peek(dto -> log.debug("Mapped found user book {}", dto))
+                .collect(Collectors.toList()), HttpStatus.OK);
+    }
+
+    @GetMapping("/statistics")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
+    ResponseEntity<List<BookStatisticDto>> getStatistics() {
+        String userName = UserHelper.getUserName();
+        log.info("Request to get book statistics for user: {}", userName);
+        List<BookStatisticDto> allBooks = findUserBookUseCase.getStatistics(userName);
+
+        if (allBooks.isEmpty()) {
+            log.warn("No book statistic found for user: {}", userName);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+
+        log.info("Found {} book statistic for user: {}", allBooks.size(), userName);
+        return new ResponseEntity<>(allBooks.stream()
+                .peek(s -> log.debug("Statistic - year: {}, audiobook: {}, book: {}, ebook: {}", s.getYear(), s.getAudiobook(), s.getBook(), s.getEbook()))
                 .collect(Collectors.toList()), HttpStatus.OK);
     }
 

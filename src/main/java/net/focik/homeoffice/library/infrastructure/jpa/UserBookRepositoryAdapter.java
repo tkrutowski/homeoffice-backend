@@ -1,6 +1,7 @@
 package net.focik.homeoffice.library.infrastructure.jpa;
 
 import lombok.AllArgsConstructor;
+import net.focik.homeoffice.library.domain.model.EditionType;
 import net.focik.homeoffice.library.domain.model.ReadingStatus;
 import net.focik.homeoffice.library.domain.model.UserBook;
 import net.focik.homeoffice.library.domain.port.secondary.UserBookRepository;
@@ -81,4 +82,8 @@ public class UserBookRepositoryAdapter implements UserBookRepository {
                 .map(mapper::toDomain);
     }
 
+    @Override
+    public Long countBooksByUserIdAndYearAndEditionType(Long id, Integer year, EditionType editionType) {
+        return userBookDtoRepository.countBooksByUserIdAndYearAndEditionType(id, year, editionType);
+    }
 }

@@ -3,15 +3,19 @@ package net.focik.homeoffice.library.domain;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.exception.UserBookNotFoundException;
+import net.focik.homeoffice.library.domain.model.BookStatisticDto;
+import net.focik.homeoffice.library.domain.model.EditionType;
 import net.focik.homeoffice.library.domain.model.ReadingStatus;
 import net.focik.homeoffice.library.domain.model.UserBook;
 import net.focik.homeoffice.library.domain.port.secondary.UserBookRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -76,4 +80,17 @@ class UserBookService {
         return userBookRepository.findAllByUserAndReadStatusAndYear(idUser, readingStatus, startDate, stopDate);
     }
 
+    public List<BookStatisticDto> getStatistics(Long id) {
+        List<Integer> distinctReadToYearsByUserId = userBookRepository.findDistinctReadToYearsByUserId(id);
+        List<BookStatisticDto> bookStatisticDtos = new ArrayList<>();
+        for (Integer year : distinctReadToYearsByUserId) {
+            log.debug("Year: {}", year);
+            Long bookCount = userBookRepository.countBooksByUserIdAndYearAndEditionType(id, year, EditionType.BOOK);
+            Long audiobookCount = userBookRepository.countBooksByUserIdAndYearAndEditionType(id, year, EditionType.AUDIOBOOK);
+            Long ebookCount = userBookRepository.countBooksByUserIdAndYearAndEditionType(id, year, EditionType.EBOOK);
+
+            bookStatisticDtos.add(new BookStatisticDto(year, audiobookCount, bookCount, ebookCount));
+        }
+        return bookStatisticDtos;
+    }
 }

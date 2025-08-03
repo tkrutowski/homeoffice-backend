@@ -138,6 +138,12 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    public List<BookStatisticDto> getStatistics(String userName) {
+        AppUser user = userFacade.findUserByUsername(userName);
+        return userBookService.getStatistics(user.getId());
+    }
+
+    @Override
     public Bookstore findBookstoreById(Integer id) {
         return bookstoreService.findBookstore(id);
     }
