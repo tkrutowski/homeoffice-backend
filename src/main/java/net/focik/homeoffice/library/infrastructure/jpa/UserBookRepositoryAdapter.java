@@ -45,8 +45,24 @@ public class UserBookRepositoryAdapter implements UserBookRepository {
     }
 
     @Override
+    public List<UserBook> findAllByUserAndTitle(Long idUser, String title) {
+        return userBookDtoRepository.findAllByUser_IdAndBook_TitleContainingIgnoreCase(idUser, title)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<UserBook> findAllByUser(Long idUser) {
         return userBookDtoRepository.findAllByUser_Id(idUser)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserBook> findAllByUserAndSeries(Long idUser, String title) {
+        return userBookDtoRepository.findAllByUser_IdAndBook_Series_TitleContainingIgnoreCase(idUser, title)
                 .stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
@@ -74,6 +90,19 @@ public class UserBookRepositoryAdapter implements UserBookRepository {
         return userBookDtos.stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserBook> findAllByUserAndAuthor(Long idUser, String query) {
+        return userBookDtoRepository.findAllByUserIdAndAuthorName(idUser, query)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Integer> findDistinctReadToYearsByUserId(Long id) {
+        return userBookDtoRepository.findDistinctReadToYearsByUserId(id);
     }
 
     @Override

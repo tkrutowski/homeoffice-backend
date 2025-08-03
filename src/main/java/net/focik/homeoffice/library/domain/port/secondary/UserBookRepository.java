@@ -23,7 +23,12 @@ public interface UserBookRepository {
     List<UserBook> findAllByUserAndReadStatus(Long idUser, ReadingStatus readingStatus);
 
     List<UserBook> findAllByUser(Long idUser);
-    List<UserBook> findAllByUserAndReadStatusAndYear(Long idUser, ReadingStatus readingStatus, LocalDate startDate, LocalDate stopDate );
+
+    List<UserBook> findAllByUserAndTitle(Long idUser, String title);
+
+    List<UserBook> findAllByUserAndSeries(Long idUser, String title);
+
+    List<UserBook> findAllByUserAndReadStatusAndYear(Long idUser, ReadingStatus readingStatus, LocalDate startDate, LocalDate stopDate);
 
     List<UserBook> findAllByUserAndAuthor(Long id, String query);
 

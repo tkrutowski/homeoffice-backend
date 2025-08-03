@@ -25,4 +25,16 @@ interface UserBookDtoRepository extends CrudRepository<UserBookDbDto, Integer> {
 
     List<UserBookDbDto> findAllByReadingStatusAndUser_IdAndReadToBetween(ReadingStatus readingStatus, Long idUser, LocalDate startDate, LocalDate endDate);
 
+
+    List<UserBookDbDto> findAllByUser_IdAndBook_TitleContainingIgnoreCase(Long userId, String title);
+
+    List<UserBookDbDto> findAllByUser_IdAndBook_Series_TitleContainingIgnoreCase(Long userId, String seriesTitle);
+
+    @Query("SELECT DISTINCT ub FROM UserBookDbDto ub JOIN ub.book.authors a WHERE ub.user.id = :userId AND (LOWER(a.lastName) LIKE LOWER(CONCAT('%', :authorName, '%')) OR LOWER(a.firstName) LIKE LOWER(CONCAT('%', :authorName, '%')))")
+    List<UserBookDbDto> findAllByUserIdAndAuthorName(Long userId, String authorName);
+
+    @Query("SELECT DISTINCT YEAR(ub.readTo) FROM UserBookDbDto ub WHERE ub.user.id = :userId AND ub.readTo IS NOT NULL ORDER BY YEAR(ub.readTo) DESC")
+    List<Integer> findDistinctReadToYearsByUserId(Long userId);
+
+
 }

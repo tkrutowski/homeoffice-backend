@@ -82,6 +82,27 @@ public class UserBookController {
                 .collect(Collectors.toList()), HttpStatus.OK);
     }
 
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
+    ResponseEntity<List<UserBookApiDto>> findUserBooksByQuery(@RequestParam(name = "query") String query) {
+        String userName = UserHelper.getUserName();
+        log.info("Request to get all books for user: {} with query: {}", userName, query);
+        List<UserBook> allBooks = findUserBookUseCase.findUserBooksByQuery(userName, query);
+
+        if (allBooks.isEmpty()) {
+            log.warn("No books found for user: {} with query: {}", userName, query);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+
+        allBooks.sort(Comparator.comparing(UserBook::getReadFrom, Comparator.nullsLast(Comparator.naturalOrder())));
+        log.info("Found {} books for user: {} with query: {}", allBooks.size(), userName, query);
+        return new ResponseEntity<>(allBooks.stream()
+                .peek(userBook -> log.debug("Found user book {}", userBook))
+                .map(userBookMapper::toDto)
+                .peek(dto -> log.debug("Mapped found user book {}", dto))
+                .collect(Collectors.toList()), HttpStatus.OK);
+    }
+
     @GetMapping("/status")
     @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<List<UserBookApiDto>> getAllUserBooksByStatusAndYear(@RequestParam(name = "status") ReadingStatus readingStatus,

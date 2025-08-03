@@ -74,6 +74,17 @@ class UserBookService {
         return userBookRepository.findAllByUserAndReadStatus(idUser, readingStatus);
     }
 
+    public List<UserBook> findUserBooksByQuery(Long id, String query) {
+        List<UserBook> allByUserAndTitle = userBookRepository.findAllByUserAndTitle(id, query);
+        List<UserBook> allByUserAndSeries = userBookRepository.findAllByUserAndSeries(id, query);
+        List<UserBook> allByUserAndAuthor = userBookRepository.findAllByUserAndAuthor(id, query);
+        return Stream.of(allByUserAndTitle, allByUserAndSeries, allByUserAndAuthor
+                )
+                .flatMap(List::stream)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
     public List<UserBook> findBookByUserAndReadStatusAndYear(Long idUser, ReadingStatus readingStatus, int year) {
         LocalDate startDate = LocalDate.of(year, 1, 1);
         LocalDate stopDate = LocalDate.of(year, 12, 31);

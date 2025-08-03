@@ -14,6 +14,8 @@ public interface FindUserBookUseCase {
 
     List<UserBook> findBookByUserAndReadStatus(String userName, ReadingStatus readingStatus);
 
+    List<UserBook> findUserBooksByQuery(String userName, String query);
+
     List<UserBook> findBookByUserAndReadStatusAndYear(String userName, ReadingStatus readingStatus, int year);
 
     List<BookStatisticDto> getStatistics(String userName);
