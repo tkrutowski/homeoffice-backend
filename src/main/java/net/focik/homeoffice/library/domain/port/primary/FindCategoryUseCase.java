@@ -7,5 +7,7 @@ import java.util.List;
 public interface FindCategoryUseCase {
     Category getById(Integer idCategory);
 
+    Category getByName(String name);
+
     List<Category> getAll();
 }

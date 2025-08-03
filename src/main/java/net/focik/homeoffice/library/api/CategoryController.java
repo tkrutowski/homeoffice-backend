@@ -51,6 +51,22 @@ public class CategoryController {
         log.debug("Mapped domain object to Category DTO: {}", added);
         return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
+    ResponseEntity<CategoryDto> getCategoryByName(@RequestParam String name) {
+        log.info("Request to search category by name: {}", name);
+        Category category = findCategoryUseCase.getByName(name);
+
+        if (category == null) {
+            log.warn("No category found with name: {}", name);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        log.info("Found category matching name: {}", name);
+        CategoryDto dto = mapper.map(category, CategoryDto.class);
+        log.debug("Mapped domain object to Category DTO: {}", dto);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
 //
 //    @PutMapping("/{id}")
 //    public Category editCategory(@RequestBody Category category, @PathVariable Long id) {

@@ -94,6 +94,11 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    public Series findSeriesByTitle(String name) {
+        return seriesService.findSeriesByTitle(name);
+    }
+
+    @Override
     public List<Series> getAllSeries() {
         return seriesService.getAllSeries();
     }
@@ -184,8 +189,18 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    public Author findAuthorsByFirstAndLastName(String firstName, String lastName) {
+        return authorService.findAuthorsByFirstAndLastName(firstName, lastName);
+    }
+
+    @Override
     public Category getById(Integer idCategory) {
         return null;
+    }
+
+    @Override
+    public Category getByName(String name) {
+        return categoryService.findCategoryByName(name);
     }
 
     @Override

@@ -19,7 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/library/author")
 public class AuthorController {
-    final private FindAuthorUseCase authorUseCase;
+    private final FindAuthorUseCase authorUseCase;
     private final ApiAuthorMapper authorMapper;
     private final SaveAuthorUseCase saveAuthorUseCase;
 
@@ -40,8 +40,25 @@ public class AuthorController {
                 .toList(), HttpStatus.OK);
     }
 
-    @PostMapping
+    @GetMapping("/search")
     @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
+    ResponseEntity<AuthorDto> getAuthorsByFirstAndLastName(@RequestParam String firstName, @RequestParam String lastName) {
+        log.info("Request to search authors by firstName: {} and lastName: {}", firstName, lastName);
+        Author author = authorUseCase.findAuthorsByFirstAndLastName(firstName, lastName);
+
+        if (author == null) {
+            log.warn("No author found with firstName: {} and lastName: {}", firstName, lastName);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        log.info("Found author matching firstName: {} and lastName: {}", firstName, lastName);
+        AuthorDto dto = authorMapper.toDto(author);
+        log.debug("Mapped domain object to Author DTO: {}", author);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    
+    @PostMapping
+    @PreAuthorize("hasAnyAuthority('LIBRARY_WRITE_ALL','LIBRARY_WRITE') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<AuthorDto> addAuthor(@RequestBody AuthorDto author) {
         log.info("Request to add author: {}", author);
 

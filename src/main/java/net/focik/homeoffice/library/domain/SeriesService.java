@@ -43,7 +43,6 @@ public class SeriesService {
     }
 
     public Series saveSeries(Series series) {
-
         return seriesRepository.save(series).orElse(null);
     }
 
@@ -63,12 +62,7 @@ public class SeriesService {
     }
 
     public Series findSeriesByTitle(String title) {
-        Optional<Series> seriesOptional = seriesRepository.findByTitle(title);
-        if (seriesOptional.isEmpty()) {
-            log.warn("Series with title: {} not found", title);
-            throw new SeriesNotFoundException(title);
-        }
-        return seriesOptional.get();
+        return seriesRepository.findByTitle(title).orElse(null);
     }
 
     public List<Series> getAllSeries() {
@@ -106,4 +100,5 @@ public class SeriesService {
         series.setHasNewBooks(hasNewBooks);
         updateSeries(series);
     }
+
 }

@@ -35,7 +35,7 @@ class AuthorService {
 
     public Author editAuthor(Author author) {
         Optional<Author> authorById = authorRepository.findById(author.getId());
-        if (!authorById.isPresent()) {
+        if (authorById.isEmpty()) {
             throw new AuthorNotFoundException(author.getId());
         }
 
@@ -47,18 +47,10 @@ class AuthorService {
     }
 
     public Author findAuthor(Integer id) {
-        Optional<Author> authorById = authorRepository.findById(id);
-        if (!authorById.isPresent()) {
-            throw new AddressNotFoundException(id);
-        }
-        return authorById.get();
+      return authorRepository.findById(id).orElse(null);
     }
 
-    public Author findAuthor(String firstName, String lastName) {
-        Optional<Author> authorById = authorRepository.findByFirstNameAndLastName(firstName, lastName);
-        if (!authorById.isPresent()) {
-            throw new AuthorNotFoundException(firstName + ' ' + lastName);
-        }
-        return authorById.get();
+    public Author findAuthorsByFirstAndLastName(String firstName, String lastName) {
+        return authorRepository.findByFirstNameAndLastName(firstName, lastName).orElse(null);
     }
 }

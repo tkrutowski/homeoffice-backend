@@ -69,4 +69,20 @@ public class SeriesController {
         log.debug("Mapped updated series to DTO: {}", dto);
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
+    ResponseEntity<SeriesDto> getCategoryByName(@RequestParam String title) {
+        log.info("Request to search series by title: {}", title);
+        Series series = findSeriesUseCase.findSeriesByTitle(title);
+
+        if (series == null) {
+            log.warn("No series found with title: {}", title);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        log.info("Found series matching name: {}", title);
+        SeriesDto dto = mapper.map(series, SeriesDto.class);
+        log.debug("Mapped domain object to Series DTO: {}", dto);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
 }

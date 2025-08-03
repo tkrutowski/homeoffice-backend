@@ -66,4 +66,8 @@ class CategoryService {
         }
         return categorySet;
     }
+
+    public Category findCategoryByName(String name) {
+        return categoryRepository.findByName(name).orElse(null);
+    }
 }

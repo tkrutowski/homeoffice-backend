@@ -8,4 +8,6 @@ public interface FindAuthorUseCase {
     Author getAuthor(Integer idAuthor);
 
     List<Author> getAllAuthors();
+
+    Author findAuthorsByFirstAndLastName(String firstName, String lastName);
 }

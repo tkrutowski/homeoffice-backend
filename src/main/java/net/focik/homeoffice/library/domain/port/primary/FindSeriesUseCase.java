@@ -7,5 +7,7 @@ import java.util.List;
 public interface FindSeriesUseCase {
     Series findSeries(Integer idSeries);
 
+    Series findSeriesByTitle(String name);
+
     List<Series> getAllSeries();
 }
