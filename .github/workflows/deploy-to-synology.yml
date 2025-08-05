@@ -61,10 +61,10 @@ jobs:
 
       - name: Copy TAR into home
         run: |
-         scp -o StrictHostKeyChecking=no \
-          -i id_rsa_deploy \
-         homeoffice-${{ steps.get_version.outputs.version }}.tar \
-         ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }}:docker/images/
+          scp -o StrictHostKeyChecking=no \
+           -i id_rsa_deploy \
+          homeoffice-${{ steps.get_version.outputs.version }}.tar \
+          ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }}:docker/images/
 
       - name: Deploy on Synology via SSH
         uses: appleboy/ssh-action@v0.1.7
@@ -79,6 +79,7 @@ jobs:
             /usr/local/bin/docker rm -f homeoffice || true
             /usr/local/bin/docker run -d \
               --name homeoffice \
+              --network home \
               --restart unless-stopped \
               -p 8077:8077 \
               -v /volume1/web/homeoffice:/app/homeoffice \
