@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -147,6 +148,13 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     public List<BookStatisticDto> getStatistics(String userName) {
         AppUser user = userFacade.findUserByUsername(userName);
         return userBookService.getStatistics(user.getId());
+    }
+
+    @Override
+    public Map<Bookstore, Long> getStatisticsBookstore(String userName) {
+        AppUser user = userFacade.findUserByUsername(userName);
+        List<Bookstore> allBookstores = bookstoreService.findAllBookstores();
+        return userBookService.getStatisticsBookstore(user.getId(), allBookstores);
     }
 
     @Override

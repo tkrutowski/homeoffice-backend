@@ -2,17 +2,15 @@ package net.focik.homeoffice.library.api;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.focik.homeoffice.library.domain.model.BookStatisticDto;
+import net.focik.homeoffice.library.api.dto.BookstoreDto;
+import net.focik.homeoffice.library.domain.model.*;
 import net.focik.homeoffice.library.api.dto.UserBookApiDto;
 import net.focik.homeoffice.library.api.mapper.ApiUserBookMapper;
-import net.focik.homeoffice.library.domain.model.EditionType;
-import net.focik.homeoffice.library.domain.model.OwnershipStatus;
-import net.focik.homeoffice.library.domain.model.ReadingStatus;
-import net.focik.homeoffice.library.domain.model.UserBook;
 import net.focik.homeoffice.library.domain.port.primary.DeleteUserBookUseCase;
 import net.focik.homeoffice.library.domain.port.primary.FindUserBookUseCase;
 import net.focik.homeoffice.library.domain.port.primary.SaveUserBookUseCase;
 import net.focik.homeoffice.utils.UserHelper;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.OK;
@@ -35,6 +34,7 @@ public class UserBookController {
     private final SaveUserBookUseCase saveUserBookUseCase;
     private final DeleteUserBookUseCase deleteUserBookUseCase;
     private final ApiUserBookMapper userBookMapper;
+    private final ModelMapper mapper;
 
     @GetMapping("/check")
     @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
@@ -150,6 +150,30 @@ public class UserBookController {
         return new ResponseEntity<>(allBooks.stream()
                 .peek(s -> log.debug("Statistic - year: {}, audiobook: {}, book: {}, ebook: {}", s.getYear(), s.getAudiobook(), s.getBook(), s.getEbook()))
                 .collect(Collectors.toList()), HttpStatus.OK);
+    }
+
+    @GetMapping("/statistics/bookstore")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
+    ResponseEntity<Map<BookstoreDto, Long>> getStatisticsBookstore() {
+        String userName = UserHelper.getUserName();
+        log.info("Request to get book statistics for user: {}", userName);
+        Map<Bookstore, Long> statisticsBookstore = findUserBookUseCase.getStatisticsBookstore(userName);
+
+        if (statisticsBookstore.isEmpty()) {
+            log.warn("No book statistic found for user: {}", userName);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+
+        log.info("Found {} book statistic for user: {}", statisticsBookstore.size(), userName);
+
+        Map<BookstoreDto, Long> result = statisticsBookstore.entrySet().stream()
+                .peek(e -> log.debug("Statistic - bookstore: {}, count: {}", e.getKey(), e.getValue()))
+                .collect(Collectors.toMap(
+                        entry -> mapper.map(entry.getKey(), BookstoreDto.class),
+                        Map.Entry::getValue
+                ));
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @PostMapping

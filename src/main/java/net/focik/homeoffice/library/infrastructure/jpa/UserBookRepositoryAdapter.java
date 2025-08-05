@@ -115,4 +115,9 @@ public class UserBookRepositoryAdapter implements UserBookRepository {
     public Long countBooksByUserIdAndYearAndEditionType(Long id, Integer year, EditionType editionType) {
         return userBookDtoRepository.countBooksByUserIdAndYearAndEditionType(id, year, editionType);
     }
+
+    @Override
+    public Long countReadBooksByUserIdAndBookstoreId(Long id, Integer bookstoreId) {
+        return userBookDtoRepository.countReadBooksByUserIdAndBookstoreId(id, bookstoreId);
+    }
 }

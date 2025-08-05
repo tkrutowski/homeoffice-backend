@@ -36,6 +36,8 @@ public interface UserBookRepository {
 
     Long countBooksByUserIdAndYearAndEditionType(Long id, Integer year, EditionType editionType);
 
+    Long countReadBooksByUserIdAndBookstoreId(Long id, Integer bookstoreId);
+
     Optional<UserBook> findById(Integer id);
 
 }
