@@ -20,7 +20,11 @@ public class AuthorRepositoryAdapter implements AuthorRepository {
 
     @Override
     public Author add(Author author) {
-        AuthorDbDto saved = authorDtoRepository.save(mapper.map(author, AuthorDbDto.class));
+        AuthorDbDto authorDbDto = mapper.map(author, AuthorDbDto.class);
+        if (authorDbDto.getId() == 0){
+            authorDbDto.setId(null);
+        }
+        AuthorDbDto saved = authorDtoRepository.save(authorDbDto);
         return  mapper.map(saved, Author.class);
     }
 

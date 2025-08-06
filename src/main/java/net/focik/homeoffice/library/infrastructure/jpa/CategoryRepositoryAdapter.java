@@ -19,7 +19,11 @@ public class CategoryRepositoryAdapter implements CategoryRepository {
 
     @Override
     public Category add(Category category) {
-        CategoryDbDto saved = categoryDtoRepository.save(mapper.map(category, CategoryDbDto.class));
+        CategoryDbDto categoryDbDto = mapper.map(category, CategoryDbDto.class);
+        if (categoryDbDto.getId() == 0) {
+            categoryDbDto.setId(null);
+        }
+        CategoryDbDto saved = categoryDtoRepository.save(categoryDbDto);
         return mapper.map(saved, Category.class);
     }
 

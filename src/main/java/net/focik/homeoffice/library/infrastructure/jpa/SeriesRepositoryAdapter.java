@@ -20,7 +20,11 @@ public class SeriesRepositoryAdapter implements SeriesRepository {
 
     @Override
     public Integer add(Series series) {
-        return seriesDtoRepository.save(mapper.map(series, SeriesDbDto.class)).getId();
+        SeriesDbDto seriesDbDto = mapper.map(series, SeriesDbDto.class);
+        if (seriesDbDto.getId() == 0){
+            seriesDbDto.setId(null);
+        }
+        return seriesDtoRepository.save(seriesDbDto).getId();
     }
 
     @Override
