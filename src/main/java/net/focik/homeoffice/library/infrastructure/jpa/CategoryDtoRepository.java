@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface CategoryDtoRepository extends CrudRepository<CategoryDbDto, Integer> {
 
-    Optional<CategoryDbDto> findCategoryDtoByName(String name);
+    Optional<CategoryDbDto> findCategoryDtoByNameIgnoreCase(String name);
 }

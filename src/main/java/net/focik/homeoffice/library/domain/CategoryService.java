@@ -73,14 +73,17 @@ class CategoryService {
 
     public List<Category> getFromString(String categories) {
         log.debug("Trying to get categories from categories string {}", categories);
-        Set<Category> parsedCategories = Arrays.stream(categories.trim().split(","))
+
+        List<Category> parsedCategories = Arrays.stream(categories.trim().split(","))
                 .filter(StringUtils::isNotBlank)
+                .map(String::trim)
                 .map(this::findCategoryByName)
                 .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+                .distinct()
+                .toList();
+
 
         log.debug("Found categories {}", parsedCategories);
         return parsedCategories.stream().toList();
-
     }
 }

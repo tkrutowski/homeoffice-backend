@@ -81,7 +81,7 @@ public class JpaBookMapper {
     private Set<CategoryDbDto> getCategoriesDbDto(Set<Category> categories) {
         Set<CategoryDbDto> categoryDtos = new HashSet<>();
         for (Category category : categories) {
-            Optional<CategoryDbDto> categoryDtoByName = categoryDtoRepository.findCategoryDtoByName(category.getName());
+            Optional<CategoryDbDto> categoryDtoByName = categoryDtoRepository.findCategoryDtoByNameIgnoreCase(category.getName());
             if (categoryDtoByName.isPresent()) {
                 categoryDtos.add(categoryDtoByName.get());
             } else {

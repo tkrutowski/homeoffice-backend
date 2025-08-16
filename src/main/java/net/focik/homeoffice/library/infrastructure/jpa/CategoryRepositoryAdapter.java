@@ -46,7 +46,7 @@ public class CategoryRepositoryAdapter implements CategoryRepository {
 
     @Override
     public Optional<Category> findByName(String name) {
-        return categoryDtoRepository.findCategoryDtoByName(name)
+        return categoryDtoRepository.findCategoryDtoByNameIgnoreCase(name)
                 .map(categoryDbDto -> mapper.map(categoryDbDto, Category.class));
     }
 
