@@ -61,7 +61,7 @@ public class BookRepositoryAdapter implements BookRepository {
     @Override
     public List<Book> findAllByTitle(String title) {
         List<Book> books = new ArrayList<>();
-        bookDtoRepository.findAllByTitle(title)
+        bookDtoRepository.findAllByTitleIgnoreCase(title)
                 .iterator()
                 .forEachRemaining(bookDto -> books.add(bookMapper.toDomain(bookDto)));
         return books;

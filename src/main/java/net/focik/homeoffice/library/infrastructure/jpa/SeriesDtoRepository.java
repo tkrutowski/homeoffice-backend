@@ -6,5 +6,5 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.Optional;
 
 public interface SeriesDtoRepository extends CrudRepository<SeriesDbDto, Integer> {
-    Optional<SeriesDbDto> findSeriesDtoByTitle(String title);
+    Optional<SeriesDbDto> findSeriesDtoByTitleContainingIgnoreCase(String title);
 }

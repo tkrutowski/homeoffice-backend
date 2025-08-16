@@ -46,7 +46,7 @@ public class SeriesRepositoryAdapter implements SeriesRepository {
 
     @Override
     public Optional<Series> findByTitle(String title) {
-        return seriesDtoRepository.findSeriesDtoByTitle(title)
+        return seriesDtoRepository.findSeriesDtoByTitleContainingIgnoreCase(title)
                 .map(seriesDbDto -> mapper.map(seriesDbDto, Series.class));
     }
 

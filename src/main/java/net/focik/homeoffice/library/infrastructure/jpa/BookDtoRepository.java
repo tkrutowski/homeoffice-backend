@@ -8,7 +8,7 @@ import java.util.List;
 
 interface BookDtoRepository extends JpaRepository<BookDbDto, Integer> {
 
-    Iterable<BookDbDto> findAllByTitle(String title);
+    Iterable<BookDbDto> findAllByTitleIgnoreCase(String title);
 
     List<BookDbDto> findAllByOrderByTitleAsc();
 

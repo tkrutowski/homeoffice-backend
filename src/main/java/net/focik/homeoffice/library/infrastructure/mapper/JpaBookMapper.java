@@ -60,7 +60,7 @@ public class JpaBookMapper {
         if (Objects.isNull(series)) {
             return null;
         }
-        Optional<SeriesDbDto> seriesDtoByTitle = seriesDtoRepository.findSeriesDtoByTitle(series.getTitle());
+        Optional<SeriesDbDto> seriesDtoByTitle = seriesDtoRepository.findSeriesDtoByTitleContainingIgnoreCase(series.getTitle());
         if (seriesDtoByTitle.isPresent()) {
             return seriesDtoByTitle.get();
         } else {
@@ -102,7 +102,7 @@ public class JpaBookMapper {
     private Set<AuthorDbDto> getAuthorsDbDto(Set<Author> authors) {
         Set<AuthorDbDto> authorDbDtos = new HashSet<>();
         for (Author author : authors) {
-            Optional<AuthorDbDto> foundAuthor = authorDtoRepository.findAuthorDtoByFirstNameAndLastName(author.getFirstName(), author.getLastName());
+            Optional<AuthorDbDto> foundAuthor = authorDtoRepository.findAuthorDtoByFirstNameAndLastNameIgnoreCase(author.getFirstName(), author.getLastName());
             if (foundAuthor.isPresent()) {
                 authorDbDtos.add(foundAuthor.get());
             } else {

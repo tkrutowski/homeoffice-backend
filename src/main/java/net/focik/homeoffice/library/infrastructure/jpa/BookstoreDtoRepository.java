@@ -6,5 +6,5 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.Optional;
 
 public interface BookstoreDtoRepository extends CrudRepository<BookstoreDbDto, Integer> {
-    Optional<BookstoreDbDto> findBookstoreDtoByName(String name);
+    Optional<BookstoreDbDto> findBookstoreDtoByNameContainingIgnoreCase(String name);
 }

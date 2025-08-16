@@ -58,7 +58,7 @@ public class AuthorRepositoryAdapter implements AuthorRepository {
 
     @Override
     public Optional<Author> findByFirstNameAndLastName(String firstName, String lastName) {
-        return authorDtoRepository.findAuthorDtoByFirstNameAndLastName(firstName, lastName)
+        return authorDtoRepository.findAuthorDtoByFirstNameAndLastNameIgnoreCase(firstName, lastName)
                 .map(authorDto -> mapper.map(authorDto, Author.class));
     }
 }

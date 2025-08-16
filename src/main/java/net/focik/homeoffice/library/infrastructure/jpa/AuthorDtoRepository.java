@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AuthorDtoRepository extends JpaRepository<AuthorDbDto, Integer> {
-    Optional<AuthorDbDto> findAuthorDtoByFirstNameAndLastName(String firstName, String lastName);
+    Optional<AuthorDbDto> findAuthorDtoByFirstNameAndLastNameIgnoreCase(String firstName, String lastName);
 
     List<AuthorDbDto> findAllByOrderByLastNameAsc();
 }

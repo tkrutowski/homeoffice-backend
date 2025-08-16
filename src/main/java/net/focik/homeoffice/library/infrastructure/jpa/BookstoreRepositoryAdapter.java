@@ -47,7 +47,7 @@ public class BookstoreRepositoryAdapter implements BookstoreRepository {
 
     @Override
     public Optional<Bookstore> findByName(String name) {
-        return bookstoreDtoRepository.findBookstoreDtoByName(name)
+        return bookstoreDtoRepository.findBookstoreDtoByNameContainingIgnoreCase(name)
                 .map(bookstoreDbDto -> mapper.map(bookstoreDbDto, Bookstore.class));
     }
 
