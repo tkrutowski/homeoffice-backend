@@ -9,5 +9,7 @@ public interface FindCategoryUseCase {
 
     Category getByName(String name);
 
+    List<Category> getFromString(String categories);
+
     List<Category> getAll();
 }

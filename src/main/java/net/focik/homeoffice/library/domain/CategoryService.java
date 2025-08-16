@@ -1,6 +1,7 @@
 package net.focik.homeoffice.library.domain;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.exception.CategoryAlreadyExistException;
 import net.focik.homeoffice.library.domain.exception.CategoryNotFoundException;
 import net.focik.homeoffice.library.domain.model.Category;
@@ -8,11 +9,10 @@ import net.focik.homeoffice.library.domain.port.secondary.CategoryRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 class CategoryService {
@@ -69,5 +69,18 @@ class CategoryService {
 
     public Category findCategoryByName(String name) {
         return categoryRepository.findByName(name).orElse(null);
+    }
+
+    public List<Category> getFromString(String categories) {
+        log.debug("Trying to get categories from categories string {}", categories);
+        Set<Category> parsedCategories = Arrays.stream(categories.trim().split(","))
+                .filter(StringUtils::isNotBlank)
+                .map(this::findCategoryByName)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        log.debug("Found categories {}", parsedCategories);
+        return parsedCategories.stream().toList();
+
     }
 }

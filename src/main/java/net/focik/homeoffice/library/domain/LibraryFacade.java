@@ -224,6 +224,11 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    public List<Category> getFromString(String categories) {
+        return categoryService.getFromString(categories);
+    }
+
+    @Override
     public List<Category> getAll() {
         return categoryService.findAllCategories();
     }
