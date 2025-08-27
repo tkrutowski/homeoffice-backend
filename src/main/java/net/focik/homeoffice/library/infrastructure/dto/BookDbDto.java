@@ -14,6 +14,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "library_books")
 public
 class BookDbDto {

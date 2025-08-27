@@ -1,10 +1,7 @@
 package net.focik.homeoffice.finance.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 
 import java.time.LocalDate;
@@ -12,6 +9,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@ToString
 @Builder
 public class LoanInstallmentDto implements InstallmentDto {
     private int idLoanInstallment;

@@ -13,6 +13,7 @@ import jakarta.persistence.*;
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "goahead_customer")
 public class CustomerDbDto {
     @Id

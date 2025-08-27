@@ -5,11 +5,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
+import lombok.ToString;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Entity
+@ToString
 @Table(name = "library_authors")
 public
 class AuthorDbDto {

@@ -16,6 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "goahead_invoice")
 public class InvoiceDbDto {
     @Id

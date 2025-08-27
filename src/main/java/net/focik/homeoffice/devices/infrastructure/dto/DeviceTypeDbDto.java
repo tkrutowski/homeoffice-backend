@@ -1,16 +1,14 @@
 package net.focik.homeoffice.devices.infrastructure.dto;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Setter
 @Getter
 @Entity
+@ToString
 @Table(name = "devices_type")
 public
 class DeviceTypeDbDto {

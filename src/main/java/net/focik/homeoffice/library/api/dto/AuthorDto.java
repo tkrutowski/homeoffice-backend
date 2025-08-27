@@ -1,13 +1,11 @@
 package net.focik.homeoffice.library.api.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@ToString
 @Builder
 public class AuthorDto {
     private Integer id;

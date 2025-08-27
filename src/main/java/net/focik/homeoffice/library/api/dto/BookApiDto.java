@@ -9,6 +9,7 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
+@ToString
 @Builder
 public class BookApiDto implements BookDto {
 

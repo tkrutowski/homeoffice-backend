@@ -11,6 +11,7 @@ import net.focik.homeoffice.addresses.infrastructure.dto.AddressDbDto;
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "finance_bank")
 public class BankDbDto {
     @Id

@@ -11,6 +11,7 @@ import net.focik.homeoffice.utils.share.ActiveStatus;
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "devices_computer")
 public
 class

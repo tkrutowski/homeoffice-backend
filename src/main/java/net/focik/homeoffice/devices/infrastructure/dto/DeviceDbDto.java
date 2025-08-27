@@ -19,6 +19,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "devices")
 public
 class DeviceDbDto {

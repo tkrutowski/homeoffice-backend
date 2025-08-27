@@ -5,11 +5,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
+import lombok.ToString;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 @Entity
+@ToString
 @Table(name = "library_bookstores")
 public class BookstoreDbDto {
     @Id

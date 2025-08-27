@@ -16,6 +16,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "library_userbooks")
 public
 class UserBookDbDto {

@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "goahead_invoice_item")
 public class InvoiceItemDbDto {
     @Id

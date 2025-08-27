@@ -1,10 +1,7 @@
 package net.focik.homeoffice.library.infrastructure.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import jakarta.persistence.*;
 
@@ -16,6 +13,7 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 @Entity
+@ToString
 @Table(name = "library_series")
 public
 class SeriesDbDto {

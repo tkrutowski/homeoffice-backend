@@ -10,6 +10,7 @@ import net.focik.homeoffice.addresses.infrastructure.dto.AddressDbDto;
 @AllArgsConstructor
 @Getter
 @Setter
+@ToString
 @Entity
 @Table(name = "finance_firm")
 public class FirmDbDto {
