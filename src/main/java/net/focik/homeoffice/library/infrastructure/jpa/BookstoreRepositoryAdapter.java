@@ -21,7 +21,7 @@ public class BookstoreRepositoryAdapter implements BookstoreRepository {
     @Override
     public Optional<Bookstore> add(Bookstore bookstore) {
         BookstoreDbDto bookstoreDbDto = mapper.map(bookstore, BookstoreDbDto.class);
-        if (bookstoreDbDto.getId() == 0) {
+        if (bookstoreDbDto != null && bookstoreDbDto.getId() == 0) {
             bookstoreDbDto.setId(null);
         }
         BookstoreDbDto saved = bookstoreDtoRepository.save(bookstoreDbDto);
