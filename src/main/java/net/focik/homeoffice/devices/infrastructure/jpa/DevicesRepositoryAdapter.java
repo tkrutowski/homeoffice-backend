@@ -32,8 +32,12 @@ public class DevicesRepositoryAdapter implements DeviceRepository {
 
         // Najpierw pobierz istniejące pliki, jeśli to aktualizacja
         if (dto.getId() != null) {
-            DeviceDbDto existing = devicesDtoRepository.findById(dto.getId()).orElse(null);
-            deleteRemovedFiles(dto, existing);
+            if (dto.getId() != 0) {
+                DeviceDbDto existing = devicesDtoRepository.findById(dto.getId()).orElse(null);
+                deleteRemovedFiles(dto, existing);
+            } else {
+                dto.setId(null);
+            }
         }
 
         if (dto.getFiles() != null) {
@@ -47,7 +51,7 @@ public class DevicesRepositoryAdapter implements DeviceRepository {
         DeviceDbDto saved = devicesDtoRepository.save(dto);
         log.debug("Saved device: {}", saved);
         Device domain = mapper.toDomain(dto);
-       log.debug("Mapped saved device to domain: {}", domain);
+        log.debug("Mapped saved device to domain: {}", domain);
         return domain;
     }
 

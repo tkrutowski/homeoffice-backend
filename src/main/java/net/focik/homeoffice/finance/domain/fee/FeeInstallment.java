@@ -14,8 +14,8 @@ import java.time.LocalDate;
 @Getter
 @ToString
 public class FeeInstallment implements Installment {
-    private int idFeeInstallment;
-    private int idFee;
+    private Integer idFeeInstallment;
+    private Integer idFee;
     private Money installmentAmountToPay;
     private Money installmentAmountPaid;
     @DateTimeFormat(pattern = "yyyy-MM-dd")

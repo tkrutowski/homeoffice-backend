@@ -20,9 +20,9 @@ import java.util.List;
 @ToString
 public class Fee implements FinancialTransaction {
 
-    private int id;
+    private Integer id;
     private Firm firm;
-    private int idUser;
+    private Integer idUser;
     private String name;
     private String feeNumber;
     @DateTimeFormat(pattern = "yyyy-MM-dd")

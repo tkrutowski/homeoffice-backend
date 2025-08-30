@@ -8,6 +8,7 @@ import net.focik.homeoffice.devices.domain.port.secondary.DeviceRepository;
 import net.focik.homeoffice.utils.FileHelper;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 import net.focik.homeoffice.utils.share.Module;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,7 +23,7 @@ class DeviceService {
 
     public List<Device> getDevices(ActiveStatus activeStatus) {
         List<Device> allDevices = deviceRepository.findAllDevices();
-        if(activeStatus == ActiveStatus.ALL) {
+        if (activeStatus == ActiveStatus.ALL) {
             return allDevices;
         }
         return allDevices.stream()
@@ -31,12 +32,17 @@ class DeviceService {
     }
 
     public Device getDeviceById(int id) {
-       return deviceRepository.findDeviceById(id).orElse(null);
+        return deviceRepository.findDeviceById(id).orElse(null);
     }
 
     public Device add(Device device) {
         log.debug("Adding device {}", device);
-        device.setImageUrl(fileHelper.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
+        if (StringUtils.isEmpty(device.getImageUrl())) {
+            log.debug("No image url found for device {}", device);
+        } else {
+            log.debug("Image url found for device {}", device);
+            device.setImageUrl(fileHelper.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
+        }
         return deviceRepository.saveDevice(device);
     }
 
@@ -57,7 +63,7 @@ class DeviceService {
 
     public Device updateStatus(Integer idDevice, ActiveStatus status) {
         Optional<Device> deviceById = deviceRepository.findDeviceById(idDevice);
-        if(deviceById.isPresent()) {
+        if (deviceById.isPresent()) {
             deviceById.get().setActiveStatus(status);
             return deviceRepository.saveDevice(deviceById.get());
         }

@@ -1,6 +1,7 @@
 package net.focik.homeoffice.finance.infrastructure.jpa;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.finance.domain.fee.Fee;
 import net.focik.homeoffice.finance.domain.fee.FeeInstallment;
 import net.focik.homeoffice.finance.domain.fee.port.secondary.FeeRepository;
@@ -10,12 +11,11 @@ import net.focik.homeoffice.finance.infrastructure.mapper.JpaFeeMapper;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @Primary
 @AllArgsConstructor
@@ -28,8 +28,15 @@ class FeeRepositoryAdapter implements FeeRepository {
 
     @Override
     public Fee saveFee(Fee fee) {
-        FeeDbDto saved = feeDtoRepository.save(mapper.toDto(fee));
-        return mapper.toDomain(saved);
+        FeeDbDto dbDto = mapper.toDto(fee);
+
+        log.debug("Saving fee: {}", dbDto);
+        FeeDbDto saved = feeDtoRepository.save(dbDto);
+
+        log.debug("Saved fee: {}", saved);
+        Fee domain = mapper.toDomain(dbDto);
+        log.debug("Mapped fee to domain: {}", domain);
+        return domain;
     }
 
     @Override
