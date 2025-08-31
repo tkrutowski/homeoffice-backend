@@ -49,7 +49,7 @@ class DeviceService {
     public Device update(Device device) {
         log.debug("Updating device {}", device);
 
-        if (!device.getImageUrl().contains("focikhome")) {
+        if (device.getImageUrl() != null && !device.getImageUrl().contains("focikhome")) {
             device.setImageUrl(fileHelper.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
         }
         Device savedDevice = deviceRepository.saveDevice(device);
