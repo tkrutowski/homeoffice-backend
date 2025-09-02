@@ -25,6 +25,9 @@ public class CustomerRepositoryAdapter implements CustomerRepository {
         if (customerDbDto.getId() != null && customerDbDto.getId() == 0){
             customerDbDto.setId(null);
         }
+        if (customerDbDto.getAddress().getId() == 0){
+            customerDbDto.getAddress().setId(null);
+        }
         CustomerDbDto save = customerDtoRepository.save(customerDbDto);
         return mapper.toDomain(save);
     }
