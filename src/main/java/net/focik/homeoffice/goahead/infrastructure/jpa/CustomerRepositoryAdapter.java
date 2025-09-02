@@ -22,6 +22,9 @@ public class CustomerRepositoryAdapter implements CustomerRepository {
     @Override
     public Customer save(Customer customer) {
         CustomerDbDto customerDbDto = mapper.toDto(customer);
+        if (customerDbDto.getId() != null && customerDbDto.getId() == 0){
+            customerDbDto.setId(null);
+        }
         CustomerDbDto save = customerDtoRepository.save(customerDbDto);
         return mapper.toDomain(save);
     }
