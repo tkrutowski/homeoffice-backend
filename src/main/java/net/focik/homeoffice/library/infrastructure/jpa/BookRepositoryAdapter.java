@@ -8,6 +8,8 @@ import net.focik.homeoffice.library.infrastructure.dto.BookDbDto;
 import net.focik.homeoffice.library.infrastructure.dto.SeriesDbDto;
 import net.focik.homeoffice.library.infrastructure.mapper.JpaBookMapper;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -50,6 +52,20 @@ public class BookRepositoryAdapter implements BookRepository {
                 .iterator()
                 .forEachRemaining(dto -> books.add(bookMapper.toDomain(dto)));
         return books;
+    }
+
+    @Override
+    public Page<Book> findAll(Pageable pageable) {
+        Page<BookDbDto> all = bookDtoRepository.findAll(pageable);
+        return all.map(bookMapper::toDomain);
+    }
+
+    @Override
+    public Page<Book> findBooksWithFilters(String globalFilter, String title, String author, String category, String series, Pageable pageable) {
+        Page<BookDbDto> booksPage = bookDtoRepository.findBooksWithFilters(
+                globalFilter, title, author, category, series, pageable
+        );
+        return booksPage.map(bookMapper::toDomain);
     }
 
     @Override

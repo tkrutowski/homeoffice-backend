@@ -6,6 +6,7 @@ import net.focik.homeoffice.library.domain.model.*;
 import net.focik.homeoffice.library.domain.port.primary.*;
 import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.UserFacade;
+import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -45,6 +46,11 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    public Page<Book> findBooksPageable(int page, int size, String sortField, String sortDirection) {
+        return bookService.findBooksPageable(page, size, sortField, sortDirection);
+    }
+
+    @Override
     public List<Book> findAllBooksInSeries(Integer idSeries) {
         Series series = seriesService.findSeries(idSeries);
         return bookService.findAllBooksInSeries(series);
@@ -70,6 +76,11 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
         series.setHasNewBooks(!booksInSeries.isEmpty());
         seriesService.saveSeries(series);
         return booksInSeries;
+    }
+
+    @Override
+    public Page<Book> findBooksPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String title, String author, String category, String series) {
+        return bookService.findBooksPageableWithFilters(page, size, sortField, sortDirection, globalFilter, title, author, category, series);
     }
 
     @Override
@@ -187,7 +198,7 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     @Override
     public UserBook updateUserBook(UserBook userBook) {
         UserBook updatedUserBook = userBookService.updateUserBook(userBook);
-        if(updatedUserBook.getReadingStatus().equals(ReadingStatus.READ)) {
+        if (updatedUserBook.getReadingStatus().equals(ReadingStatus.READ)) {
             seriesService.updateSeries(updatedUserBook.getBook().getSeries(), false);
         }
         return updatedUserBook;

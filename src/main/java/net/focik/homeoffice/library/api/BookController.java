@@ -9,6 +9,7 @@ import net.focik.homeoffice.library.domain.port.primary.DeleteBookUseCase;
 import net.focik.homeoffice.library.domain.port.primary.FindBookUseCase;
 import net.focik.homeoffice.library.domain.port.primary.SaveBookUseCase;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -69,6 +70,32 @@ public class BookController {
         BookApiDto dto = bookMapper.toDto(bookDtoByUrl);
         log.info("Book found: {}", dto);
         return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
+    @GetMapping("/page")
+    ResponseEntity<Page<BookApiDto>> getBooksPage(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size,
+            @RequestParam(name = "sort", defaultValue = "") String sortField,
+            @RequestParam(name = "direction", defaultValue = "ASC") String sortDirection,
+                @RequestParam(name = "globalFilter", required = false) String globalFilter,
+            @RequestParam(name = "title", required = false) String title,
+            @RequestParam(name = "author", required = false) String author,
+            @RequestParam(name = "category", required = false) String category,
+            @RequestParam(name = "series", required = false) String series
+    ) {
+       log.info("Request to get books page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, title: {}, author: {}, category: {}, series: {}", page, size, sortField, sortDirection, globalFilter, title, author, category, series);
+        Page<Book> booksPage = findBookUseCase.findBooksPageableWithFilters(page, size, sortField, sortDirection, globalFilter, title, author, category, series);
+
+        Page<BookApiDto> dtoPage = booksPage.map(bookMapper::toDto);
+
+        log.debug("Found {} books on page {} of {}",
+                dtoPage.getNumberOfElements(),
+                dtoPage.getNumber(),
+                dtoPage.getTotalPages());
+
+        return ResponseEntity.ok(dtoPage);
     }
 
     @GetMapping("/series/{id}")

@@ -9,6 +9,10 @@ import net.focik.homeoffice.library.domain.model.Series;
 import net.focik.homeoffice.library.domain.port.secondary.BookRepository;
 import net.focik.homeoffice.utils.FileHelper;
 import net.focik.homeoffice.utils.share.Module;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,7 +25,6 @@ class BookService {
 
     private final BookRepository bookRepository;
     private final FileHelper fileHelper;
-
 
 
     public Book addBook(Book book) {
@@ -83,5 +86,50 @@ class BookService {
 
     public List<Book> findAllBooksInSeries(Series series) {
         return bookRepository.findAllBySeries(series);
+    }
+
+    public Page<Book> findBooksPageable(int page, int size, String sortField, String sortDirection) {
+        Pageable pageable;
+
+        if (sortField == null || sortField.isEmpty()) {
+            // Domyślne sortowanie po ID malejąco
+            pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        } else {
+            String jpaField = switch (sortField) {
+                case "authors" -> "authors.lastName";
+                case "series" -> "series.title";
+                case "categories" -> "categories.name";
+                default -> sortField;
+            };
+
+            Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+            pageable = PageRequest.of(page, size, Sort.by(direction, jpaField));
+        }
+        return bookRepository.findAll(pageable);
+    }
+
+    public Page<Book> findBooksPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter,
+                                           String title,
+                                           String author,
+                                           String category,
+                                           String series) {
+        String jpaField = switch (sortField) {
+            case "authors" -> "authors.lastName";
+            case "series" -> "series.title";
+            case "categories" -> "categories.name";
+            default -> sortField.isEmpty() ? "id" : sortField;
+        };
+
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, jpaField));
+
+        return bookRepository.findBooksWithFilters(
+                globalFilter,
+                title,
+                author,
+                category,
+                series,
+                pageable
+        );
     }
 }
