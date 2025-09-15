@@ -79,7 +79,6 @@ class BookService {
         return updatedBook.get();
     }
 
-    //todo sprawdzić czy nie ma userbook przed usunięciem
     public void deleteBook(Integer id) {
         bookRepository.delete(id);
     }

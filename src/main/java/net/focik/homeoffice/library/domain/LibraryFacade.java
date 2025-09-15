@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -198,7 +199,7 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     @Override
     public UserBook updateUserBook(UserBook userBook) {
         UserBook updatedUserBook = userBookService.updateUserBook(userBook);
-        if (updatedUserBook.getReadingStatus().equals(ReadingStatus.READ)) {
+        if (updatedUserBook.getReadingStatus().equals(ReadingStatus.READ) && Objects.nonNull(updatedUserBook.getBook().getSeries())) {
             seriesService.updateSeries(updatedUserBook.getBook().getSeries(), false);
         }
         return updatedUserBook;
