@@ -289,6 +289,11 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    public Series addSeries(Series series) {
+        return seriesService.addSeries(series);
+    }
+
+    @Override
     public Series updateSeries(Series series) {
         return seriesService.updateSeries(series);
     }

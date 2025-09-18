@@ -9,7 +9,7 @@ import java.util.Optional;
 @Component
 public interface SeriesRepository {
 
-    Integer add(Series series);
+    Series add(Series series);
 
     Optional<Series> save(Series series);
 

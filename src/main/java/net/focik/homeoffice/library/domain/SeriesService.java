@@ -23,7 +23,7 @@ public class SeriesService {
 
     private final SeriesRepository seriesRepository;
 
-    public Integer addSeries(Series series) {
+    public Series addSeries(Series series) {
         Optional<Series> optionalSeries = seriesRepository.findByTitle(series.getTitle());
         if (optionalSeries.isPresent()) {
             throw new SeriesAlreadyExistException(series);

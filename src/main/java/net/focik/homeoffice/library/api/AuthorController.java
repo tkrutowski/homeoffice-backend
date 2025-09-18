@@ -63,13 +63,13 @@ public class AuthorController {
         log.info("Request to add author: {}", author);
 
         Author authorToAdd = authorMapper.toDomain(author);
-        log.debug("Mapped Computer DTO to domain object: {}", authorToAdd);
+        log.debug("Mapped Author DTO to domain object: {}", authorToAdd);
 
         Author added = saveAuthorUseCase.add(authorToAdd);
         log.info("Added author: {}", added);
 
         AuthorDto dto = authorMapper.toDto(added);
-        log.debug("Mapped domain object to Computer DTO: {}", added);
+        log.debug("Mapped domain object to Author DTO: {}", added);
         return new ResponseEntity<>(dto, HttpStatus.CREATED);
 
     }

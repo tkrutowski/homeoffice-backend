@@ -70,6 +70,23 @@ public class SeriesController {
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
+    @PostMapping
+    @PreAuthorize("hasAnyAuthority('LIBRARY_WRITE_ALL','LIBRARY_WRITE') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<SeriesDto> addAuthor(@RequestBody SeriesDto seriesDto) {
+        log.info("Request to add seriesDto: {}", seriesDto);
+
+        Series seriesToAdd =  mapper.map(seriesDto, Series.class);
+        log.debug("Mapped Series DTO to domain object: {}", seriesToAdd);
+
+        Series added = saveSeriesUseCase.addSeries(seriesToAdd);
+        log.info("Added seriesDto: {}", added);
+
+        SeriesDto dto = mapper.map(added, SeriesDto.class);
+        log.debug("Mapped domain object to Series DTO: {}", added);
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
+
+    }
+
     @GetMapping("/search")
     @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<SeriesDto> getCategoryByName(@RequestParam String title) {
