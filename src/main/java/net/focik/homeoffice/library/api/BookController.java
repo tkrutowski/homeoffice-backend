@@ -113,6 +113,21 @@ public class BookController {
                 .collect(Collectors.toList()), HttpStatus.OK);
     }
 
+    @GetMapping("/author/{id}")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
+    ResponseEntity<List<BookApiDto>> getAllBooksByAuthor(@PathVariable int id) {
+        log.info("Request to get all books by author with id: {}",id);
+        List<BookApiDto> existedBooks = findBookUseCase.findAllBooksByAuthor(id).stream()
+                .peek(book -> log.debug("Found book {}", book))
+                .map(bookMapper::toDto)
+                .peek(dto -> log.debug("Mapped found book {}", dto))
+                .toList();
+        log.info("Found {} books by author with id: {}", existedBooks.size(), id);
+        return new ResponseEntity<>(existedBooks.stream()
+                .sorted(Comparator.comparing(BookApiDto::getBookInSeriesNo))
+                .collect(Collectors.toList()), HttpStatus.OK);
+    }
+
     @GetMapping("/series/new/{id}")
     @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<List<BookApiDto>> getNewBooksInSeries(@PathVariable int id, @RequestParam(name = "url") String url) {

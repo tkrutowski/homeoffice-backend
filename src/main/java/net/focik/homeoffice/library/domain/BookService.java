@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.exception.BookAlreadyExistException;
 import net.focik.homeoffice.library.domain.exception.BookNotFoundException;
+import net.focik.homeoffice.library.domain.model.Author;
 import net.focik.homeoffice.library.domain.model.Book;
 import net.focik.homeoffice.library.domain.model.Series;
 import net.focik.homeoffice.library.domain.port.secondary.BookRepository;
@@ -15,7 +16,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -108,10 +111,10 @@ class BookService {
     }
 
     public Page<Book> findBooksPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter,
-                                           String title,
-                                           String author,
-                                           String category,
-                                           String series) {
+                                                   String title,
+                                                   String author,
+                                                   String category,
+                                                   String series) {
         String jpaField = switch (sortField) {
             case "authors" -> "authors.lastName";
             case "series" -> "series.title";
@@ -130,5 +133,19 @@ class BookService {
                 series,
                 pageable
         );
+    }
+
+    public Map<Author, Long> getStatistics(List<Author> allAuthors) {
+        Map<Author, Long> statistics = new HashMap<>();
+        for (Author author : allAuthors) {
+            Long count = bookRepository.countBooksByAuthorId(author.getId());
+            if (count > 0)
+                statistics.put(author, count);
+        }
+        return statistics;
+    }
+
+    public List<Book> findAllBooksByAuthor(Integer authorId) {
+        return bookRepository.findAllByAuthor(authorId);
     }
 }

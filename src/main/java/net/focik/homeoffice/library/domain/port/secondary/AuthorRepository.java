@@ -1,6 +1,8 @@
 package net.focik.homeoffice.library.domain.port.secondary;
 
 import net.focik.homeoffice.library.domain.model.Author;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -15,9 +17,11 @@ public interface AuthorRepository {
 
     List<Author> findAll();
 
-    boolean delete(Integer id);
+    void delete(Integer id);
 
-    Optional<Author> edit(Author author);
+    Optional<Author> update(Author author);
 
     Optional<Author> findByFirstNameAndLastName(String firstName, String lastName);
+
+    Page<Author> findAuthorsWithFilters(String globalFilter, Pageable pageable);
 }

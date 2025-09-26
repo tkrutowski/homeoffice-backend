@@ -21,6 +21,14 @@ interface BookDtoRepository extends JpaRepository<BookDbDto, Integer> {
     List<BookDbDto> findAllBySeriesOrderByBookInSeriesNo(SeriesDbDto seriesDbDto);
 
     @Query("SELECT DISTINCT b FROM BookDbDto b " +
+            "JOIN b.authors a " +
+            "LEFT JOIN b.series s " +
+            "WHERE a.id = :authorId " +
+            "ORDER BY s.title, CAST(NULLIF(b.bookInSeriesNo, '') AS int)")
+    List<BookDbDto> findAllByAuthorIdOrderByTitle(@Param("authorId") Integer authorId);
+
+
+    @Query("SELECT DISTINCT b FROM BookDbDto b " +
             "LEFT JOIN FETCH b.authors a " +
             "LEFT JOIN FETCH b.categories c " +
             "LEFT JOIN FETCH b.series s " +
@@ -42,4 +50,8 @@ interface BookDtoRepository extends JpaRepository<BookDbDto, Integer> {
             @Param("series") String series,
             Pageable pageable
     );
+
+    @Query("SELECT COUNT(DISTINCT b) FROM BookDbDto b JOIN b.authors a WHERE a.id = :authorId")
+    Long countBooksByAuthorId(Integer authorId);
+
 }

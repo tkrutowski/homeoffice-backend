@@ -38,4 +38,8 @@ public interface BookRepository {
     List<Book> findAllBySeries(Series series);
 
     Optional<Book> findByTitle(String title);
+
+    Long countBooksByAuthorId(Integer authorId);
+
+    List<Book> findAllByAuthor(Integer authorId);
 }

@@ -2,6 +2,7 @@ package net.focik.homeoffice.library.domain;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.library.domain.exception.BookAlreadyExistException;
 import net.focik.homeoffice.library.domain.model.*;
 import net.focik.homeoffice.library.domain.port.primary.*;
 import net.focik.homeoffice.userservice.domain.AppUser;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBookUseCase, SaveUserBookUseCase,
         FindSeriesUseCase, FindUserBookUseCase, FindBookstoreUseCase, SaveBookstoreUseCase, DeleteBookstoreUseCase,
-        DeleteUserBookUseCase, FindAuthorUseCase, FindCategoryUseCase, SaveAuthorUseCase, SaveCategoryUseCase, SaveSeriesUseCase {
+        DeleteUserBookUseCase, FindAuthorUseCase, FindCategoryUseCase, SaveAuthorUseCase, SaveCategoryUseCase, SaveSeriesUseCase, DeleteAuthorUseCase {
 
     private final UserFacade userFacade;
     private final BookService bookService;
@@ -82,6 +83,11 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     @Override
     public Page<Book> findBooksPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String title, String author, String category, String series) {
         return bookService.findBooksPageableWithFilters(page, size, sortField, sortDirection, globalFilter, title, author, category, series);
+    }
+
+    @Override
+    public List<Book> findAllBooksByAuthor(int id) {
+        return bookService.findAllBooksByAuthor(id);
     }
 
     @Override
@@ -226,6 +232,17 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    public Map<Author, Long> getStatistics() {
+        List<Author> allAuthors = authorService.findAllAuthors();
+        return bookService.getStatistics(allAuthors);
+    }
+
+    @Override
+    public Page<Author> findAuthorsAuthorsPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter) {
+        return authorService.findAuthorsAuthorsPageableWithFilters(page, size, sortField, sortDirection, globalFilter);
+    }
+
+    @Override
     public Category getById(Integer idCategory) {
         return null;
     }
@@ -248,6 +265,11 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     @Override
     public Author add(Author author) {
         return authorService.addAuthor(author);
+    }
+
+    @Override
+    public Author updateAuthor(Author author) {
+        return authorService.updateAuthor(author);
     }
 
     @Override
@@ -296,5 +318,14 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     @Override
     public Series updateSeries(Series series) {
         return seriesService.updateSeries(series);
+    }
+
+    @Override
+    public void deleteAuthor(Integer idAuthor) {
+        List<Book> allBooksByAuthor = bookService.findAllBooksByAuthor(idAuthor);
+        if (allBooksByAuthor.isEmpty()) {
+            authorService.deleteAuthor(idAuthor);
+        }
+        throw new BookAlreadyExistException(String.format("Nie można usunąć autora. Instnieją książki w bazie danych: %s",allBooksByAuthor.size()));
     }
 }

@@ -25,4 +25,5 @@ public interface FindBookUseCase {
                                             String category,
                                             String series);
 
+    List<Book> findAllBooksByAuthor(int id);
 }

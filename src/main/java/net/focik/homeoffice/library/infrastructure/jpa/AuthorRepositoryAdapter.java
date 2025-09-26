@@ -5,6 +5,8 @@ import net.focik.homeoffice.library.domain.model.Author;
 import net.focik.homeoffice.library.domain.port.secondary.AuthorRepository;
 import net.focik.homeoffice.library.infrastructure.dto.AuthorDbDto;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -21,11 +23,11 @@ public class AuthorRepositoryAdapter implements AuthorRepository {
     @Override
     public Author add(Author author) {
         AuthorDbDto authorDbDto = mapper.map(author, AuthorDbDto.class);
-        if (authorDbDto.getId() == 0){
+        if (authorDbDto.getId() == 0) {
             authorDbDto.setId(null);
         }
         AuthorDbDto saved = authorDtoRepository.save(authorDbDto);
-        return  mapper.map(saved, Author.class);
+        return mapper.map(saved, Author.class);
     }
 
     @Override
@@ -41,17 +43,12 @@ public class AuthorRepositoryAdapter implements AuthorRepository {
     }
 
     @Override
-    public boolean delete(Integer id) {
-        try {
-            authorDtoRepository.deleteById(id);
-            return true;
-        } catch (Exception ex) {
-            return false;
-        }
+    public void delete(Integer id) {
+        authorDtoRepository.deleteById(id);
     }
 
     @Override
-    public Optional<Author> edit(Author author) {
+    public Optional<Author> update(Author author) {
         AuthorDbDto dbDto = authorDtoRepository.save(mapper.map(author, AuthorDbDto.class));
         return Optional.of(mapper.map(dbDto, Author.class));
     }
@@ -60,5 +57,11 @@ public class AuthorRepositoryAdapter implements AuthorRepository {
     public Optional<Author> findByFirstNameAndLastName(String firstName, String lastName) {
         return authorDtoRepository.findAuthorDtoByFirstNameAndLastNameIgnoreCase(firstName, lastName)
                 .map(authorDto -> mapper.map(authorDto, Author.class));
+    }
+
+    @Override
+    public Page<Author> findAuthorsWithFilters(String globalFilter, Pageable pageable) {
+        Page<AuthorDbDto> authorsWithFilters = authorDtoRepository.findAuthorsWithFilters(globalFilter, pageable);
+        return authorsWithFilters.map(authorDto -> mapper.map(authorDto, Author.class));
     }
 }

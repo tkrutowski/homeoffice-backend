@@ -27,7 +27,7 @@ public class BookRepositoryAdapter implements BookRepository {
     @Override
     public Optional<Book> add(Book book) {
         BookDbDto bookDbDtoToSave = bookMapper.toDto(book);
-        if (bookDbDtoToSave.getId() != null && bookDbDtoToSave.getId() == 0){
+        if (bookDbDtoToSave.getId() != null && bookDbDtoToSave.getId() == 0) {
             bookDbDtoToSave.setId(null);
         }
         BookDbDto savedBook = bookDtoRepository.save(bookDbDtoToSave);
@@ -89,15 +89,25 @@ public class BookRepositoryAdapter implements BookRepository {
         bookDtoRepository.findAllBySeriesOrderByBookInSeriesNo(mapper.map(series, SeriesDbDto.class))
                 .iterator()
                 .forEachRemaining(dto -> books.add(bookMapper.toDomain(dto)));
-//
-//         books = booksDto.stream()
-//                 .filter(bookDto -> bookDto.getSeries().equals(SeriesDbDto.fromDomain(series)))
-//                 .map(BookDbDto::toDomain).collect(Collectors.toList());
         return books;
     }
 
     @Override
     public Optional<Book> findByTitle(String title) {
         return Optional.empty();
+    }
+
+    @Override
+    public Long countBooksByAuthorId(Integer authorId) {
+        return bookDtoRepository.countBooksByAuthorId(authorId);
+    }
+
+    @Override
+    public List<Book> findAllByAuthor(Integer authorId) {
+        List<Book> books = new ArrayList<>();
+        bookDtoRepository.findAllByAuthorIdOrderByTitle(authorId)
+                .iterator()
+                .forEachRemaining(dto -> books.add(bookMapper.toDomain(dto)));
+        return books;
     }
 }

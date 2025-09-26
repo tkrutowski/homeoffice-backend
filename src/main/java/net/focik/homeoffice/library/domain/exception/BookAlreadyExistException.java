@@ -7,4 +7,7 @@ public class BookAlreadyExistException extends ObjectAlreadyExistException {
     public BookAlreadyExistException(Book book) {
         super("Książka pod tytułem '" + book.getTitle() + "' już istnieje w bazie danych.");
     }
+    public BookAlreadyExistException(String message){
+        super(message);
+    }
 }

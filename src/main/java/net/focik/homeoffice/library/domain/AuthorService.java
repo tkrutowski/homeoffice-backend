@@ -1,11 +1,14 @@
 package net.focik.homeoffice.library.domain;
 
 import lombok.RequiredArgsConstructor;
-import net.focik.homeoffice.addresses.domain.exceptions.AddressNotFoundException;
 import net.focik.homeoffice.library.domain.exception.AuthorAlreadyExistException;
 import net.focik.homeoffice.library.domain.exception.AuthorNotFoundException;
 import net.focik.homeoffice.library.domain.model.Author;
 import net.focik.homeoffice.library.domain.port.secondary.AuthorRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,21 +32,22 @@ class AuthorService {
         return authorRepository.findAll();
     }
 
-    public boolean deleteAuthor(Integer id) {
-        return authorRepository.delete(id);
+    public void deleteAuthor(Integer id) {
+        authorRepository.delete(id);
     }
 
-    public Author editAuthor(Author author) {
-        Optional<Author> authorById = authorRepository.findById(author.getId());
-        if (authorById.isEmpty()) {
-            throw new AuthorNotFoundException(author.getId());
-        }
+    public Author updateAuthor(Author author) {
+        Author existingAuthor = authorRepository.findById(author.getId())
+                .orElseThrow(() -> new AuthorNotFoundException(author.getId()));
 
-        Author authorTemp = authorById.get();
-        authorTemp.setLastName(author.getLastName());
-        authorTemp.setFirstName(author.getFirstName());
+        Author updatedAuthor = Author.builder()
+                .id(existingAuthor.getId())
+                .firstName(author.getFirstName())
+                .lastName(author.getLastName())
+                .build();
 
-        return authorRepository.edit(authorTemp).get();
+        return authorRepository.update(updatedAuthor)
+                .orElseThrow(() -> new AuthorNotFoundException(author.getId()));
     }
 
     public Author findAuthor(Integer id) {
@@ -52,5 +56,18 @@ class AuthorService {
 
     public Author findAuthorsByFirstAndLastName(String firstName, String lastName) {
         return authorRepository.findByFirstNameAndLastName(firstName, lastName).orElse(null);
+    }
+
+    public Page<Author> findAuthorsAuthorsPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter) {
+        Pageable pageable;
+
+        if (sortField == null || sortField.isEmpty()){
+            // Domyślne sortowanie po ID malejąco
+            pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        }else {
+            Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+            pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+        }
+        return authorRepository.findAuthorsWithFilters(globalFilter, pageable);
     }
 }
