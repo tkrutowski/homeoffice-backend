@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.api.dto.SeriesDto;
 import net.focik.homeoffice.library.domain.model.Series;
+import net.focik.homeoffice.library.domain.port.primary.DeleteSeriesUseCase;
 import net.focik.homeoffice.library.domain.port.primary.FindSeriesUseCase;
 import net.focik.homeoffice.library.domain.port.primary.SaveSeriesUseCase;
 import org.modelmapper.ModelMapper;
@@ -23,6 +24,7 @@ public class SeriesController {
 
     private final FindSeriesUseCase findSeriesUseCase;
     private final SaveSeriesUseCase saveSeriesUseCase;
+    private final DeleteSeriesUseCase deleteSeriesUseCase;
     private final ModelMapper mapper;
 
     @GetMapping
@@ -101,5 +103,13 @@ public class SeriesController {
         SeriesDto dto = mapper.map(series, SeriesDto.class);
         log.debug("Mapped domain object to Series DTO: {}", dto);
         return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_DELETE_ALL','LIBRARY_DELETE')or hasRole('ROLE_ADMIN')")
+    public void deleteSeries(@PathVariable Integer id) {
+        log.info("Request to delete series with id: {}", id);
+        deleteSeriesUseCase.deleteSeries(id);
+        log.info("Series deleted successfully with id: {}", id);
     }
 }

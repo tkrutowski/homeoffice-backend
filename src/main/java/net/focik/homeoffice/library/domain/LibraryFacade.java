@@ -3,6 +3,8 @@ package net.focik.homeoffice.library.domain;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.exception.BookAlreadyExistException;
+import net.focik.homeoffice.library.domain.exception.BookstoreNotFoundException;
+import net.focik.homeoffice.library.domain.exception.SeriesNotFoundException;
 import net.focik.homeoffice.library.domain.model.*;
 import net.focik.homeoffice.library.domain.port.primary.*;
 import net.focik.homeoffice.userservice.domain.AppUser;
@@ -26,7 +28,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBookUseCase, SaveUserBookUseCase,
         FindSeriesUseCase, FindUserBookUseCase, FindBookstoreUseCase, SaveBookstoreUseCase, DeleteBookstoreUseCase,
-        DeleteUserBookUseCase, FindAuthorUseCase, FindCategoryUseCase, SaveAuthorUseCase, SaveCategoryUseCase, SaveSeriesUseCase, DeleteAuthorUseCase {
+        DeleteUserBookUseCase, FindAuthorUseCase, FindCategoryUseCase, SaveAuthorUseCase, SaveCategoryUseCase, SaveSeriesUseCase, DeleteAuthorUseCase, DeleteSeriesUseCase {
 
     private final UserFacade userFacade;
     private final BookService bookService;
@@ -191,8 +193,15 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
-    public void deleteBookstore(Integer idBook) {
-        bookstoreService.deleteBookstore(idBook);
+    public void deleteBookstore(Integer idBookstore) {
+        Bookstore bookstore = Optional.ofNullable(bookstoreService.findBookstore(idBookstore)).orElseThrow(() -> new BookstoreNotFoundException(Long.valueOf(idBookstore)));
+        List<UserBook> booksInSeries = userBookService.findUserBooksByBookstore(idBookstore);
+        if (!booksInSeries.isEmpty()) {
+            throw new IllegalStateException("Nie można usunąć księgarnii '" + bookstore.getName() +
+                    "', ponieważ istnieje " + booksInSeries.size() + " powiązanych książek. " +
+                    "Najpierw usuń lub przenieś książki z tej księgarnii.");
+        }
+        bookstoreService.deleteBookstore(idBookstore);
     }
 
     @Override
@@ -327,5 +336,17 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
             authorService.deleteAuthor(idAuthor);
         }
         throw new BookAlreadyExistException(String.format("Nie można usunąć autora. Instnieją książki w bazie danych: %s",allBooksByAuthor.size()));
+    }
+
+    @Override
+    public void deleteSeries(Integer idSeries) {
+        Series series = Optional.ofNullable(seriesService.findSeries(idSeries)).orElseThrow(() -> new SeriesNotFoundException(idSeries));
+        List<Book> booksInSeries = bookService.findAllBooksInSeries(series);
+        if (!booksInSeries.isEmpty()) {
+            throw new IllegalStateException("Nie można usunąć serii '" + series.getTitle() +
+                    "', ponieważ zawiera " + booksInSeries.size() + " książek. " +
+                    "Najpierw usuń lub przenieś książki z tej serii.");
+        }
+        seriesService.deleteSeries(idSeries);
     }
 }

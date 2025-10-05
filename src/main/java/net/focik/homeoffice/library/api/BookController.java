@@ -123,9 +123,7 @@ public class BookController {
                 .peek(dto -> log.debug("Mapped found book {}", dto))
                 .toList();
         log.info("Found {} books by author with id: {}", existedBooks.size(), id);
-        return new ResponseEntity<>(existedBooks.stream()
-                .sorted(Comparator.comparing(BookApiDto::getBookInSeriesNo))
-                .collect(Collectors.toList()), HttpStatus.OK);
+        return new ResponseEntity<>(existedBooks, HttpStatus.OK);
     }
 
     @GetMapping("/series/new/{id}")

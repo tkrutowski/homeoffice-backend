@@ -30,6 +30,8 @@ interface UserBookDtoRepository extends CrudRepository<UserBookDbDto, Integer> {
 
     List<UserBookDbDto> findAllByUser_IdAndBook_Series_TitleContainingIgnoreCase(Long userId, String seriesTitle);
 
+    List<UserBookDbDto> findAllByBookstore_Id(Integer idBookstore);
+
     @Query("SELECT DISTINCT ub FROM UserBookDbDto ub JOIN ub.book.authors a WHERE ub.user.id = :userId AND (LOWER(a.lastName) LIKE LOWER(CONCAT('%', :authorName, '%')) OR LOWER(a.firstName) LIKE LOWER(CONCAT('%', :authorName, '%')))")
     List<UserBookDbDto> findAllByUserIdAndAuthorName(Long userId, String authorName);
 

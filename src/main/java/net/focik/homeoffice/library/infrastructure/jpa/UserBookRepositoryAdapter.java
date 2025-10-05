@@ -69,6 +69,14 @@ public class UserBookRepositoryAdapter implements UserBookRepository {
     }
 
     @Override
+    public List<UserBook> findAllByBookstore(Integer idBookstore) {
+        return userBookDtoRepository.findAllByBookstore_Id(idBookstore)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<UserBook> findAllByIdBook(Integer idBook) {
         return userBookDtoRepository.findAllByBook_Id(idBook)
                 .stream()

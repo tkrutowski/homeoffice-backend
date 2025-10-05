@@ -109,4 +109,8 @@ class UserBookService {
         }
         return statisticsBookstore;
     }
+
+    public List<UserBook> findUserBooksByBookstore(Integer idBookstore) {
+        return userBookRepository.findAllByBookstore(idBookstore);
+    }
 }
