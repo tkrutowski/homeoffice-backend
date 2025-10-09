@@ -7,6 +7,8 @@ import net.focik.homeoffice.finance.infrastructure.dto.PurchaseDbDto;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaPurchaseMapper;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -84,6 +86,20 @@ class PurchaseRepositoryAdapter implements PurchaseRepository {
     @Override
     public void deletePurchaseById(int idLoan) {
         purchaseDtoRepository.deleteById(idLoan);
+    }
+
+    @Override
+    public Page<Purchase> findPurchaseWithFilters(String globalFilter, String username, String name, LocalDate purchaseDate, String dateComparisonType, String firmName, PaymentStatus status, Pageable pageable) {
+        Page<PurchaseDbDto> purchasePage = purchaseDtoRepository.findPurchaseWithFilters(
+                globalFilter, username, name, purchaseDate, dateComparisonType, firmName, status, pageable
+        );
+
+        return purchasePage.map(mapper::toDomain);
+    }
+
+    @Override
+    public Number getTotalSumToPay() {
+        return purchaseDtoRepository.getTotalSumToPay();
     }
 
 }

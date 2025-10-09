@@ -14,6 +14,8 @@ import net.focik.homeoffice.utils.UserHelper;
 import net.focik.homeoffice.utils.exceptions.ExceptionHandling;
 import net.focik.homeoffice.utils.exceptions.HttpResponse;
 import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -89,6 +91,47 @@ public class PurchaseController extends ExceptionHandling {
         log.info("Found {} purchases.", purchaseMap.size());
 
         return new ResponseEntity<>(mapper.toDto(purchaseMap), OK);
+    }
+
+    @GetMapping("/sum/to-pay")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
+    ResponseEntity<Number> getTotalSumToPay() {
+        log.info("Request to get total sum to pay.");
+
+        Number total = getPurchaseUseCase.getTotalSumToPay();
+        log.info("Found total sum to pay: {}", total);
+
+        return new ResponseEntity<>(total, OK);
+    }
+
+    @GetMapping("/page")
+    ResponseEntity<Page<PurchaseDto>> getPurchasesPage(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size,
+            @RequestParam(name = "sort", defaultValue = "purchaseDate") String sortField,
+            @RequestParam(name = "direction", defaultValue = "DESC") String sortDirection,
+            @RequestParam(name = "globalFilter", required = false) String globalFilter,
+            @RequestParam(name = "username", required = false) String username,
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "purchaseDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate purchaseDate,
+            @RequestParam(name = "firmName", required = false) String firmName,
+            @RequestParam(name = "dateComparisonType", required = false) String dateComparisonType,
+            @RequestParam(name = "status", required = false) PaymentStatus status
+    ) {
+        log.info("Request to get purchases page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, username: {}, name: {}, purchaseDate: {}, dateComparisonType: {}, firmId: {}, status: {}",
+                page, size, sortField, sortDirection, globalFilter, username, name, purchaseDate, dateComparisonType, firmName, status);
+
+        Page<Purchase> purchasesPage = getPurchaseUseCase.findPurchasesPageableWithFilters(
+                page, size, sortField, sortDirection, globalFilter, username, name, purchaseDate,dateComparisonType, firmName, status);
+
+        Page<PurchaseDto> dtoPage = purchasesPage.map(mapper::toDto);
+
+        log.debug("Found {} purchases on page {} of {}",
+                dtoPage.getNumberOfElements(),
+                dtoPage.getNumber(),
+                dtoPage.getTotalPages());
+
+        return ResponseEntity.ok(dtoPage);
     }
 
     @PostMapping

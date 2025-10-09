@@ -6,6 +6,10 @@ import net.focik.homeoffice.finance.domain.exception.PurchaseNotFoundException;
 import net.focik.homeoffice.finance.domain.exception.PurchaseNotValidException;
 import net.focik.homeoffice.finance.domain.purchase.port.secondary.PurchaseRepository;
 import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
@@ -92,5 +96,23 @@ class PurchaseService {
 
     public List<Purchase> getPurchasesByFirm(Integer idFirm) {
         return purchaseRepository.findAllByFirm(idFirm);
+    }
+
+    public Page<Purchase> findPurchasesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String username, String name, LocalDate purchaseDate, String dateComparisonType, String firmName, PaymentStatus status) {
+        String jpaField = switch (sortField){
+            case "users" -> "user.username";
+            case "firms" -> "firm.name";
+            case "cards" -> "card.name";
+            default -> sortField.isEmpty() ? "id" : sortField;
+        };
+
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, jpaField));
+
+        return purchaseRepository.findPurchaseWithFilters(globalFilter,username,name,purchaseDate,dateComparisonType,firmName,status,pageable);
+    }
+
+    public Number getTotalSumToPay() {
+       return purchaseRepository.getTotalSumToPay();
     }
 }

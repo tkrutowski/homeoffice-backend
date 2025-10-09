@@ -2,8 +2,13 @@ package net.focik.homeoffice.finance.infrastructure.jpa;
 
 import net.focik.homeoffice.finance.infrastructure.dto.PurchaseDbDto;
 import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -18,4 +23,31 @@ interface PurchaseDtoRepository extends JpaRepository<PurchaseDbDto, Integer> {
     List<PurchaseDbDto> findAllByIdUserAndPaymentStatus(Integer idUser, PaymentStatus status);
 
     List<PurchaseDbDto> findAllByIdUserAndPaymentDeadline(Integer idUser, LocalDate deadline);
+
+    @Query(value = "SELECT p FROM PurchaseDbDto p " +
+            "LEFT JOIN AppUser u ON p.idUser = u.id " +
+            "LEFT JOIN FirmDbDto f ON p.idFirm = f.id " +
+            "WHERE (:globalFilter IS NULL OR " +
+            "LOWER(p.name) LIKE LOWER(CONCAT('%', :globalFilter, '%')) OR " +
+            "LOWER(p.otherInfo) LIKE LOWER(CONCAT('%', :globalFilter, '%'))) " +
+            "AND (:username IS NULL OR LOWER(u.username) LIKE LOWER(CONCAT('%', :username, '%'))) " +
+            "AND (:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) " +
+            "AND (:purchaseDate IS NULL OR " +
+            "(:dateComparisonType = 'EQUALS' AND p.purchaseDate = :purchaseDate) OR " +
+            "(:dateComparisonType = 'BEFORE' AND p.purchaseDate < :purchaseDate) OR " +
+            "(:dateComparisonType = 'AFTER' AND p.purchaseDate > :purchaseDate)) " +
+            "AND (:firmName IS NULL OR LOWER(f.name) LIKE LOWER(CONCAT('%', :firmName, '%'))) " +
+            "AND (:status IS NULL OR p.paymentStatus = :status)")
+    Page<PurchaseDbDto> findPurchaseWithFilters(
+            @Param("globalFilter") String globalFilter,
+            @Param("username") String username,
+            @Param("name") String name,
+            @Param("purchaseDate") LocalDate purchaseDate,
+            @Param("dateComparisonType") String dateComparisonType,
+            @Param("firmName") String firmName,
+            @Param("status") PaymentStatus status,
+            Pageable pageable);
+
+    @Query("SELECT SUM(p.amount) FROM PurchaseDbDto p WHERE p.paymentStatus = net.focik.homeoffice.utils.share.PaymentStatus.TO_PAY")
+    BigDecimal getTotalSumToPay();
 }

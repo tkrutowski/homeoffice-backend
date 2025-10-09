@@ -2,6 +2,8 @@ package net.focik.homeoffice.finance.domain.purchase.port.secondary;
 
 import net.focik.homeoffice.finance.domain.purchase.Purchase;
 import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -28,4 +30,16 @@ public interface PurchaseRepository {
 
     void deletePurchaseById(int idCard);
 
+    Page<Purchase> findPurchaseWithFilters(
+            String globalFilter,
+            String username,
+            String name,
+            LocalDate purchaseDate,
+            String dateComparisonType,
+            String firmName,
+            PaymentStatus status,
+            Pageable pageable
+    );
+
+    Number getTotalSumToPay();
 }

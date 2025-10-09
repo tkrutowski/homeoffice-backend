@@ -8,6 +8,7 @@ import net.focik.homeoffice.finance.domain.purchase.port.primary.UpdatePurchaseU
 import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.UserFacade;
 import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -83,5 +84,15 @@ public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase
     @Override
     public List<Purchase> getPurchasesByFirm(Integer idFirm) {
         return purchaseService.getPurchasesByFirm(idFirm);
+    }
+
+    @Override
+    public Page<Purchase> findPurchasesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String username, String name, LocalDate purchaseDate, String dateComparisonType, String firmName, PaymentStatus status) {
+        return purchaseService.findPurchasesPageableWithFilters(page, size, sortField, sortDirection, globalFilter, username, name, purchaseDate, dateComparisonType, firmName, status);
+    }
+
+    @Override
+    public Number getTotalSumToPay() {
+        return purchaseService.getTotalSumToPay();
     }
 }
