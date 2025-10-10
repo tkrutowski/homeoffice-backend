@@ -1,6 +1,7 @@
 package net.focik.homeoffice.finance.domain.payment;
 
 import lombok.*;
+import net.focik.homeoffice.utils.share.PaymentStatus;
 import net.focik.homeoffice.utils.share.PaymentType;
 
 import java.util.List;
@@ -20,4 +21,5 @@ public class Payment {
     private int paymentDay;
     private List<? extends Installment> installments;
     private PaymentType paymentType;
+    private PaymentStatus paymentStatus;
 }

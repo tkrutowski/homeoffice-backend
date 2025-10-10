@@ -54,6 +54,7 @@ public class Loan implements FinancialTransaction {
                 .name(name)
                 .paymentDay(firstPaymentDate.getDayOfMonth())
                 .paymentType(PaymentType.LOAN)
+                .paymentStatus(loanStatus)
                 .installments(installments)
                 .build();
     }

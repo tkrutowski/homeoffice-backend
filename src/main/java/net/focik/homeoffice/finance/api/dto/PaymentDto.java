@@ -3,6 +3,7 @@ package net.focik.homeoffice.finance.api.dto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
+import net.focik.homeoffice.utils.share.PaymentStatus;
 import net.focik.homeoffice.utils.share.PaymentType;
 
 import java.util.List;
@@ -18,4 +19,5 @@ public class PaymentDto {
     private int paymentDay;
     private List<? extends InstallmentDto> installments;
     private PaymentType paymentType;
+    private PaymentStatus paymentStatus;
 }

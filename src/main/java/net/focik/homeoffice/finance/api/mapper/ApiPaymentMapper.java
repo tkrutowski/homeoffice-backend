@@ -43,6 +43,7 @@ public class ApiPaymentMapper {
                 .name(p.getName())
                 .paymentDay(p.getPaymentDay())
                 .paymentType(p.getPaymentType())
+                .paymentStatus(p.getPaymentStatus())
                 .installments(installmentToDto(p.getInstallments()))
                 .build();
     }

@@ -53,6 +53,7 @@ public class Fee implements FinancialTransaction {
                 .name(name)
                 .paymentDay(firstPaymentDate.getDayOfMonth())
                 .paymentType(PaymentType.FEE)
+                .paymentStatus(feeStatus)
                 .installments(installments)
                 .build();
     }
