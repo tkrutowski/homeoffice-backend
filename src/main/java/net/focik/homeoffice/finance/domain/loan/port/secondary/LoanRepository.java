@@ -2,8 +2,13 @@ package net.focik.homeoffice.finance.domain.loan.port.secondary;
 
 import net.focik.homeoffice.finance.domain.loan.Loan;
 import net.focik.homeoffice.finance.domain.loan.LoanInstallment;
+import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,4 +37,6 @@ public interface LoanRepository {
     void deleteLoanInstallmentById(int idLoanInstallment);
 
     void deleteLoanInstallmentByIdLoan(int idLoan);
+
+    Page<Loan> findLoanWithFilters(String globalFilter, String name, String bankName, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status, Pageable pageable);
 }

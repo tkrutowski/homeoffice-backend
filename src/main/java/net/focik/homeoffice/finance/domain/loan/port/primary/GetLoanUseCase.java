@@ -3,7 +3,10 @@ package net.focik.homeoffice.finance.domain.loan.port.primary;
 import net.focik.homeoffice.finance.domain.loan.Loan;
 import net.focik.homeoffice.finance.domain.loan.LoanInstallment;
 import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.springframework.data.domain.Page;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface GetLoanUseCase {
@@ -20,4 +23,6 @@ public interface GetLoanUseCase {
     List<LoanInstallment> getLoanInstallments(int idLoan);
 
     List<Loan> getLoansByBank(Integer idBank);
+
+    Page<Loan> findLoansPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String name, String bankName, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status);
 }

@@ -8,9 +8,14 @@ import net.focik.homeoffice.finance.domain.loan.port.secondary.LoanRepository;
 import net.focik.homeoffice.finance.infrastructure.dto.LoanDbDto;
 import net.focik.homeoffice.finance.infrastructure.dto.LoanInstallmentDbDto;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaLoanMapper;
+import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -108,5 +113,12 @@ class LoanRepositoryAdapter implements LoanRepository {
     @Override
     public void deleteLoanInstallmentByIdLoan(int idLoan) {
         loanInstallmentDtoRepository.deleteByIdLoan(idLoan);
+    }
+
+    @Override
+    public Page<Loan> findLoanWithFilters(String globalFilter, String name, String bankName, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status, Pageable pageable) {
+        Page<LoanDbDto> loanPage = loanDtoRepository.findLoanWithFilters( globalFilter,  name,  bankName,  date,  dateComparisonType,  amount,  amountComparisonType,  status,  pageable);
+
+        return loanPage.map(mapper::toDomain);
     }
 }

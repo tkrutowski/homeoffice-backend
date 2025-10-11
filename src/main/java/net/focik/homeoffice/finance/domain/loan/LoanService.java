@@ -7,10 +7,15 @@ import net.focik.homeoffice.finance.domain.exception.LoanNotValidException;
 import net.focik.homeoffice.finance.domain.loan.port.secondary.LoanRepository;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.javamoney.moneta.Money;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -62,7 +67,7 @@ class LoanService {
         if (status != null && status != PaymentStatus.ALL) {
             installments = installments.stream()
                     .filter(loanInstallment -> status.equals(loanInstallment.getPaymentStatus()))
-                    .collect(Collectors.toList());
+                    .toList();
         }
 
         if (installments != null && !installments.isEmpty()) {
@@ -181,5 +186,25 @@ class LoanService {
 
     public List<Loan> getLoansByBank(Integer idBank) {
         return loanRepository.findLoanByBankId(idBank);
+    }
+
+    public Page<Loan> findLoansPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String name, String bankName, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+        String jpaField;
+        if ("bankName".equals(sortField)) {
+            jpaField = "bank.name";
+        } else {
+            jpaField = sortField.isEmpty() ? "id" : sortField;
+        }
+
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, jpaField));
+
+        Page<Loan> loanWithFilters = loanRepository.findLoanWithFilters(globalFilter, name, bankName, date, dateComparisonType, amount, amountComparisonType, status, pageable);
+        loanWithFilters.forEach(loan -> {
+            List<LoanInstallment> loanInstallmentList = findLoanInstallmentByLoanId(loan.getId());
+            loan.addLoanInstallment(loanInstallmentList);
+        });
+
+        return loanWithFilters;
     }
 }

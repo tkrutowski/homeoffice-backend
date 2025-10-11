@@ -9,9 +9,12 @@ import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.UserFacade;
 import net.focik.homeoffice.utils.UserHelper;
 import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import static net.focik.homeoffice.utils.PrivilegeHelper.*;
@@ -71,6 +74,11 @@ public class LoanFacade implements AddLoanUseCase, GetLoanUseCase, UpdateLoanUse
     @Override
     public List<Loan> getLoansByBank(Integer idBank) {
         return loanService.getLoansByBank(idBank);
+    }
+
+    @Override
+    public Page<Loan> findLoansPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String name, String bankName, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+        return loanService.findLoansPageableWithFilters(page, size, sortField, sortDirection, globalFilter, name, bankName, date, dateComparisonType, amount, amountComparisonType, status);
     }
 
     @Override

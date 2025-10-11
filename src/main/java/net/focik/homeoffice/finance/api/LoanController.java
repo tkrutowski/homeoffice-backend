@@ -6,20 +6,22 @@ import net.focik.homeoffice.finance.api.dto.BasicDto;
 import net.focik.homeoffice.finance.api.dto.LoanDto;
 import net.focik.homeoffice.finance.api.dto.LoanInstallmentDto;
 import net.focik.homeoffice.finance.api.mapper.ApiLoanMapper;
-import net.focik.homeoffice.finance.domain.exception.LoanNotValidException;
 import net.focik.homeoffice.finance.domain.loan.Loan;
 import net.focik.homeoffice.finance.domain.loan.LoanInstallment;
 import net.focik.homeoffice.finance.domain.loan.port.primary.AddLoanUseCase;
 import net.focik.homeoffice.finance.domain.loan.port.primary.DeleteLoanUseCase;
 import net.focik.homeoffice.finance.domain.loan.port.primary.GetLoanUseCase;
 import net.focik.homeoffice.finance.domain.loan.port.primary.UpdateLoanUseCase;
-import net.focik.homeoffice.utils.exceptions.HttpResponse;
 import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,10 +50,10 @@ class LoanController {
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<List<LoanDto>> getLoansByStatus(@RequestParam(value = "status") PaymentStatus loanStatus,
                                                    @RequestParam(value = "installment", defaultValue = "false") boolean installment) {
-        log.info("Request to get loans with status: {}.",loanStatus);
+        log.info("Request to get loans with status: {}.", loanStatus);
 
         List<Loan> loans = getLoanUseCase.getLoansByStatus(loanStatus, installment);
-        log.info("Found {} loans.",loans.size());
+        log.info("Found {} loans.", loans.size());
 
         return new ResponseEntity<>(loans.stream()
                 .peek(loan -> log.debug("Found loan {}", loan))
@@ -77,6 +79,37 @@ class LoanController {
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
+    @GetMapping("/page")
+    ResponseEntity<Page<LoanDto>> getLoansPage(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size,
+            @RequestParam(name = "sort", defaultValue = "date") String sortField,
+            @RequestParam(name = "direction", defaultValue = "DESC") String sortDirection,
+            @RequestParam(name = "globalFilter", required = false) String globalFilter,
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "bankName", required = false) String bankName,
+            @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(name = "dateComparisonType", required = false, defaultValue = "EQUALS") String dateComparisonType,
+            @RequestParam(name = "amount", required = false) BigDecimal amount,
+            @RequestParam(name = "amountComparisonType", required = false, defaultValue = "EQUALS") String amountComparisonType,
+            @RequestParam(name = "status", required = false) PaymentStatus status
+    ) {
+        log.info("Request to get loans page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, name: {}, bankName: {}, date: {}, dateComparisonType: {}, amount: {}, amountComparisonType: {}, status: {}",
+                page, size, sortField, sortDirection, globalFilter, name, bankName, date, dateComparisonType, amount, amountComparisonType, status);
+
+        Page<Loan> loansPage = getLoanUseCase.findLoansPageableWithFilters(
+                page, size, sortField, sortDirection, globalFilter, name, bankName,
+                date, dateComparisonType, amount, amountComparisonType, status);
+
+        Page<LoanDto> dtoPage = loansPage.map(apiLoanMapper::toDto);
+
+        log.debug("Found {} loans on page {} of {}",
+                dtoPage.getNumberOfElements(),
+                dtoPage.getNumber(),
+                dtoPage.getTotalPages());
+
+        return ResponseEntity.ok(dtoPage);
+    }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
