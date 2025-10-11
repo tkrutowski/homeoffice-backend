@@ -2,7 +2,10 @@ package net.focik.homeoffice.finance.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import net.focik.homeoffice.finance.api.dto.*;
+import net.focik.homeoffice.finance.api.dto.BasicDto;
+import net.focik.homeoffice.finance.api.dto.FeeDto;
+import net.focik.homeoffice.finance.api.dto.FeeFrequencyDto;
+import net.focik.homeoffice.finance.api.dto.FeeInstallmentDto;
 import net.focik.homeoffice.finance.api.mapper.ApiFeeMapper;
 import net.focik.homeoffice.finance.domain.fee.Fee;
 import net.focik.homeoffice.finance.domain.fee.FeeFrequencyEnum;
@@ -11,14 +14,15 @@ import net.focik.homeoffice.finance.domain.fee.port.primary.AddFeeUseCase;
 import net.focik.homeoffice.finance.domain.fee.port.primary.DeleteFeeUseCase;
 import net.focik.homeoffice.finance.domain.fee.port.primary.GetFeeUseCase;
 import net.focik.homeoffice.finance.domain.fee.port.primary.UpdateFeeUseCase;
-import net.focik.homeoffice.utils.exceptions.HttpResponse;
 import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,7 +55,7 @@ class FeeController {
     @GetMapping("/status")
     @PreAuthorize("hasAnyAuthority('FINANCE_FEE_READ', 'FINANCE_FEE_READ_ALL', 'ROLE_ADMIN')")
     ResponseEntity<List<FeeDto>> getFeeByStatus(@RequestParam(value = "status") PaymentStatus paymentStatus,
-                                                  @RequestParam(value = "installment", defaultValue = "false") boolean installment) {
+                                                @RequestParam(value = "installment", defaultValue = "false") boolean installment) {
 
         log.info("Request to get fees with status: {}", paymentStatus);
 
@@ -85,8 +89,8 @@ class FeeController {
     @GetMapping("/{idUser}/status")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<List<FeeDto>> getLoansByEmployeeAndStatus(@PathVariable int idUser,
-                                                              @RequestParam(value = "paymentStatus") PaymentStatus paymentStatus,
-                                                              @RequestParam(value = "installment") boolean installment) {
+                                                             @RequestParam(value = "paymentStatus") PaymentStatus paymentStatus,
+                                                             @RequestParam(value = "installment") boolean installment) {
 
         log.info("Request to get fees for user id: {}", idUser);
         List<Fee> feesByUser = getFeeUseCase.getFeesByUser(idUser, paymentStatus, installment);
@@ -107,6 +111,38 @@ class FeeController {
                 .map(type -> new FeeFrequencyDto(type.name(), type.getViewValue(), type.getFrequencyNumber()))
                 .collect(Collectors.toList());
         return new ResponseEntity<>(statusDtos, OK);
+    }
+
+    @GetMapping("/page")
+    ResponseEntity<Page<FeeDto>> getFeesPage(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size,
+            @RequestParam(name = "sort", defaultValue = "date") String sortField,
+            @RequestParam(name = "direction", defaultValue = "DESC") String sortDirection,
+            @RequestParam(name = "globalFilter", required = false) String globalFilter,
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "firmName", required = false) String firmName,
+            @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(name = "dateComparisonType", required = false, defaultValue = "EQUALS") String dateComparisonType,
+            @RequestParam(name = "amount", required = false) BigDecimal amount,
+            @RequestParam(name = "amountComparisonType", required = false, defaultValue = "EQUALS") String amountComparisonType,
+            @RequestParam(name = "status", required = false) PaymentStatus status
+    ) {
+        log.info("Request to get fees page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, name: {}, firmName: {}, date: {}, dateComparisonType: {}, amount: {}, amountComparisonType: {}, status: {}",
+                page, size, sortField, sortDirection, globalFilter, name, firmName, date, dateComparisonType, amount, amountComparisonType, status);
+
+        Page<Fee> feesPage = getFeeUseCase.findFeesPageableWithFilters(
+                page, size, sortField, sortDirection, globalFilter, name, firmName,
+                date, dateComparisonType, amount, amountComparisonType, status);
+
+        Page<FeeDto> dtoPage = feesPage.map(apiFeeMapper::toDto);
+
+        log.debug("Found {} fees on page {} of {}",
+                dtoPage.getNumberOfElements(),
+                dtoPage.getNumber(),
+                dtoPage.getTotalPages());
+
+        return ResponseEntity.ok(dtoPage);
     }
 
     @PostMapping
@@ -170,7 +206,7 @@ class FeeController {
     @GetMapping("/installment/{idUser}/all")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<List<FeeInstallmentDto>> getFeeInstallmentByUserAndDate(@PathVariable int idUser,
-                                                                            @RequestParam(value = "date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
+                                                                           @RequestParam(value = "date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
 
         log.info("Request to get all fee installment by date for user id: {}", idUser);
 

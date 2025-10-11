@@ -1,6 +1,5 @@
 package net.focik.homeoffice.finance.domain.fee;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.finance.domain.fee.port.primary.AddFeeUseCase;
 import net.focik.homeoffice.finance.domain.fee.port.primary.DeleteFeeUseCase;
@@ -10,9 +9,11 @@ import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.UserFacade;
 import net.focik.homeoffice.utils.UserHelper;
 import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -84,6 +85,11 @@ public class FeeFacade implements AddFeeUseCase, GetFeeUseCase, UpdateFeeUseCase
     @Override
     public List<FeeInstallment> getFeeInstallments(int idFee) {
         return feeService.findFeeById(idFee, true).getInstallments();
+    }
+
+    @Override
+    public Page<Fee> findFeesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String name, String firmName, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+        return feeService.findFeesPageableWithFilters(page, size, sortField, sortDirection, globalFilter, name, firmName, date, dateComparisonType, amount, amountComparisonType, status);
     }
 
     @Override

@@ -8,9 +8,14 @@ import net.focik.homeoffice.finance.domain.fee.port.secondary.FeeRepository;
 import net.focik.homeoffice.finance.infrastructure.dto.FeeDbDto;
 import net.focik.homeoffice.finance.infrastructure.dto.FeeInstallmentDbDto;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaFeeMapper;
+import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -105,5 +110,12 @@ class FeeRepositoryAdapter implements FeeRepository {
     @Override
     public void deleteFeeInstallmentByIdFee(int idFee) {
         feeInstallmentDtoRepository.deleteByIdFee(idFee);
+    }
+
+    @Override
+    public Page<Fee> findFeesPageableWithFilters(String globalFilter, String name, String firmName, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status, Pageable pageable) {
+        Page<FeeDbDto> feePage = feeDtoRepository.findFeesPageableWithFilters(globalFilter, name, firmName, date, dateComparisonType, amount, amountComparisonType, status, pageable);
+
+        return feePage.map(mapper::toDomain);
     }
 }

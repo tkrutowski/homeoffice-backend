@@ -3,7 +3,9 @@ package net.focik.homeoffice.finance.domain.fee.port.primary;
 import net.focik.homeoffice.finance.domain.fee.Fee;
 import net.focik.homeoffice.finance.domain.fee.FeeInstallment;
 import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.springframework.data.domain.Page;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -24,4 +26,6 @@ public interface GetFeeUseCase {
     List<FeeInstallment> getFeeInstallments(int idUser, LocalDate date);
 
     List<FeeInstallment> getFeeInstallments(int idFee);
+
+    Page<Fee> findFeesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String name, String firmName, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status);
 }

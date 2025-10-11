@@ -1,15 +1,21 @@
 package net.focik.homeoffice.finance.domain.fee;
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import net.focik.homeoffice.finance.domain.exception.*;
+import net.focik.homeoffice.finance.domain.exception.FeeNotFoundException;
+import net.focik.homeoffice.finance.domain.exception.LoanInstallmentNotFoundException;
+import net.focik.homeoffice.finance.domain.exception.LoanNotValidException;
 import net.focik.homeoffice.finance.domain.fee.port.secondary.FeeRepository;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.javamoney.moneta.Money;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
-import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
@@ -197,5 +203,25 @@ class FeeService {
                 .collect(Collectors.toList());
 
         return feeByFirmId;
+    }
+
+    public Page<Fee> findFeesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String name, String firmName, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+        String jpaField;
+        if ("firmName".equals(sortField)) {
+            jpaField = "firm.name";
+        } else {
+            jpaField = sortField.isEmpty() ? "id" : sortField;
+        }
+
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, jpaField));
+
+        Page<Fee> feesPageableWithFilters = feeRepository.findFeesPageableWithFilters(globalFilter, name, firmName, date, dateComparisonType, amount, amountComparisonType, status, pageable);
+        feesPageableWithFilters.forEach(fee -> {
+            List<FeeInstallment> feeInstallmentList = findFeeInstallmentByFeeId(fee.getId());
+            fee.addFeeInstallment(feeInstallmentList);
+        });
+
+        return feesPageableWithFilters;
     }
 }
