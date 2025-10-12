@@ -38,7 +38,8 @@ interface LoanDtoRepository extends JpaRepository<LoanDbDto, Integer> {
             "(:amountComparisonType = 'GREATER_THAN' AND l.amount > :amount) OR " +
             "(:amountComparisonType = 'GREATER_THAN_OR_EQUAL' AND l.amount >= :amount)) " +
             "AND (:status IS NULL OR l.loanStatus = :status)"+
-            "AND (:idBank IS NULL OR l.bank.id = :idBank)")
+            "AND (:idBank IS NULL OR l.bank.id = :idBank)"+
+            "AND (:idUser IS NULL OR l.idUser = :idUser)")
     Page<LoanDbDto> findLoanWithFilters(
             @Param("globalFilter") String globalFilter,
             @Param("name") String name,
@@ -48,5 +49,5 @@ interface LoanDtoRepository extends JpaRepository<LoanDbDto, Integer> {
             @Param("amount") BigDecimal amount,
             @Param("amountComparisonType") String amountComparisonType,
             @Param("status") PaymentStatus status,
-            Pageable pageable);
+            @Param("idUser") Integer idUser, Pageable pageable);
 }

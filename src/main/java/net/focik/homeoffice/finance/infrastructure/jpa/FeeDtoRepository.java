@@ -38,6 +38,7 @@ interface FeeDtoRepository extends JpaRepository<FeeDbDto, Integer> {
             "(:amountComparisonType = 'GREATER_THAN' AND f.amount > :amount) OR " +
             "(:amountComparisonType = 'GREATER_THAN_OR_EQUAL' AND f.amount >= :amount))" +
             "AND (:idFirm IS NULL OR f.firm.id = :idFirm)" +
+            "AND (:idUser IS NULL OR f.idUser = :idUser)" +
             "AND (:status IS NULL OR f.feeStatus = :status)")
     Page<FeeDbDto> findFeesPageableWithFilters(
             @Param("globalFilter") String globalFilter,
@@ -48,5 +49,5 @@ interface FeeDtoRepository extends JpaRepository<FeeDbDto, Integer> {
             @Param("amount") BigDecimal amount,
             @Param("amountComparisonType") String amountComparisonType,
             @Param("status") PaymentStatus status,
-            Pageable pageable);
+            @Param("idUser") Integer idUser, Pageable pageable);
 }

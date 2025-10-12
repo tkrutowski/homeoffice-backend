@@ -47,5 +47,5 @@ public interface FeeRepository {
             BigDecimal amount,
             String amountComparisonType,
             PaymentStatus status,
-            Pageable pageable);
+            Integer idUser, Pageable pageable);
 }

@@ -113,8 +113,8 @@ class FeeRepositoryAdapter implements FeeRepository {
     }
 
     @Override
-    public Page<Fee> findFeesPageableWithFilters(String globalFilter, String name, Integer idFirm, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status, Pageable pageable) {
-        Page<FeeDbDto> feePage = feeDtoRepository.findFeesPageableWithFilters(globalFilter, name, idFirm, date, dateComparisonType, amount, amountComparisonType, status, pageable);
+    public Page<Fee> findFeesPageableWithFilters(String globalFilter, String name, Integer idFirm, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status, Integer idUser, Pageable pageable) {
+        Page<FeeDbDto> feePage = feeDtoRepository.findFeesPageableWithFilters(globalFilter, name, idFirm, date, dateComparisonType, amount, amountComparisonType, status, idUser, pageable);
 
         return feePage.map(mapper::toDomain);
     }

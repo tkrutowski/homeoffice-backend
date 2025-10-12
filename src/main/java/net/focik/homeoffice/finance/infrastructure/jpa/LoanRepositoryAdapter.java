@@ -116,8 +116,8 @@ class LoanRepositoryAdapter implements LoanRepository {
     }
 
     @Override
-    public Page<Loan> findLoanWithFilters(String globalFilter, String name, Integer idBank, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status, Pageable pageable) {
-        Page<LoanDbDto> loanPage = loanDtoRepository.findLoanWithFilters( globalFilter,  name,  idBank,  date,  dateComparisonType,  amount,  amountComparisonType,  status,  pageable);
+    public Page<Loan> findLoanWithFilters(String globalFilter, String name, Integer idBank, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status, Integer idUser, Pageable pageable) {
+        Page<LoanDbDto> loanPage = loanDtoRepository.findLoanWithFilters(globalFilter, name, idBank, date, dateComparisonType, amount, amountComparisonType, status, idUser, pageable);
 
         return loanPage.map(mapper::toDomain);
     }

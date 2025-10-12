@@ -205,7 +205,7 @@ class FeeService {
         return feeByFirmId;
     }
 
-    public Page<Fee> findFeesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String name, Integer idFirm, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+    public Page<Fee> findFeesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String name, Integer idFirm, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status, Integer idUser) {
         String jpaField;
         if ("firmName".equals(sortField)) {
             jpaField = "firm.name";
@@ -216,7 +216,7 @@ class FeeService {
         Sort.Direction direction = Sort.Direction.fromString(sortDirection);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, jpaField));
 
-        Page<Fee> feesPageableWithFilters = feeRepository.findFeesPageableWithFilters(globalFilter, name, idFirm, date, dateComparisonType, amount, amountComparisonType, status, pageable);
+        Page<Fee> feesPageableWithFilters = feeRepository.findFeesPageableWithFilters(globalFilter, name, idFirm, date, dateComparisonType, amount, amountComparisonType, status, idUser, pageable);
         feesPageableWithFilters.forEach(fee -> {
             List<FeeInstallment> feeInstallmentList = findFeeInstallmentByFeeId(fee.getId());
             fee.addFeeInstallment(feeInstallmentList);
