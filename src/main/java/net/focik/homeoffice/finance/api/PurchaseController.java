@@ -114,15 +114,16 @@ public class PurchaseController extends ExceptionHandling {
             @RequestParam(name = "username", required = false) String username,
             @RequestParam(name = "name", required = false) String name,
             @RequestParam(name = "purchaseDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate purchaseDate,
-            @RequestParam(name = "firmName", required = false) String firmName,
             @RequestParam(name = "dateComparisonType", required = false) String dateComparisonType,
-            @RequestParam(name = "status", required = false) PaymentStatus status
+            @RequestParam(name = "status", required = false) PaymentStatus status,
+            @RequestParam(name = "firmId", required = false) Integer idFirm,
+            @RequestParam(name = "cardId", required = false) Integer idCard
     ) {
-        log.info("Request to get purchases page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, username: {}, name: {}, purchaseDate: {}, dateComparisonType: {}, firmId: {}, status: {}",
-                page, size, sortField, sortDirection, globalFilter, username, name, purchaseDate, dateComparisonType, firmName, status);
+        log.info("Request to get purchases page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, username: {}, name: {}, purchaseDate: {}, dateComparisonType: {},  status: {}, firmId: {}, cardId: {}",
+                page, size, sortField, sortDirection, globalFilter, username, name, purchaseDate, dateComparisonType,  status, idFirm, idCard);
 
         Page<Purchase> purchasesPage = getPurchaseUseCase.findPurchasesPageableWithFilters(
-                page, size, sortField, sortDirection, globalFilter, username, name, purchaseDate,dateComparisonType, firmName, status);
+                page, size, sortField, sortDirection, globalFilter, username, name, purchaseDate,dateComparisonType, status, idFirm, idCard);
 
         Page<PurchaseDto> dtoPage = purchasesPage.map(mapper::toDto);
 

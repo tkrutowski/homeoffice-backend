@@ -188,18 +188,18 @@ class LoanService {
         return loanRepository.findLoanByBankId(idBank);
     }
 
-    public Page<Loan> findLoansPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String name, String bankName, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+    public Page<Loan> findLoansPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String name, Integer idBank, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
         String jpaField;
         if ("bankName".equals(sortField)) {
             jpaField = "bank.name";
         } else {
-            jpaField = sortField.isEmpty() ? "id" : sortField;
+            jpaField = sortField.isEmpty() || "null".equals(sortField) ? "id" : sortField;
         }
 
         Sort.Direction direction = Sort.Direction.fromString(sortDirection);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, jpaField));
 
-        Page<Loan> loanWithFilters = loanRepository.findLoanWithFilters(globalFilter, name, bankName, date, dateComparisonType, amount, amountComparisonType, status, pageable);
+        Page<Loan> loanWithFilters = loanRepository.findLoanWithFilters(globalFilter, name, idBank, date, dateComparisonType, amount, amountComparisonType, status, pageable);
         loanWithFilters.forEach(loan -> {
             List<LoanInstallment> loanInstallmentList = findLoanInstallmentByLoanId(loan.getId());
             loan.addLoanInstallment(loanInstallmentList);

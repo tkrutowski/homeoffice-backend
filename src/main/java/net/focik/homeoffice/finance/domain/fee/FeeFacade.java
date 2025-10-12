@@ -88,8 +88,8 @@ public class FeeFacade implements AddFeeUseCase, GetFeeUseCase, UpdateFeeUseCase
     }
 
     @Override
-    public Page<Fee> findFeesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String name, String firmName, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
-        return feeService.findFeesPageableWithFilters(page, size, sortField, sortDirection, globalFilter, name, firmName, date, dateComparisonType, amount, amountComparisonType, status);
+    public Page<Fee> findFeesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String name, Integer idFirm, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+        return feeService.findFeesPageableWithFilters(page, size, sortField, sortDirection, globalFilter, name, idFirm, date, dateComparisonType, amount, amountComparisonType, status);
     }
 
     @Override

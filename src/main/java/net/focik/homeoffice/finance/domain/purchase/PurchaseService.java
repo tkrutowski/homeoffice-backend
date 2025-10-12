@@ -1,5 +1,6 @@
 package net.focik.homeoffice.finance.domain.purchase;
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import net.focik.homeoffice.finance.domain.exception.CardNotValidException;
 import net.focik.homeoffice.finance.domain.exception.PurchaseNotFoundException;
@@ -12,7 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
@@ -50,14 +50,14 @@ class PurchaseService {
                 .collect(Collectors.toSet());
 
         List<Purchase> list = new ArrayList<>();
-        deadlines.forEach(date -> list.addAll(purchaseRepository.findPurchaseByUserIdAndDeadline(idUser,date)
+        deadlines.forEach(date -> list.addAll(purchaseRepository.findPurchaseByUserIdAndDeadline(idUser, date)
                 .stream()
                 .filter(purchase -> purchase.getPaymentStatus().equals(PaymentStatus.TO_PAY))
                 .toList()));
         return list;
     }
 
-    Map<LocalDate, List<Purchase>> convertToMapByDeadline(List<Purchase> purchaseList){
+    Map<LocalDate, List<Purchase>> convertToMapByDeadline(List<Purchase> purchaseList) {
         return purchaseList.stream()
                 .sorted(Comparator.comparing(Purchase::getPurchaseDate))
                 .collect(Collectors.groupingBy(Purchase::getPaymentDeadline));
@@ -98,21 +98,21 @@ class PurchaseService {
         return purchaseRepository.findAllByFirm(idFirm);
     }
 
-    public Page<Purchase> findPurchasesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String username, String name, LocalDate purchaseDate, String dateComparisonType, String firmName, PaymentStatus status) {
-        String jpaField = switch (sortField){
+    public Page<Purchase> findPurchasesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String username, String name, LocalDate purchaseDate, String dateComparisonType, PaymentStatus status, Integer idFirm, Integer idCard) {
+        String jpaField = switch (sortField) {
             case "users" -> "user.username";
             case "firms" -> "firm.name";
             case "cards" -> "card.name";
-            default -> sortField.isEmpty() ? "id" : sortField;
+            default -> sortField.isEmpty() || "null".equals(sortField) ? "id" : sortField;
         };
 
         Sort.Direction direction = Sort.Direction.fromString(sortDirection);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, jpaField));
 
-        return purchaseRepository.findPurchaseWithFilters(globalFilter,username,name,purchaseDate,dateComparisonType,firmName,status,pageable);
+        return purchaseRepository.findPurchaseWithFilters(globalFilter, username, name, purchaseDate, dateComparisonType, status, idFirm, idCard, pageable);
     }
 
     public Number getTotalSumToPay() {
-       return purchaseRepository.getTotalSumToPay();
+        return purchaseRepository.getTotalSumToPay();
     }
 }

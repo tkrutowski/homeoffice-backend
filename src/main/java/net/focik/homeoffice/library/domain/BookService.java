@@ -93,7 +93,7 @@ class BookService {
     public Page<Book> findBooksPageable(int page, int size, String sortField, String sortDirection) {
         Pageable pageable;
 
-        if (sortField == null || sortField.isEmpty()) {
+        if (sortField == null || sortField.isEmpty() || "null".equals(sortField)) {
             // Domyślne sortowanie po ID malejąco
             pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         } else {
@@ -119,7 +119,7 @@ class BookService {
             case "authors" -> "authors.lastName";
             case "series" -> "series.title";
             case "categories" -> "categories.name";
-            default -> sortField.isEmpty() ? "id" : sortField;
+            default -> sortField.isEmpty() || "null".equals(sortField) ? "id" : sortField;
         };
 
         Sort.Direction direction = Sort.Direction.fromString(sortDirection);

@@ -36,17 +36,18 @@ interface PurchaseDtoRepository extends JpaRepository<PurchaseDbDto, Integer> {
             "(:dateComparisonType = 'EQUALS' AND p.purchaseDate = :purchaseDate) OR " +
             "(:dateComparisonType = 'BEFORE' AND p.purchaseDate < :purchaseDate) OR " +
             "(:dateComparisonType = 'AFTER' AND p.purchaseDate > :purchaseDate)) " +
-            "AND (:firmName IS NULL OR LOWER(f.name) LIKE LOWER(CONCAT('%', :firmName, '%'))) " +
-            "AND (:status IS NULL OR p.paymentStatus = :status)")
+            "AND (:status IS NULL OR p.paymentStatus = :status)" +
+            "AND (:idFirm IS NULL OR p.idFirm = :idFirm)" +
+            "AND (:idCard IS NULL OR p.idCard = :idCard)")
     Page<PurchaseDbDto> findPurchaseWithFilters(
             @Param("globalFilter") String globalFilter,
             @Param("username") String username,
             @Param("name") String name,
             @Param("purchaseDate") LocalDate purchaseDate,
             @Param("dateComparisonType") String dateComparisonType,
-            @Param("firmName") String firmName,
             @Param("status") PaymentStatus status,
-            Pageable pageable);
+            @Param("idFirm") Integer idFirm,
+            @Param("idCard") Integer idCard, Pageable pageable);
 
     @Query("SELECT SUM(p.amount) FROM PurchaseDbDto p WHERE p.paymentStatus = net.focik.homeoffice.utils.share.PaymentStatus.TO_PAY")
     BigDecimal getTotalSumToPay();

@@ -89,9 +89,9 @@ class PurchaseRepositoryAdapter implements PurchaseRepository {
     }
 
     @Override
-    public Page<Purchase> findPurchaseWithFilters(String globalFilter, String username, String name, LocalDate purchaseDate, String dateComparisonType, String firmName, PaymentStatus status, Pageable pageable) {
+    public Page<Purchase> findPurchaseWithFilters(String globalFilter, String username, String name, LocalDate purchaseDate, String dateComparisonType, PaymentStatus status, Integer idFirm, Integer idCard, Pageable pageable) {
         Page<PurchaseDbDto> purchasePage = purchaseDtoRepository.findPurchaseWithFilters(
-                globalFilter, username, name, purchaseDate, dateComparisonType, firmName, status, pageable
+                globalFilter, username, name, purchaseDate, dateComparisonType, status, idFirm, idCard, pageable
         );
 
         return purchasePage.map(mapper::toDomain);

@@ -87,18 +87,18 @@ class LoanController {
             @RequestParam(name = "direction", defaultValue = "DESC") String sortDirection,
             @RequestParam(name = "globalFilter", required = false) String globalFilter,
             @RequestParam(name = "name", required = false) String name,
-            @RequestParam(name = "bankName", required = false) String bankName,
+            @RequestParam(name = "bankId", required = false) Integer idBank,
             @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam(name = "dateComparisonType", required = false, defaultValue = "EQUALS") String dateComparisonType,
             @RequestParam(name = "amount", required = false) BigDecimal amount,
             @RequestParam(name = "amountComparisonType", required = false, defaultValue = "EQUALS") String amountComparisonType,
             @RequestParam(name = "status", required = false) PaymentStatus status
     ) {
-        log.info("Request to get loans page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, name: {}, bankName: {}, date: {}, dateComparisonType: {}, amount: {}, amountComparisonType: {}, status: {}",
-                page, size, sortField, sortDirection, globalFilter, name, bankName, date, dateComparisonType, amount, amountComparisonType, status);
+        log.info("Request to get loans page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, name: {}, bankId: {}, date: {}, dateComparisonType: {}, amount: {}, amountComparisonType: {}, status: {}",
+                page, size, sortField, sortDirection, globalFilter, name, idBank, date, dateComparisonType, amount, amountComparisonType, status);
 
         Page<Loan> loansPage = getLoanUseCase.findLoansPageableWithFilters(
-                page, size, sortField, sortDirection, globalFilter, name, bankName,
+                page, size, sortField, sortDirection, globalFilter, name, idBank,
                 date, dateComparisonType, amount, amountComparisonType, status);
 
         Page<LoanDto> dtoPage = loansPage.map(apiLoanMapper::toDto);

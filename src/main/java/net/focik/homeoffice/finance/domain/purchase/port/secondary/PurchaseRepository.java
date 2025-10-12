@@ -36,9 +36,8 @@ public interface PurchaseRepository {
             String name,
             LocalDate purchaseDate,
             String dateComparisonType,
-            String firmName,
             PaymentStatus status,
-            Pageable pageable
+            Integer idFirm, Integer idCard, Pageable pageable
     );
 
     Number getTotalSumToPay();

@@ -38,5 +38,5 @@ public interface LoanRepository {
 
     void deleteLoanInstallmentByIdLoan(int idLoan);
 
-    Page<Loan> findLoanWithFilters(String globalFilter, String name, String bankName, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status, Pageable pageable);
+    Page<Loan> findLoanWithFilters(String globalFilter, String name, Integer idBank, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status, Pageable pageable);
 }

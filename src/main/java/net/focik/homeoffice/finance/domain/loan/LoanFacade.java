@@ -77,8 +77,8 @@ public class LoanFacade implements AddLoanUseCase, GetLoanUseCase, UpdateLoanUse
     }
 
     @Override
-    public Page<Loan> findLoansPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String name, String bankName, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
-        return loanService.findLoansPageableWithFilters(page, size, sortField, sortDirection, globalFilter, name, bankName, date, dateComparisonType, amount, amountComparisonType, status);
+    public Page<Loan> findLoansPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String name, Integer idBank, LocalDate date, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+        return loanService.findLoansPageableWithFilters(page, size, sortField, sortDirection, globalFilter, name, idBank, date, dateComparisonType, amount, amountComparisonType, status);
     }
 
     @Override

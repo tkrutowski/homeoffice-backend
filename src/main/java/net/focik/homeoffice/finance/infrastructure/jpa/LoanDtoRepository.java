@@ -27,7 +27,6 @@ interface LoanDtoRepository extends JpaRepository<LoanDbDto, Integer> {
             "LOWER(l.otherInfo) LIKE LOWER(CONCAT('%', :globalFilter, '%')) OR " +
             "LOWER(b.name) LIKE LOWER(CONCAT('%', :globalFilter, '%'))) " +
             "AND (:name IS NULL OR LOWER(l.name) LIKE LOWER(CONCAT('%', :name, '%'))) " +
-            "AND (:bankName IS NULL OR LOWER(b.name) LIKE LOWER(CONCAT('%', :bankName, '%'))) " +
             "AND (:date IS NULL OR " +
             "(:dateComparisonType = 'EQUALS' AND l.date = :date) OR " +
             "(:dateComparisonType = 'BEFORE' AND l.date < :date) OR " +
@@ -38,11 +37,12 @@ interface LoanDtoRepository extends JpaRepository<LoanDbDto, Integer> {
             "(:amountComparisonType = 'LESS_THAN_OR_EQUAL' AND l.amount <= :amount) OR " +
             "(:amountComparisonType = 'GREATER_THAN' AND l.amount > :amount) OR " +
             "(:amountComparisonType = 'GREATER_THAN_OR_EQUAL' AND l.amount >= :amount)) " +
-            "AND (:status IS NULL OR l.loanStatus = :status)")
+            "AND (:status IS NULL OR l.loanStatus = :status)"+
+            "AND (:idBank IS NULL OR l.bank.id = :idBank)")
     Page<LoanDbDto> findLoanWithFilters(
             @Param("globalFilter") String globalFilter,
             @Param("name") String name,
-            @Param("bankName") String bankName,
+            @Param("idBank") Integer idBank,
             @Param("date") LocalDate date,
             @Param("dateComparisonType") String dateComparisonType,
             @Param("amount") BigDecimal amount,

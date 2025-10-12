@@ -61,7 +61,7 @@ class AuthorService {
     public Page<Author> findAuthorsAuthorsPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter) {
         Pageable pageable;
 
-        if (sortField == null || sortField.isEmpty()){
+        if (sortField == null || sortField.isEmpty() || "null".equals(sortField)){
             // Domyślne sortowanie po ID malejąco
             pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         }else {

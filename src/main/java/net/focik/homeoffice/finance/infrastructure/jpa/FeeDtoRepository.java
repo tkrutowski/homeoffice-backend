@@ -27,7 +27,6 @@ interface FeeDtoRepository extends JpaRepository<FeeDbDto, Integer> {
             "LOWER(f.otherInfo) LIKE LOWER(CONCAT('%', :globalFilter, '%')) OR " +
             "LOWER(firm.name) LIKE LOWER(CONCAT('%', :globalFilter, '%'))) " +
             "AND (:name IS NULL OR LOWER(f.name) LIKE LOWER(CONCAT('%', :name, '%'))) " +
-            "AND (:firmName IS NULL OR LOWER(firm.name) LIKE LOWER(CONCAT('%', :firmName, '%'))) " +
             "AND (:date IS NULL OR " +
             "(:dateComparisonType = 'EQUALS' AND f.date = :date) OR " +
             "(:dateComparisonType = 'BEFORE' AND f.date < :date) OR " +
@@ -38,11 +37,12 @@ interface FeeDtoRepository extends JpaRepository<FeeDbDto, Integer> {
             "(:amountComparisonType = 'LESS_THAN_OR_EQUAL' AND f.amount <= :amount) OR " +
             "(:amountComparisonType = 'GREATER_THAN' AND f.amount > :amount) OR " +
             "(:amountComparisonType = 'GREATER_THAN_OR_EQUAL' AND f.amount >= :amount))" +
+            "AND (:idFirm IS NULL OR f.firm.id = :idFirm)" +
             "AND (:status IS NULL OR f.feeStatus = :status)")
     Page<FeeDbDto> findFeesPageableWithFilters(
             @Param("globalFilter") String globalFilter,
             @Param("name") String name,
-            @Param("firmName") String firmName,
+            @Param("idFirm") Integer idFirm,
             @Param("date") LocalDate date,
             @Param("dateComparisonType") String dateComparisonType,
             @Param("amount") BigDecimal amount,

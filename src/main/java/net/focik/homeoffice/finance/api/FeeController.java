@@ -121,18 +121,18 @@ class FeeController {
             @RequestParam(name = "direction", defaultValue = "DESC") String sortDirection,
             @RequestParam(name = "globalFilter", required = false) String globalFilter,
             @RequestParam(name = "name", required = false) String name,
-            @RequestParam(name = "firmName", required = false) String firmName,
+            @RequestParam(name = "firmId", required = false) Integer idFirm,
             @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam(name = "dateComparisonType", required = false, defaultValue = "EQUALS") String dateComparisonType,
             @RequestParam(name = "amount", required = false) BigDecimal amount,
             @RequestParam(name = "amountComparisonType", required = false, defaultValue = "EQUALS") String amountComparisonType,
             @RequestParam(name = "status", required = false) PaymentStatus status
     ) {
-        log.info("Request to get fees page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, name: {}, firmName: {}, date: {}, dateComparisonType: {}, amount: {}, amountComparisonType: {}, status: {}",
-                page, size, sortField, sortDirection, globalFilter, name, firmName, date, dateComparisonType, amount, amountComparisonType, status);
+        log.info("Request to get fees page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, name: {}, firmId: {}, date: {}, dateComparisonType: {}, amount: {}, amountComparisonType: {}, status: {}",
+                page, size, sortField, sortDirection, globalFilter, name, idFirm, date, dateComparisonType, amount, amountComparisonType, status);
 
         Page<Fee> feesPage = getFeeUseCase.findFeesPageableWithFilters(
-                page, size, sortField, sortDirection, globalFilter, name, firmName,
+                page, size, sortField, sortDirection, globalFilter, name, idFirm,
                 date, dateComparisonType, amount, amountComparisonType, status);
 
         Page<FeeDto> dtoPage = feesPage.map(apiFeeMapper::toDto);

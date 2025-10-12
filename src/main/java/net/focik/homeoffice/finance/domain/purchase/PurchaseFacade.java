@@ -87,8 +87,8 @@ public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase
     }
 
     @Override
-    public Page<Purchase> findPurchasesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String username, String name, LocalDate purchaseDate, String dateComparisonType, String firmName, PaymentStatus status) {
-        return purchaseService.findPurchasesPageableWithFilters(page, size, sortField, sortDirection, globalFilter, username, name, purchaseDate, dateComparisonType, firmName, status);
+    public Page<Purchase> findPurchasesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String username, String name, LocalDate purchaseDate, String dateComparisonType, PaymentStatus status, Integer idFirm, Integer idCard) {
+        return purchaseService.findPurchasesPageableWithFilters(page, size, sortField, sortDirection, globalFilter, username, name, purchaseDate, dateComparisonType, status, idFirm, idCard);
     }
 
     @Override

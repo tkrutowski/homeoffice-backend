@@ -24,7 +24,7 @@ public interface GetPurchaseUseCase {
 
     List<Purchase> getPurchasesByFirm(Integer idFirm);
 
-    Page<Purchase> findPurchasesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String username, String name, LocalDate purchaseDate, String dateComparisonType, String firmId, PaymentStatus status);
+    Page<Purchase> findPurchasesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String username, String name, LocalDate purchaseDate, String dateComparisonType, PaymentStatus status, Integer idFirm, Integer idCard);
 
     Number getTotalSumToPay();
 }
