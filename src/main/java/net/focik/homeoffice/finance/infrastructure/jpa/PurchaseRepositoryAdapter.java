@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 class PurchaseRepositoryAdapter implements PurchaseRepository {
 
     PurchaseDtoRepository purchaseDtoRepository;
-    LoanInstallmentDtoRepository loanInstallmentDtoRepository;
     JpaPurchaseMapper mapper;
 
 

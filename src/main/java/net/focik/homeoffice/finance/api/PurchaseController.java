@@ -12,7 +12,6 @@ import net.focik.homeoffice.finance.domain.purchase.port.primary.GetPurchaseUseC
 import net.focik.homeoffice.finance.domain.purchase.port.primary.UpdatePurchaseUseCase;
 import net.focik.homeoffice.utils.UserHelper;
 import net.focik.homeoffice.utils.exceptions.ExceptionHandling;
-import net.focik.homeoffice.utils.exceptions.HttpResponse;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -163,7 +162,7 @@ public class PurchaseController extends ExceptionHandling {
     @PutMapping("/status/{id}")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     public ResponseEntity<PurchaseDto> updatePurchaseStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
-        log.info("Try update perchase status.");
+        log.info("Try update purchase status.");
 
         Purchase purchase = updatePurchaseUseCase.updatePurchaseStatus(id, PaymentStatus.valueOf(basicDto.getValue()));
         return new ResponseEntity<>(mapper.toDto(purchase), OK);
@@ -171,18 +170,12 @@ public class PurchaseController extends ExceptionHandling {
 
     @DeleteMapping("/{idPurchase}")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
-    public ResponseEntity<HttpResponse> deletePurchase(@PathVariable int idPurchase) {
-        log.info("Try purchase card with id: " + idPurchase);
+    public void deletePurchase(@PathVariable int idPurchase) {
+        log.info("Try purchase card with id: {}", idPurchase);
 
         deletePurchaseUseCase.deletePurchase(idPurchase);
 
-        log.info("Deleted purchase with id = " + idPurchase);
-
-        return response(HttpStatus.NO_CONTENT, "Zakup usunięty.");
+        log.info("Deleted purchase with id = {}", idPurchase);
     }
 
-    private ResponseEntity<HttpResponse> response(HttpStatus status, String message) {
-        HttpResponse body = new HttpResponse(status.value(), status, status.getReasonPhrase(), message);
-        return new ResponseEntity<>(body, status);
-    }
 }

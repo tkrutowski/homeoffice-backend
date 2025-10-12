@@ -30,7 +30,7 @@ class PurchaseService {
         return purchaseRepository.savePurchase(purchase);
     }
 
-    List<Purchase> findPurchasesByUser(int idUser, PaymentStatus paymentStatus, LocalDate date) {
+    List<Purchase> findPurchasesByUser(int idUser, PaymentStatus paymentStatus) {
         List<Purchase> purchaseByUserId = purchaseRepository.findPurchaseByUserId(idUser);
 
         if (paymentStatus == null)

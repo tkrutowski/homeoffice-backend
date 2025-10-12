@@ -53,7 +53,7 @@ public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase
     @Override
     public List<Purchase> findByUser(String userName, PaymentStatus paymentStatus, LocalDate date) {
         AppUser user = userFacade.findUserByUsername(userName);
-        return purchaseService.findPurchasesByUser(Math.toIntExact(user.getId()), paymentStatus, date);
+        return purchaseService.findPurchasesByUser(Math.toIntExact(user.getId()), paymentStatus);
     }
 
     @Override
@@ -64,13 +64,13 @@ public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase
     @Override
     public Map<LocalDate, List<Purchase>> findByUserMap(String userName, PaymentStatus paymentStatus, LocalDate date) {
         AppUser user = userFacade.findUserByUsername(userName);
-        List<Purchase> purchasesByUser = purchaseService.findPurchasesByUser(Math.toIntExact(user.getId()), paymentStatus, date);
+        List<Purchase> purchasesByUser = purchaseService.findPurchasesByUser(Math.toIntExact(user.getId()), paymentStatus);
         return purchaseService.convertToMapByDeadline(purchasesByUser);
     }
 
     @Override
     public Map<LocalDate, List<Purchase>> findByUserMap(Integer userId, PaymentStatus paymentStatus, LocalDate date) {
-        List<Purchase> purchasesByUser = purchaseService.findPurchasesByUser(userId, paymentStatus, date);
+        List<Purchase> purchasesByUser = purchaseService.findPurchasesByUser(userId, paymentStatus);
         return purchaseService.convertToMapByDeadline(purchasesByUser);
     }
 
