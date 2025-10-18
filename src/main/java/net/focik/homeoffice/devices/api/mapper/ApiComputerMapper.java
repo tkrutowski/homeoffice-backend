@@ -3,88 +3,58 @@ package net.focik.homeoffice.devices.api.mapper;
 import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.devices.api.dto.ComputerDto;
 import net.focik.homeoffice.devices.domain.model.Computer;
-import net.focik.homeoffice.devices.domain.model.Device;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class ApiComputerMapper {
+    private final ApiDeviceMapper apiDeviceMapper;
 
     public Computer toDomain(ComputerDto dto) {
         return Computer.builder()
                 .id(dto.getId())
                 .idUser(dto.getIdUser())
-                .disk(getDevices(dto.getDisk()))
-                .computerCase(getDevice(dto.getComputerCase()))
-                .mouse(getDevice(dto.getMouse()))
-                .power(getDevice(dto.getPower()))
-                .ram(getDevices(dto.getRam()))
-                .usb(getDevices(dto.getUsb()))
-                .cooling(getDevices(dto.getCooling()))
+                .disk(apiDeviceMapper.toDomain(dto.getDisk()))
+                .computerCase(apiDeviceMapper.toDomain(dto.getComputerCase()))
+                .mouse(apiDeviceMapper.toDomain(dto.getMouse()))
+                .power(apiDeviceMapper.toDomain(dto.getPower()))
+                .ram(apiDeviceMapper.toDomain(dto.getRam()))
+                .usb(apiDeviceMapper.toDomain(dto.getUsb()))
+                .cooling(apiDeviceMapper.toDomain(dto.getCooling()))
                 .computerType(dto.getComputerType())
-                .display(getDevices(dto.getDisplay()))
-                .keyboard(getDevice(dto.getKeyboard()))
-                .graphicCard(getDevices(dto.getGraphicCard()))
-                .processor(getDevice(dto.getProcessor()))
-                .motherboard(getDevice(dto.getMotherboard()))
+                .display(apiDeviceMapper.toDomain(dto.getDisplay()))
+                .keyboard(apiDeviceMapper.toDomain(dto.getKeyboard()))
+                .graphicCard(apiDeviceMapper.toDomain(dto.getGraphicCard()))
+                .processor(apiDeviceMapper.toDomain(dto.getProcessor()))
+                .motherboard(apiDeviceMapper.toDomain(dto.getMotherboard()))
                 .status(dto.getActiveStatus())
                 .info(dto.getInfo())
-                .soundCard(getDevice(dto.getSoundCard()))
+                .soundCard(apiDeviceMapper.toDomain(dto.getSoundCard()))
                 .name(dto.getName())
                 .build();
-    }
-
-    private Device getDevice(Integer id) {
-        Device device = null;
-        if (id != null) {
-            device = new Device();
-            device.setId(id);
-        }
-        return device;
-    }
-
-    private List<Device> getDevices(List<Integer> ids) {
-        List<Device> devices = new ArrayList<>();
-        ids.forEach(id -> devices.add(getDevice(id)));
-        return devices;
     }
 
     public ComputerDto toDto(Computer computer) {
         return ComputerDto.builder()
                 .id(computer.getId())
                 .idUser(computer.getIdUser())
-                .disk(getIdFromList(computer.getDisk()))
-                .computerCase(getIdFromDevice(computer.getComputerCase()))
-                .mouse(getIdFromDevice(computer.getMouse()))
-                .power(getIdFromDevice(computer.getPower()))
-                .ram(getIdFromList(computer.getRam()))
-                .usb(getIdFromList(computer.getUsb()))
-                .cooling(getIdFromList(computer.getCooling()))
+                .disk(apiDeviceMapper.toDto(computer.getDisk()))
+                .computerCase(apiDeviceMapper.toDto(computer.getComputerCase()))
+                .mouse(apiDeviceMapper.toDto(computer.getMouse()))
+                .power(apiDeviceMapper.toDto(computer.getPower()))
+                .ram(apiDeviceMapper.toDto(computer.getRam()))
+                .usb(apiDeviceMapper.toDto(computer.getUsb()))
+                .cooling(apiDeviceMapper.toDto(computer.getCooling()))
                 .computerType(computer.getComputerType())
-                .display(getIdFromList(computer.getDisplay()))
-                .keyboard(getIdFromDevice(computer.getKeyboard()))
-                .graphicCard(getIdFromList(computer.getGraphicCard()))
-                .processor(getIdFromDevice(computer.getProcessor()))
-                .motherboard(getIdFromDevice(computer.getMotherboard()))
+                .display(apiDeviceMapper.toDto(computer.getDisplay()))
+                .keyboard(apiDeviceMapper.toDto(computer.getKeyboard()))
+                .graphicCard(apiDeviceMapper.toDto(computer.getGraphicCard()))
+                .processor(apiDeviceMapper.toDto(computer.getProcessor()))
+                .motherboard(apiDeviceMapper.toDto(computer.getMotherboard()))
                 .activeStatus(computer.getStatus())
                 .info(computer.getInfo())
-                .soundCard(getIdFromDevice(computer.getSoundCard()))
+                .soundCard(apiDeviceMapper.toDto(computer.getSoundCard()))
                 .name(computer.getName())
                 .build();
-    }
-
-    private Integer getIdFromDevice(Device device) {
-        if (device == null) {
-            return -1;
-        }
-        return device.getId();
-    }
-
-    private List<Integer> getIdFromList(List<Device> list) {
-        return list.stream().map(Device::getId)
-                .toList();
     }
 }
