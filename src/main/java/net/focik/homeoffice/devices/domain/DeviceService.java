@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.devices.domain.exception.DeviceNotFoundException;
 import net.focik.homeoffice.devices.domain.model.Device;
 import net.focik.homeoffice.devices.domain.port.secondary.DeviceRepository;
-import net.focik.homeoffice.utils.FileHelper;
+import net.focik.homeoffice.utils.IFileHelper;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 import net.focik.homeoffice.utils.share.Module;
 import org.apache.commons.lang3.StringUtils;
@@ -19,7 +19,7 @@ import java.util.Optional;
 @AllArgsConstructor
 class DeviceService {
     private final DeviceRepository deviceRepository;
-    private final FileHelper fileHelper;
+    private final IFileHelper fileHelper;
 
     public List<Device> getDevices(ActiveStatus activeStatus) {
         List<Device> allDevices = deviceRepository.findAllDevices();
