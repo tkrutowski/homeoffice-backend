@@ -7,7 +7,7 @@ public enum Module {
     CARD("/images/cards/"),
     DEVICE_IMAGES("/devices/images/"),
     DEVICE_FILES("/devices/files/"),
-    BOOK("/images/books/");
+    BOOK("/homeoffice/images/books/");
 
     private final String directory;
 

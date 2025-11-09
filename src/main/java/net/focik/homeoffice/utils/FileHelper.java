@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-public class FileHelper {
+public class FileHelper implements IFileHelper {
     @Value("${homeoffice.directory.public}")
     private final String mainCatalog;
     @Value("${homeoffice.url}")
