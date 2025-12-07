@@ -6,28 +6,24 @@ import net.focik.homeoffice.goahead.api.dto.BasicDto;
 import net.focik.homeoffice.goahead.api.dto.InvoiceDto;
 import net.focik.homeoffice.goahead.api.mapper.ApiInvoiceMapper;
 import net.focik.homeoffice.goahead.domain.invoice.Invoice;
-import net.focik.homeoffice.goahead.domain.invoice.InvoicePdf;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.AddInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.DeleteInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.GetInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.UpdateInvoiceUseCase;
 import net.focik.homeoffice.utils.exceptions.ExceptionHandling;
 import net.focik.homeoffice.utils.exceptions.HttpResponse;
-import net.focik.homeoffice.utils.share.PaymentStatus;
 import net.focik.homeoffice.utils.share.PaymentMethod;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
+import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-import java.nio.file.Path;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.OK;
 
@@ -61,37 +57,51 @@ public class InvoiceController extends ExceptionHandling {
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
+    @GetMapping("/page")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    ResponseEntity<Page<InvoiceDto>> getInvoicesPage(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size,
+            @RequestParam(name = "sort", defaultValue = "number") String sortField,
+            @RequestParam(name = "direction", defaultValue = "DESC") String sortDirection,
+            @RequestParam(name = "globalFilter", required = false) String globalFilter,
+            @RequestParam(name = "idCustomer", required = false) Integer idCustomer,
+            @RequestParam(name = "sellDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate sellDate,
+            @RequestParam(name = "dateComparisonType", required = false, defaultValue = "EQUALS") String dateComparisonType,
+            @RequestParam(name = "amount", required = false) BigDecimal amount,
+            @RequestParam(name = "amountComparisonType", required = false, defaultValue = "EQUALS") String amountComparisonType,
+            @RequestParam(name = "status", required = false) PaymentStatus status
+    ) {
+        log.info("Request to get invoices page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, idCustomer: {}, date: {}, dateComparisonType: {}, amount: {}, amountComparisonType: {}, status: {}",
+                page, size, sortField, sortDirection, globalFilter, idCustomer, sellDate, dateComparisonType, amount, amountComparisonType, status);
+
+        Page<Invoice> invoicesPage = getInvoiceUseCase.findInvoicesPageableWithFilters(
+                page, size, sortField, sortDirection, globalFilter, idCustomer,
+                sellDate, dateComparisonType, amount, amountComparisonType, status);
+
+        Page<InvoiceDto> dtoPage = invoicesPage.map(mapper::toDto);
+
+        log.debug("Found {} invoices on page {} of {}",
+                dtoPage.getNumberOfElements(),
+                dtoPage.getNumber(),
+                dtoPage.getTotalPages());
+
+        return ResponseEntity.ok(dtoPage);
+    }
+
     @GetMapping("/pdf/{id}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
     ResponseEntity<?> getPdfById(@PathVariable int id) {
         log.info("Request to generate PDF for invoice with id: {}", id);
-        Invoice invoice = getInvoiceUseCase.findById(id);
+        String url = getInvoiceUseCase.sendInvoiceToS3(id);
 
-        if (invoice == null) {
+        if (url == null) {
             log.warn("No invoice found with id: {}", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        log.info("Invoice with id {} found, proceeding to generate PDF", id);
-        String fileName = InvoicePdf.createPdf(invoice);
-        Resource resource;
-        try {
-            assert fileName != null;
-            Path path = Path.of(fileName);
-            resource = new UrlResource(path.toUri());
-            log.info("PDF generated successfully for invoice with id: {} at location: {}", id, fileName);
-        } catch (IOException e) {
-            log.error("Error occurred while generating PDF for invoice with id {}: {}", id, e.getMessage());
-            return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-        }
-
-        String contentType = "application/octet-stream";
-        String headerValue = "attachment; filename=\"" + resource.getFilename() + "\"";
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, headerValue)
-                .body(resource);
+        log.info("Generated pdf for Invoice with id {}, URL: {}", id, url);
+        return new ResponseEntity<>(url, OK);
     }
 
     @GetMapping("/number/{year}")
@@ -102,20 +112,6 @@ public class InvoiceController extends ExceptionHandling {
         log.info("Generated new invoice number: {} for the year: {}", newInvoiceNumber, year);
 
         return new ResponseEntity<>(newInvoiceNumber, HttpStatus.OK);
-    }
-
-    @GetMapping()
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
-    ResponseEntity<List<InvoiceDto>> getAllInvoices(@RequestParam PaymentStatus status) {
-        log.info("Request to find all invoices with PaymentStatus: {}", status);
-        List<Invoice> invoices = getInvoiceUseCase.findAllBy(status);
-        log.info("Found {} invoices with PaymentStatus: {}", invoices.size(), status);
-
-        return new ResponseEntity<>(invoices.stream()
-                .peek(invoice -> log.debug("Found invoice {}", invoice))
-                .map(mapper::toDto)
-                .peek(dto -> log.debug("Mapped found invoice {}", dto))
-                .collect(Collectors.toList()), HttpStatus.OK);
     }
 
     @PostMapping

@@ -4,9 +4,15 @@ import lombok.AllArgsConstructor;
 import net.focik.homeoffice.goahead.domain.invoice.Invoice;
 import net.focik.homeoffice.goahead.domain.invoice.port.secondary.InvoiceRepository;
 import net.focik.homeoffice.goahead.infrastructure.dto.InvoiceDbDto;
+import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -59,5 +65,66 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
     public Optional<Invoice> findByNumber(String number) {
         return invoiceDtoRepository.findByNumber(number)
                 .map(invoiceDbDto -> mapper.map(invoiceDbDto, Invoice.class));
+    }
+
+    @Override
+    public Page<Invoice> findAll(Pageable pageable, String globalFilter, Integer idCustomer, LocalDate sellDate, String sellDateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+        Specification<InvoiceDbDto> spec = Specification.where(null);
+
+        if (globalFilter != null && !globalFilter.isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.or(
+                            cb.like(cb.lower(root.get("number")), "%" + globalFilter.toLowerCase() + "%"),
+                            cb.like(cb.lower(root.get("customer").get("name")), "%" + globalFilter.toLowerCase() + "%")
+                    )
+            );
+        }
+
+        if (idCustomer != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("customer").get("id"), idCustomer));
+        }
+
+        if (sellDate != null) {
+            spec = spec.and(getSpecificationByDate(sellDate, sellDateComparisonType));
+        }
+
+//        if (amount != null) {
+//            spec = spec.and(getSpecificationByAmount(amount, amountComparisonType));
+//        }
+
+        if (status != null && status != PaymentStatus.ALL) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("paymentStatus"), status));
+        }
+
+        return invoiceDtoRepository.findAll(spec, pageable)
+                .map(invoiceDbDto -> mapper.map(invoiceDbDto, Invoice.class));
+    }
+
+    @Override
+    public List<Invoice> findLastInvoiceNumberByYear(Integer year) {
+        return invoiceDtoRepository.findInvoiceDbDtosByNumberContainsOrderByNumberDesc(year.toString()).stream()
+                .map(invoiceDbDto -> mapper.map(invoiceDbDto, Invoice.class))
+                .collect(Collectors.toList());
+    }
+
+    private Specification<InvoiceDbDto> getSpecificationByDate(LocalDate date, String dateComparisonType) {
+        return (root, query, cb) -> switch (dateComparisonType) {
+            case "AFTER" -> cb.greaterThan(root.get("sellDate"), date);
+            case "BEFORE" -> cb.lessThan(root.get("sellDate"), date);
+            default -> cb.equal(root.get("sellDate"), date);
+        };
+    }
+
+    private Specification<InvoiceDbDto> getSpecificationByAmount(BigDecimal amount, String amountComparisonType) {
+        return (root, query, cb) -> {
+            switch (amountComparisonType) {
+                case "GREATER":
+                    return cb.greaterThan(root.get("grossAmount"), amount);
+                case "LESS":
+                    return cb.lessThan(root.get("grossAmount"), amount);
+                default:
+                    return cb.equal(root.get("grossAmount"), amount);
+            }
+        };
     }
 }

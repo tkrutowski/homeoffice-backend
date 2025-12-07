@@ -4,10 +4,15 @@ import lombok.extern.java.Log;
 import net.focik.homeoffice.goahead.domain.invoice.Invoice;
 import net.focik.homeoffice.goahead.domain.invoice.port.secondary.InvoiceRepository;
 import net.focik.homeoffice.goahead.infrastructure.dto.InvoiceDbDto;
+import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -86,4 +91,13 @@ public class InMemoryInvoiceRepositoryAdapter implements InvoiceRepository {
                 .findFirst();
     }
 
+    @Override
+    public Page<Invoice> findAll(Pageable pageable, String globalFilter, Integer idCustomer, LocalDate sellDate, String sellDateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+        return null;
+    }
+
+    @Override
+    public List<Invoice> findLastInvoiceNumberByYear(Integer year) {
+        return List.of();
+    }
 }

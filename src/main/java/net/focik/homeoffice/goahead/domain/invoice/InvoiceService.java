@@ -2,14 +2,18 @@ package net.focik.homeoffice.goahead.domain.invoice;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.focik.homeoffice.goahead.domain.customer.ICustomerService;
 import net.focik.homeoffice.goahead.domain.exception.InvoiceAlreadyExistException;
 import net.focik.homeoffice.goahead.domain.exception.InvoiceNotFoundException;
 import net.focik.homeoffice.goahead.domain.invoice.port.secondary.InvoiceRepository;
 import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -20,7 +24,6 @@ import java.util.stream.Collectors;
 class InvoiceService {
 
     InvoiceRepository invoiceRepository;
-    ICustomerService customerService;
 
     @Transactional
     public Invoice saveInvoice(Invoice invoice) {
@@ -46,7 +49,7 @@ class InvoiceService {
         return byId.get();
     }
 
-    public List<Invoice> findByAll(PaymentStatus paymentStatus) {
+    public List<Invoice> findAllBy(PaymentStatus paymentStatus) {
         log.debug("Trying to find invoice with payment status {}", paymentStatus);
         List<Invoice> invoiceList = invoiceRepository.findAll();
 
@@ -60,8 +63,8 @@ class InvoiceService {
     }
 
     public int getNewInvoiceNumber(int year) {
-        log.debug("Trying to get new invoice number for year {}", year);
-        int latestNumber = findByAll(null).stream()
+        log.info("Trying to get new invoice number for year " + year);
+        int latestNumber = invoiceRepository.findLastInvoiceNumberByYear(year).stream()
                 .map(Invoice::getInvoiceNumber)
                 .map(s -> s.split("/"))
                 .filter(strings -> Integer.parseInt(strings[0]) == year)
@@ -69,6 +72,12 @@ class InvoiceService {
                 .max()
                 .orElse(0);
         return ++latestNumber;
+    }
+
+    public Page<Invoice> findInvoicesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, Integer idCustomer, LocalDate sellDate, String sellDateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortField);
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
+        return invoiceRepository.findAll(pageRequest, globalFilter, idCustomer, sellDate, sellDateComparisonType, amount, amountComparisonType, status);
     }
 
     @Transactional

@@ -19,7 +19,7 @@ import java.util.Optional;
 @AllArgsConstructor
 class DeviceService {
     private final DeviceRepository deviceRepository;
-    private final IFileHelper fileHelper;
+    private final IFileHelper fileHelperS3;
 
     public List<Device> getDevices(ActiveStatus activeStatus) {
         List<Device> allDevices = deviceRepository.findAllDevices();
@@ -41,7 +41,7 @@ class DeviceService {
             log.debug("No image url found for device {}", device);
         } else {
             log.debug("Image url found for device {}", device);
-            device.setImageUrl(fileHelper.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
+            device.setImageUrl(fileHelperS3.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
         }
         return deviceRepository.saveDevice(device);
     }
@@ -49,8 +49,8 @@ class DeviceService {
     public Device update(Device device) {
         log.debug("Updating device {}", device);
 
-        if (device.getImageUrl() != null && !device.getImageUrl().contains("focikhome")) {
-            device.setImageUrl(fileHelper.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
+        if (device.getImageUrl() != null && !device.getImageUrl().contains("focik-home")) {
+            device.setImageUrl(fileHelperS3.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
         }
         Device savedDevice = deviceRepository.saveDevice(device);
         log.debug("Updated device {}", savedDevice);

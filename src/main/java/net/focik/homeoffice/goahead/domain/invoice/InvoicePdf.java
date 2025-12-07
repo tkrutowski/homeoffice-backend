@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.goahead.domain.customer.Customer;
 import net.focik.homeoffice.utils.MoneyUtils;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -28,9 +29,10 @@ public class InvoicePdf {
     public static String createPdf(Invoice invoice) {
         log.debug("Trying to create pdf file for invoice {}",invoice);
         Document document = new Document();
-        final String filename = "faktura.pdf";
+        File tempFile = null;
         try {
-            PdfWriter.getInstance(document, new FileOutputStream(filename));
+            tempFile = File.createTempFile("invoice-" + invoice.getInvoiceNumber().replace('/', '_') + "-", ".pdf");
+            PdfWriter.getInstance(document, new FileOutputStream(tempFile));
             document.open();
 
             document.add(createNumber(invoice));
@@ -59,9 +61,12 @@ public class InvoicePdf {
 
         } catch (IOException | com.itextpdf.text.DocumentException e) {
             log.error("Error creating pdf",e);
+            if (tempFile != null) {
+                tempFile.delete();
+            }
             return null;
         }
-        return filename;
+        return tempFile.getAbsolutePath();
     }
 
     private static PdfPTable createNumber(Invoice invoice) {

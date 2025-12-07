@@ -70,7 +70,7 @@ class BookService {
 
     public Book updateBook(Book book) {
         log.debug("Updating book {}", book);
-        if (!book.getCover().contains("focikhome")) {
+        if (!book.getCover().contains("focik-home")) {
             book.setCover(fileHelperS3.downloadAndSaveImage(book.getCover(), book.getTitle(), Module.BOOK));
         }
 
