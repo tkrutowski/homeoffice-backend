@@ -15,6 +15,7 @@ import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -101,5 +102,13 @@ class InvoiceService {
         log.debug("Trying to delete invoice with id {}", idInvoice);
         invoiceRepository.deleteInvoice(idInvoice);
         log.debug("Deleted invoice with id {}", idInvoice);
+    }
+
+    public Map<Integer, List<BigDecimal>> getStatistic() {
+        return invoiceRepository.getStatistic();
+    }
+
+    public Map<Integer, List<BigDecimal>> getMonthlyStatisticsByYearAndCustomer(Integer year) {
+        return invoiceRepository.getMonthlyStatisticsByYearAndCustomer(year);
     }
 }

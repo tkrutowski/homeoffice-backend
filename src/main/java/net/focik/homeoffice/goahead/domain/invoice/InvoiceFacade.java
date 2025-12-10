@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
 @Component
 @AllArgsConstructor
@@ -65,5 +67,15 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
         String s3Url = fileHelperS3.saveInBucket(file, Module.GO_AHEAD);
         file.delete();
         return s3Url;
+    }
+
+    @Override
+    public Map<Integer, List<BigDecimal>> getStatistic() {
+        return invoiceService.getStatistic();
+    }
+
+    @Override
+    public Map<Integer, List<BigDecimal>> getStatisticByCustomer(Integer year) {
+        return invoiceService.getMonthlyStatisticsByYearAndCustomer(year);
     }
 }

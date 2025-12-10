@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -99,5 +100,15 @@ public class InMemoryInvoiceRepositoryAdapter implements InvoiceRepository {
     @Override
     public List<Invoice> findLastInvoiceNumberByYear(Integer year) {
         return List.of();
+    }
+
+    @Override
+    public Map<Integer, List<BigDecimal>> getStatistic() {
+        return Map.of();
+    }
+
+    @Override
+    public Map<Integer, List<BigDecimal>> getMonthlyStatisticsByYearAndCustomer(Integer year) {
+        return Map.of();
     }
 }

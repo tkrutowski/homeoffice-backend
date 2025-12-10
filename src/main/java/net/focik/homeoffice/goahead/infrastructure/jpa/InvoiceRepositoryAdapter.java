@@ -13,8 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -105,6 +104,50 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
         return invoiceDtoRepository.findInvoiceDbDtosByNumberContainsOrderByNumberDesc(year.toString()).stream()
                 .map(invoiceDbDto -> mapper.map(invoiceDbDto, Invoice.class))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<Integer, List<BigDecimal>> getStatistic() {
+        Map<Integer, List<BigDecimal>> result = new HashMap<>();
+
+        List<Object[]> monthlyStats = invoiceDtoRepository.findByMonthlyAmountStats();
+
+        for (Object[] stat : monthlyStats) {
+            Integer year = (Integer) stat[0];
+            Integer month = (Integer) stat[1];
+            BigDecimal total = BigDecimal.valueOf((double)stat[2]);
+
+            if (!result.containsKey(year)) {
+                result.put(year, new ArrayList<>(Collections.nCopies(12, BigDecimal.ZERO)));
+            }
+
+            result.get(year).set(month - 1, total);
+        }
+
+        return result;
+    }
+
+    @Override
+    public Map<Integer, List<BigDecimal>> getMonthlyStatisticsByYearAndCustomer(Integer year) {
+        Map<Integer, List<BigDecimal>> result = new HashMap<>();
+
+        List<Object[]> customerMonthlyStats = invoiceDtoRepository.findByMonthlyAmountStatsByYearAndCustomer(year);
+
+        for (Object[] stat : customerMonthlyStats) {
+            Integer customerId = (Integer) stat[0];
+            Integer month = (Integer) stat[1];
+            BigDecimal total = BigDecimal.valueOf((double) stat[2]);
+
+            // Inicjalizujemy listę dla klienta jeśli jeszcze nie istnieje
+            if (!result.containsKey(customerId)) {
+                result.put(customerId, new ArrayList<>(Collections.nCopies(12, BigDecimal.ZERO)));
+            }
+
+            // Ustawiamy wartość dla danego miesiąca (indeks 0-based)
+            result.get(customerId).set(month - 1, total);
+        }
+
+        return result;
     }
 
     private Specification<InvoiceDbDto> getSpecificationByDate(LocalDate date, String dateComparisonType) {

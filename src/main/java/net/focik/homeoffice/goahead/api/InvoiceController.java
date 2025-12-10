@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.http.HttpStatus.OK;
 
@@ -112,6 +113,22 @@ public class InvoiceController extends ExceptionHandling {
         log.info("Generated new invoice number: {} for the year: {}", newInvoiceNumber, year);
 
         return new ResponseEntity<>(newInvoiceNumber, HttpStatus.OK);
+    }
+
+    @GetMapping("/status")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    ResponseEntity<Map<Integer, List<BigDecimal>>> getStatistics() {
+        Map<Integer, List<BigDecimal>> statistic = getInvoiceUseCase.getStatistic();
+
+        return ResponseEntity.ok(statistic);
+    }
+
+    @GetMapping("/status/{year}")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    ResponseEntity<Map<Integer, List<BigDecimal>>> getStatisticsByCustomer(@PathVariable int year) {
+        Map<Integer, List<BigDecimal>> statistic = getInvoiceUseCase.getStatisticByCustomer(year);
+
+        return ResponseEntity.ok(statistic);
     }
 
     @PostMapping

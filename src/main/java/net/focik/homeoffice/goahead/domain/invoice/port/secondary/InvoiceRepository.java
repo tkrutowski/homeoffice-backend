@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -29,4 +30,8 @@ public interface InvoiceRepository {
                           PaymentStatus status);
 
     List<Invoice> findLastInvoiceNumberByYear(Integer year);
+
+    Map<Integer, List<BigDecimal>> getStatistic();
+
+    Map<Integer, List<BigDecimal>> getMonthlyStatisticsByYearAndCustomer(Integer year);
 }
