@@ -54,6 +54,12 @@ jobs:
             ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
             'echo SSH OK'
 
+      - name: Ensure /opt/docker/images exists
+        run: |
+          ssh -i id_rsa_deploy -o StrictHostKeyChecking=no \
+          ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+          'sudo mkdir -p /opt/docker/images && sudo chown $USER:$USER /opt/docker/images'
+
       - name: Copy TAR into EC2
         run: |
           scp -o StrictHostKeyChecking=no \
