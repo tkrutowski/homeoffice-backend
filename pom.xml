@@ -138,6 +138,13 @@
             <artifactId>s3</artifactId>
             <version>2.28.1</version>
         </dependency>
+
+        <!-- to save logs in S3    -->
+        <dependency>
+            <groupId>io.github.acm19</groupId>
+            <artifactId>aws-request-signing-apache-interceptor</artifactId>
+            <version>2.1.1</version>
+        </dependency>
     </dependencies>
     
     <build>

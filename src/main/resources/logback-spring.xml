@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
+    
+    <!-- Console Appender -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- File Appender (lokalny backup) -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logging.file.name:-/tmp/homeoffice.log}</file>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logging.file.name:-/tmp/homeoffice.log}.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+    </appender>
+    
+    <!-- Custom S3 Appender -->
+    <appender name="S3" class="net.focik.homeoffice.config.S3LogAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+        <bucketName>${aws.bucket.name:-focik-home}</bucketName>
+        <keyPrefix>logs/</keyPrefix>
+        <awsRegion>${aws.region:-eu-central-1}</awsRegion>
+        <batchSize>100</batchSize>
+        <flushIntervalSeconds>300</flushIntervalSeconds>
+    </appender>
+    
+    <!-- Async wrapper dla S3 (nie blokuje aplikacji) -->
+    <appender name="ASYNC_S3" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="S3"/>
+        <queueSize>500</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+    
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="ASYNC_S3"/>
+    </root>
+</configuration>
