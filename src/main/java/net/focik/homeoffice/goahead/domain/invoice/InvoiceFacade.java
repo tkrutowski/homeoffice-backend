@@ -1,5 +1,6 @@
 package net.focik.homeoffice.goahead.domain.invoice;
 
+import jakarta.xml.bind.JAXBException;
 import lombok.AllArgsConstructor;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.AddInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.DeleteInvoiceUseCase;
@@ -10,8 +11,10 @@ import net.focik.homeoffice.utils.share.Module;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
+import pl.akmf.ksef.sdk.client.model.ApiException;
 
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -23,6 +26,7 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
 
     private final InvoiceService invoiceService;
     private final FileHelperS3 fileHelperS3;
+    private final KsefService ksefService;
 
     public Invoice addInvoice(Invoice invoice) {
         return invoiceService.saveInvoice(invoice);
@@ -77,5 +81,10 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
     @Override
     public Map<Integer, List<BigDecimal>> getStatisticByCustomer(Integer year) {
         return invoiceService.getMonthlyStatisticsByYearAndCustomer(year);
+    }
+
+    @Override
+    public void testKsef() throws ApiException, JAXBException, IOException, InterruptedException {
+        ksefService.test();
     }
 }

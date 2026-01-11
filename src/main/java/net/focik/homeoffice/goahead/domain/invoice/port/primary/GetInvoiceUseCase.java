@@ -1,9 +1,12 @@
 package net.focik.homeoffice.goahead.domain.invoice.port.primary;
 
+import jakarta.xml.bind.JAXBException;
 import net.focik.homeoffice.goahead.domain.invoice.Invoice;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.data.domain.Page;
+import pl.akmf.ksef.sdk.client.model.ApiException;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -22,4 +25,6 @@ public interface GetInvoiceUseCase {
 
     Map<Integer, List<BigDecimal>> getStatistic();
     Map<Integer, List<BigDecimal>> getStatisticByCustomer(Integer year);
+
+    void testKsef() throws ApiException, JAXBException, IOException, InterruptedException;
 }

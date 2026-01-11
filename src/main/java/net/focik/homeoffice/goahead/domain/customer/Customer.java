@@ -24,6 +24,18 @@ public class Customer{
     private String regon;
     private Address address;
 
+    public String getFullName() {
+        switch (customerType) {
+            case COMPANY -> {
+                return name;
+            }
+            case CUSTOMER -> {
+                return firstName + " " + name;
+            }
+        }
+        return "";
+    }
+
     public void  updateAddress(String city, String street, String zip) {
         if (StringUtils.isNotEmpty(city)){
             this.address.setCity(city);
@@ -37,7 +49,7 @@ public class Customer{
     }
 
     public void setAddress(String city, String street, String zip) {
-        this.address = new Address(0, city, street, zip);
+        this.address = new Address(null, city, street, zip);
     }
 
     public void changeCustomerStatus(CustomerStatus newCustomerStatus) {

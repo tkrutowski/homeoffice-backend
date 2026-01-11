@@ -1,5 +1,6 @@
 package net.focik.homeoffice.goahead.api;
 
+import jakarta.xml.bind.JAXBException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.goahead.api.dto.BasicDto;
@@ -20,7 +21,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pl.akmf.ksef.sdk.client.model.ApiException;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -185,6 +188,12 @@ public class InvoiceController extends ExceptionHandling {
         List<PaymentMethod> paymentTypes = List.of(PaymentMethod.values());
         log.info("Found {} payment types.", paymentTypes.size());
         return new ResponseEntity<>(paymentTypes, OK);
+    }
+
+    @GetMapping("/ksef")
+    public void test() throws ApiException, JAXBException, IOException, InterruptedException {
+        log.info("Test");
+        getInvoiceUseCase.testKsef();
     }
 
     private ResponseEntity<HttpResponse> response(HttpStatus status, String message) {
