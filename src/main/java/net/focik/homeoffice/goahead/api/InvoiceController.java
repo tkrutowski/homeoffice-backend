@@ -151,8 +151,31 @@ public class InvoiceController extends ExceptionHandling {
 
     @PutMapping
     @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
-    public ResponseEntity<InvoiceDto> updateInvoice(@RequestBody InvoiceDto invoiceDto) {
+    public ResponseEntity<?> updateInvoice(@RequestBody InvoiceDto invoiceDto) {
         log.info("Request to edit a computer received with data: {}", invoiceDto);
+
+        // Pobieramy aktualny stan faktury z bazy, aby sprawdzić czy ma numer KSeF
+        Invoice existingInvoice = getInvoiceUseCase.findById(invoiceDto.getIdInvoice());
+        if (existingInvoice != null && existingInvoice.getKsefNumber() != null) {
+            log.warn("Attempt to update invoice with KSeF number: {}", existingInvoice.getKsefNumber());
+            return response(HttpStatus.BAD_REQUEST, "Faktura została już wysłana do KSeF. Aby dokonać zmian, należy wystawić fakturę korygującą.");
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         Invoice invoiceToUpdate = mapper.toDomain(invoiceDto);
         log.debug(MAPPED_INVOICE_DTO_TO_DOMAIN_OBJECT, invoiceToUpdate);
@@ -191,9 +214,14 @@ public class InvoiceController extends ExceptionHandling {
     }
 
     @GetMapping("/ksef")
-    public void test() throws ApiException, JAXBException, IOException, InterruptedException {
+    public ResponseEntity<InvoiceDto> test() throws ApiException, JAXBException, IOException, InterruptedException {
         log.info("Test");
-        getInvoiceUseCase.testKsef();
+        Invoice invoice = getInvoiceUseCase.testKsef();
+        log.info("Invoice updated successfully: {}", invoice);
+
+        InvoiceDto dto = mapper.toDto(invoice);
+        log.debug("Mapped updated invoice to InvoiceDto: {}", dto);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     private ResponseEntity<HttpResponse> response(HttpStatus status, String message) {

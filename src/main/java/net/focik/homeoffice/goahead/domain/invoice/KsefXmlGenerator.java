@@ -4,6 +4,7 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import lombok.RequiredArgsConstructor;
+import net.focik.homeoffice.goahead.domain.company.Company;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.InvoiceKsefDto;
 import org.springframework.stereotype.Service;
 
@@ -15,9 +16,9 @@ public class KsefXmlGenerator {
 
     private final KsefInvoiceMapper ksefInvoiceMapper;
 
-    public String generateInvoiceXml(Invoice invoice) throws JAXBException {
+    public String generateInvoiceXml(Invoice invoice, Company goAhead) throws JAXBException {
         // 1. Mapowanie obiektu domenowego na obiekt DTO (JAXB)
-        InvoiceKsefDto ksefFaktura = ksefInvoiceMapper.toKsefFaktura(invoice);
+        InvoiceKsefDto ksefFaktura = ksefInvoiceMapper.toKsefFaktura(invoice, goAhead);
 
         // 2. Utworzenie kontekstu JAXB dla wygenerowanych klas
         JAXBContext context = JAXBContext.newInstance(InvoiceKsefDto.class);
@@ -29,5 +30,10 @@ public class KsefXmlGenerator {
         marshaller.marshal(ksefFaktura, sw);
 
         return sw.toString();
+    }
+
+    public InvoiceKsefDto generateInvoice(Invoice invoice, Company goAhead){
+        InvoiceKsefDto ksefFaktura = ksefInvoiceMapper.toKsefFaktura(invoice, goAhead);
+        return ksefFaktura;
     }
 }

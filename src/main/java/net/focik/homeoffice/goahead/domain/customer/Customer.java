@@ -56,4 +56,10 @@ public class Customer{
         this.customerStatus = newCustomerStatus;
     }
 
+    public String getNipWithoutDashes() {
+        if (nip == null) {
+            return "";
+        }
+        return nip.replace("-", "");
+    }
 }

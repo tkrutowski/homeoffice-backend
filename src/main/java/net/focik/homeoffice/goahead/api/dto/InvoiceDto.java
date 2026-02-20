@@ -28,6 +28,7 @@ public class InvoiceDto {
     private PaymentStatus paymentStatus;
     private PaymentMethod paymentMethod;
     private String otherInfo;
+    private String ksefNumber;
     private List<InvoiceItemDto> invoiceItems;
 
 }

@@ -26,5 +26,5 @@ public interface GetInvoiceUseCase {
     Map<Integer, List<BigDecimal>> getStatistic();
     Map<Integer, List<BigDecimal>> getStatisticByCustomer(Integer year);
 
-    void testKsef() throws ApiException, JAXBException, IOException, InterruptedException;
+    Invoice testKsef() throws ApiException, JAXBException, IOException, InterruptedException;
 }

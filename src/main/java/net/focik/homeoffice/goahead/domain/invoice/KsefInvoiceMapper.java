@@ -1,34 +1,41 @@
 package net.focik.homeoffice.goahead.domain.invoice;
 
+import net.focik.homeoffice.goahead.domain.company.Company;
 import net.focik.homeoffice.goahead.domain.customer.Customer;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.*;
+import net.focik.homeoffice.utils.share.PaymentMethod;
+import net.focik.homeoffice.utils.share.PaymentStatus;
 import net.focik.homeoffice.utils.share.Vat;
 import org.javamoney.moneta.Money;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Component
 public class KsefInvoiceMapper {
-    public InvoiceKsefDto toKsefFaktura(Invoice invoice) {
+    public InvoiceKsefDto toKsefFaktura(Invoice invoice, Company goAhead) {
         if (invoice == null) {
             return null;
         }
 
+        List<InvoiceItem> items = invoice.getInvoiceItems();
+
         return InvoiceKsefDto.builder()
                 .naglowek(buildNaglowek())
-                .podmiot1(buildPodmiot1())
+                .podmiot1(buildPodmiot1(goAhead))
                 .podmiot2(buildPodmiot2(invoice.getCustomer()))
                 .fakturaCtrl(buildFakturaCtrl(invoice))
-                .pozycje(invoice.getInvoiceItems().stream()
-                        .map(this::toPozycja)
+                .pozycje(IntStream.range(0, items.size())
+                        .mapToObj(i -> toPozycja(items.get(i), i + 1))
                         .collect(Collectors.toList()))
+                .platnosc(buildPlatnosc(invoice))
                 .build();
     }
 
@@ -45,16 +52,16 @@ public class KsefInvoiceMapper {
                 .build();
     }
 
-    private Podmiot1 buildPodmiot1() {
+    private Podmiot1 buildPodmiot1(Company goAhead) {
         //TODO dane firmy sprzedającej powinny być pobierane z konfiguracji
         DaneIdentyfikacyjne dane = DaneIdentyfikacyjne.builder()
-                .nip("9720495827")
-                .nazwa("Go ahead Usługi językowe Agnieszka Krutowska")
+                .nip(goAhead.getNipWithoutDashes())
+                .nazwa(goAhead.getFullName())
                 .build();
 
         Adres adres = Adres.builder()
                 .kodKraju("PL")
-                .adresL1("ul. Szyperska 13D/32, 61-754 Poznań,")
+                .adresL1(goAhead.getAddress().toString())
                 .build();
 
         return Podmiot1.builder()
@@ -65,7 +72,8 @@ public class KsefInvoiceMapper {
 
     private Podmiot2 buildPodmiot2(Customer customer) {
         DaneIdentyfikacyjneNabywcy.DaneIdentyfikacyjneNabywcyBuilder daneBuilder = DaneIdentyfikacyjneNabywcy.builder()
-                .nazwa(customer.getFullName());
+                .nazwa(customer.getFullName())
+                .nip(customer.getNipWithoutDashes());
 
         Adres adres = Adres.builder()
                 .kodKraju("PL")
@@ -122,12 +130,15 @@ public class KsefInvoiceMapper {
                     builder.p13_2(sumOfNetDecimal.doubleValue());
                     builder.p14_2(sumOfVatDecimal.doubleValue());
                     break;
-                //TODO dodać obsługę VAT_5 i VAT_0
-//                case VAT_5:
-//                    builder.p13_3(sumOfNetDecimal.doubleValue());
-//                    builder.p14_3(sumOfVatDecimal.doubleValue());
-//                    break;
+                case VAT_5:
+                    builder.p13_3(sumOfNetDecimal.doubleValue());
+                    builder.p14_3(sumOfVatDecimal.doubleValue());
+                    break;
                 case VAT_0:
+                    builder.p13_6_1(sumOfNetDecimal.doubleValue());
+                    builder.p14_6_2(sumOfVatDecimal.doubleValue());
+                    break;
+                case VAT_ZW:
                     builder.p13_7(sumOfNetDecimal.doubleValue());
                     break;
             }
@@ -139,7 +150,7 @@ public class KsefInvoiceMapper {
     }
 
 
-    private Pozycja toPozycja(InvoiceItem item) {
+    private Pozycja toPozycja(InvoiceItem item, int lp) {
         Money itemGrossAmount = item.getAmount().multiply(item.getQuantity());
         BigDecimal itemGrossDecimal = itemGrossAmount.getNumber().numberValue(BigDecimal.class);
         BigDecimal vatRateDecimal = BigDecimal.valueOf(item.getVat().getMultiplier());
@@ -147,7 +158,7 @@ public class KsefInvoiceMapper {
         BigDecimal itemVatDecimal = itemGrossDecimal.subtract(itemNetDecimal);
 
         return Pozycja.builder()
-                .lpFa(item.getOrdinalNumber())
+                .lpFa(lp) // Używamy przekazanego numeru porządkowego
                 .nazwaTowaruUslugi(item.getName())
                 .pkwiu(item.getPkwiu())
                 .ilosc((double) item.getQuantity())
@@ -159,5 +170,39 @@ public class KsefInvoiceMapper {
                 .kwotaVat(itemVatDecimal.doubleValue())
                 .kwotaBrutto(itemGrossDecimal.doubleValue())
                 .build();
+    }
+
+    private Platnosc buildPlatnosc(Invoice invoice) {
+        Platnosc.PlatnoscBuilder builder = Platnosc.builder()
+                .formaPlatnosci(invoice.getPaymentMethod().getKsefCode());
+
+        if (PaymentStatus.PAID.equals(invoice.getPaymentStatus())) {
+            builder.zaplacono(1);
+            // Jeśli zapłacono, data zapłaty to data sprzedaży (lub inna, jeśli dostępna)
+            // W modelu Invoice nie ma pola "data faktycznej zapłaty", więc używam daty sprzedaży jako przybliżenia
+            // lub daty płatności jeśli jest ustawiona na przeszłość/teraźniejszość
+            builder.dataZaplaty(invoice.getPaymentDate() != null ? invoice.getPaymentDate() : invoice.getSellDate());
+        } else {
+            // Jeśli nie zapłacono, ustawiamy termin płatności
+            if (invoice.getPaymentDate() != null) {
+                builder.terminPlatnosci(Collections.singletonList(
+                        TerminPlatnosci.builder()
+                                .termin(invoice.getPaymentDate())
+                                .build()
+                ));
+            }
+        }
+
+        // Dodanie numeru konta dla przelewu
+        if (PaymentMethod.TRANSFER.equals(invoice.getPaymentMethod())) {
+            //TODO numer konta z konfiguracji
+            builder.rachunekBankowy(Collections.singletonList(
+                    RachunekBankowy.builder()
+                            .nrRB("12345678901234567890123456") // Przykładowy numer
+                            .build()
+            ));
+        }
+
+        return builder.build();
     }
 }

@@ -2,6 +2,9 @@ package net.focik.homeoffice.goahead.domain.invoice;
 
 import jakarta.xml.bind.JAXBException;
 import lombok.AllArgsConstructor;
+import net.focik.homeoffice.goahead.domain.company.Company;
+import net.focik.homeoffice.goahead.domain.company.CompanyFacade;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.model.InvoiceKsefDto;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.AddInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.DeleteInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.GetInvoiceUseCase;
@@ -12,6 +15,7 @@ import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import pl.akmf.ksef.sdk.client.model.ApiException;
+import pl.akmf.ksef.sdk.client.model.auth.AuthOperationStatusResponse;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +31,7 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
     private final InvoiceService invoiceService;
     private final FileHelperS3 fileHelperS3;
     private final KsefService ksefService;
+    private final CompanyFacade companyFacade;
 
     public Invoice addInvoice(Invoice invoice) {
         return invoiceService.saveInvoice(invoice);
@@ -84,7 +89,26 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
     }
 
     @Override
-    public void testKsef() throws ApiException, JAXBException, IOException, InterruptedException {
-        ksefService.test();
+    public Invoice testKsef() throws ApiException, JAXBException, IOException, InterruptedException {
+        Invoice invoice = invoiceService.findById(217);
+        Company goAhead = companyFacade.get();
+        //login
+        String accessToken = ksefService.login(goAhead);
+
+        //createXML
+        String xml = ksefService.createXml(invoice, goAhead);
+
+        //create dto
+        InvoiceKsefDto dto = ksefService.createDto(invoice, goAhead);
+
+        System.out.println();
+
+        //sendXML
+        String ksefNumber = ksefService.sendInvoice(accessToken, goAhead.getNipWithoutDashes(), xml);
+
+        invoice.setKsefNumber(ksefNumber);
+        Invoice updatedInvoice = updateInvoice(invoice);
+
+        return updatedInvoice;
     }
 }

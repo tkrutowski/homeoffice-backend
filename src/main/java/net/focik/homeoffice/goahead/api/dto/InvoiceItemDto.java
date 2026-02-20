@@ -1,6 +1,7 @@
 package net.focik.homeoffice.goahead.api.dto;
 
 import lombok.*;
+import net.focik.homeoffice.utils.share.Vat;
 
 @Builder
 @AllArgsConstructor
@@ -15,4 +16,5 @@ public class InvoiceItemDto {
     private String unit;
     private Number quantity;
     private Double amount;//brutto
+    private Vat vat;
 }
