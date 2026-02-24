@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.UUID;
 
 @Slf4j
@@ -51,25 +52,34 @@ public class FileHelperS3 implements IFileHelper {
 
             String s3Key = directory + fileName;
 
-            // Pobierz plik jako InputStream
-            try (InputStream inputStream = url.openStream()) {
-                log.info("Uploading image {} to S3: {}", fileName, bucketName + s3Key);
+            URLConnection connection = url.openConnection();
+            connection.setConnectTimeout(10_000);
+            connection.setReadTimeout(20_000);
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; HomeOfficeBackend/1.0)");
 
-                PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                        .bucket(bucketName)
-                        .key(s3Key)
-                        .contentType("image/" + extension.replace(".", ""))
-                        .build();
+            long contentLength = connection.getContentLengthLong();
 
-                log.info("PutObjectRequest: bucket={}, key={}",
-                        putObjectRequest.bucket(), putObjectRequest.key());
+            log.info("Uploading image {} to S3: {}", fileName, bucketName + s3Key);
 
-                s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, url.openConnection().getContentLengthLong()));
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(s3Key)
+                    .contentType("image/" + extension.replace(".", ""))
+                    .build();
 
-                String publicS3Url = homeUrl + module.getDirectory() + fileName;
-                log.info("S3 saved file: {}", publicS3Url);
-                return publicS3Url;
+            try (InputStream inputStream = connection.getInputStream()) {
+                if (contentLength >= 0) {
+                    s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, contentLength));
+                } else {
+                    // Content-Length unknown (chunked/no header) -> buffer and upload
+                    byte[] bytes = inputStream.readAllBytes();
+                    s3Client.putObject(putObjectRequest, RequestBody.fromBytes(bytes));
+                }
             }
+
+            String publicS3Url = homeUrl + module.getDirectory() + fileName;
+            log.info("S3 saved file: {}", publicS3Url);
+            return publicS3Url;
         } catch (S3Exception e) {
             log.error("S3 Error Code: {}", e.awsErrorDetails().errorCode());
             log.error("S3 Error Message: {}", e.awsErrorDetails().errorMessage());

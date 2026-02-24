@@ -5,6 +5,9 @@ import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.Layout;
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import lombok.Setter;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -50,8 +53,21 @@ public class S3LogAppender extends AppenderBase<ILoggingEvent> {
 
         try {
             System.out.println("Creating S3 client for region: " + awsRegion);
+
+            String envProfile = System.getenv("AWS_PROFILE");
+            AwsCredentialsProvider provider = (envProfile != null && !envProfile.isBlank())
+                    ? ProfileCredentialsProvider.builder().profileName(envProfile).build()
+                    : DefaultCredentialsProvider.create();
+
+            if (envProfile != null && !envProfile.isBlank()) {
+                System.out.println("Using AWS profile for S3LogAppender: " + envProfile);
+            } else {
+                System.out.println("Using DefaultCredentialsProvider for S3LogAppender (no AWS_PROFILE set)");
+            }
+
             s3Client = S3Client.builder()
                     .region(Region.of(awsRegion))
+                    .credentialsProvider(provider)
                     .build();
 
             logBuffer = new StringBuilder();
@@ -123,7 +139,7 @@ public class S3LogAppender extends AppenderBase<ILoggingEvent> {
         try {
             String date = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
             String timestamp = String.valueOf(System.currentTimeMillis());
-            String key = keyPrefix + "smartgaz-" + date + "-" + timestamp + ".log";
+            String key = keyPrefix + "homeoffice-" + date + "-" + timestamp + ".log";
 
             byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
 

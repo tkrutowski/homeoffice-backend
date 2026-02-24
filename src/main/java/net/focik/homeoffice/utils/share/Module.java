@@ -5,8 +5,8 @@ import lombok.Getter;
 @Getter
 public enum Module {
     CARD("/images/cards/"),
-    DEVICE_IMAGES("/devices/images/"),
-    DEVICE_FILES("/devices/files/"),
+    DEVICE_IMAGES("/homeoffice/devices/images/"),
+    DEVICE_FILES("/homeoffice/devices/files/"),
     BOOK("/homeoffice/images/books/"),
     GO_AHEAD("/goahead/");
 
