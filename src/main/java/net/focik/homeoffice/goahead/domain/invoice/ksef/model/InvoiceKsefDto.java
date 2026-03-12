@@ -6,8 +6,6 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.*;
 
-import java.util.List;
-
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -29,10 +27,4 @@ public class InvoiceKsefDto {
 
     @XmlElement(name = "Fa")
     private FakturaCtrl fakturaCtrl;
-
-    @XmlElement(name = "FaWiersz")
-    private List<Pozycja> pozycje;
-
-    @XmlElement(name = "Platnosc")
-    private Platnosc platnosc;
 }

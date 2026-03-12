@@ -23,24 +23,24 @@ public class Pozycja {
     @XmlElement(name = "PKWiU")
     private String pkwiu; // Opcjonalnie
 
-    @XmlElement(name = "P_8B")
-    private Double ilosc;
-
     @XmlElement(name = "P_8A")
     private String jednostkaMiary;
+
+    @XmlElement(name = "P_8B")
+    private Double ilosc;
 
     @XmlElement(name = "P_9A")
     private Double cenaJednostkowaNetto;
 
-    @XmlElement(name = "P_12")
-    private Integer stawkaPodatku; // np. 23
-
     @XmlElement(name = "P_11")
     private Double kwotaNetto;
+
+    @XmlElement(name = "P_11A")
+    private Double kwotaBrutto;
 
     @XmlElement(name = "P_11Vat")
     private Double kwotaVat;
 
-    @XmlElement(name = "P_11A")
-    private Double kwotaBrutto;
+    @XmlElement(name = "P_12")
+    private String stawkaPodatku; // np. 23
 }

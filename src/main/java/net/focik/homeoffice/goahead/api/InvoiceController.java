@@ -1,12 +1,14 @@
 package net.focik.homeoffice.goahead.api;
 
-import jakarta.xml.bind.JAXBException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.goahead.api.dto.BasicDto;
 import net.focik.homeoffice.goahead.api.dto.InvoiceDto;
 import net.focik.homeoffice.goahead.api.mapper.ApiInvoiceMapper;
 import net.focik.homeoffice.goahead.domain.invoice.Invoice;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.model.FindKsefInvoiceRequest;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.model.SendKsefInvoiceInfoResponse;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.model.SendKsefInvoiceRequest;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.AddInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.DeleteInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.GetInvoiceUseCase;
@@ -21,9 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import pl.akmf.ksef.sdk.client.model.ApiException;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -213,15 +213,22 @@ public class InvoiceController extends ExceptionHandling {
         return new ResponseEntity<>(paymentTypes, OK);
     }
 
-    @GetMapping("/ksef")
-    public ResponseEntity<InvoiceDto> test() throws ApiException, JAXBException, IOException, InterruptedException {
+    @PutMapping("/ksef")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    public ResponseEntity<List<InvoiceDto>> addInvoiceToKsef( @RequestBody SendKsefInvoiceRequest request) {
         log.info("Test");
-        Invoice invoice = getInvoiceUseCase.testKsef();
-        log.info("Invoice updated successfully: {}", invoice);
+        SendKsefInvoiceInfoResponse response = updateInvoiceUseCase.sendInvoicesToKsef(request.invoicesIds());
+        log.info("Invoice total: {}, success: {}, failed: {}", response.invoiceCount(), response.successInvoiceCount(), response.failedInvoiceCount());
 
-        InvoiceDto dto = mapper.toDto(invoice);
-        log.debug("Mapped updated invoice to InvoiceDto: {}", dto);
-        return new ResponseEntity<>(dto, HttpStatus.OK);
+        return new ResponseEntity<>(response.invoices().stream()
+                .map(mapper::toDto)
+                .toList(), HttpStatus.OK);
+    }
+
+    @GetMapping("/ksef")
+    public void findTestInvoices(@RequestBody FindKsefInvoiceRequest request)  {
+        log.info("Test");
+        getInvoiceUseCase.findKsefInvoices(request.fromDate(), request.toDate(), request.sendInvoices());
     }
 
     private ResponseEntity<HttpResponse> response(HttpStatus status, String message) {

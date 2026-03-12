@@ -1,18 +1,25 @@
 package net.focik.homeoffice.goahead.domain.invoice;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
-import lombok.AllArgsConstructor;
+import jakarta.xml.bind.Unmarshaller;
 import lombok.RequiredArgsConstructor;
+import net.focik.homeoffice.config.KsefInvoiceApiProperties;
 import net.focik.homeoffice.goahead.domain.company.Company;
+import net.focik.homeoffice.goahead.domain.company.CompanyFacade;
 import net.focik.homeoffice.goahead.domain.exception.KsefResponseException;
 import net.focik.homeoffice.goahead.domain.exception.StatusWaitingException;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.CustomKsefClient;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.InvoiceKsefDto;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.model.SendKsefInvoiceResponse;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import pl.akmf.ksef.sdk.api.DefaultKsefClient;
+import pl.akmf.ksef.sdk.api.builders.auth.AuthKsefTokenRequestBuilder;
 import pl.akmf.ksef.sdk.api.builders.auth.AuthTokenRequestBuilder;
 import pl.akmf.ksef.sdk.api.builders.auth.AuthTokenRequestSerializer;
 import pl.akmf.ksef.sdk.api.builders.certificate.CertificateBuilders;
+import pl.akmf.ksef.sdk.api.builders.invoices.InvoicesAsyncQueryFiltersBuilder;
 import pl.akmf.ksef.sdk.api.builders.session.OpenOnlineSessionRequestBuilder;
 import pl.akmf.ksef.sdk.api.builders.session.SendInvoiceOnlineSessionRequestBuilder;
 import pl.akmf.ksef.sdk.api.services.DefaultCertificateService;
@@ -22,6 +29,7 @@ import pl.akmf.ksef.sdk.client.model.ApiException;
 import pl.akmf.ksef.sdk.client.model.UpoVersion;
 import pl.akmf.ksef.sdk.client.model.auth.*;
 import pl.akmf.ksef.sdk.client.model.certificate.SelfSignedCertificate;
+import pl.akmf.ksef.sdk.client.model.invoice.*;
 import pl.akmf.ksef.sdk.client.model.session.*;
 import pl.akmf.ksef.sdk.client.model.session.online.OpenOnlineSessionRequest;
 import pl.akmf.ksef.sdk.client.model.session.online.OpenOnlineSessionResponse;
@@ -29,171 +37,276 @@ import pl.akmf.ksef.sdk.client.model.session.online.SendInvoiceOnlineSessionRequ
 import pl.akmf.ksef.sdk.client.model.session.online.SendInvoiceResponse;
 import pl.akmf.ksef.sdk.client.model.xml.AuthTokenRequest;
 import pl.akmf.ksef.sdk.client.model.xml.SubjectIdentifierTypeEnum;
+import pl.akmf.ksef.sdk.system.FilesUtil;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
-import java.util.function.BooleanSupplier;
+import java.time.ZoneOffset;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.Base64;
+import java.util.function.BooleanSupplier;
 
 @Component
 @RequiredArgsConstructor
 public class KsefService {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(KsefService.class);
 
-    private final DefaultKsefClient ksefClient;
+    private final CustomKsefClient ksefClient;
     private final KsefXmlGenerator ksefXmlGenerator;
-//    private CertificateService certificateService;
-//    private DefaultSignatureService signatureService;
-//private DefaultCryptographyService defaultCryptographyService;
-    
+    private final ObjectMapper objectMapper;
+    private final CompanyFacade companyFacade;
+    private final KsefInvoiceApiProperties properties;
+
     // Pola do cache'owania sesji
     private String cachedAccessToken;
     private LocalDateTime tokenCreationTime;
 
-    public String login(Company company) throws ApiException, IOException, JAXBException, InterruptedException {
+    public String getToken() {
         // Sprawdź czy mamy token i czy jest on "świeży" (np. mniej niż 20 minut)
         // Sesje KSeF trwają dłużej, ale dla bezpieczeństwa odświeżamy co 20 min
-        if (cachedAccessToken != null && tokenCreationTime != null && 
-            tokenCreationTime.plusMinutes(20).isAfter(LocalDateTime.now())) {
+        if (cachedAccessToken != null && tokenCreationTime != null &&
+                tokenCreationTime.plusMinutes(20).isAfter(LocalDateTime.now())) {
             log.info("Using cached KSeF token created at: {}", tokenCreationTime);
             return cachedAccessToken;
         }
-        
         log.info("No valid token found. Performing full login to KSeF.");
-        return loginWithCertificate(company);
+        Company company = companyFacade.get();
+//        return loginWithCertificate(company);
+        return  loginWithToken(company);
     }
-    String  createXml(Invoice invoice, Company goAhead) throws JAXBException, IOException {
-        String xml = ksefXmlGenerator.generateInvoiceXml(invoice, goAhead);
-        Files.writeString(Path.of("invoice.xml"), xml);
+
+    String createXml(Invoice invoice, Company goAhead)  {
+        String xml;
+        try {
+            xml = ksefXmlGenerator.generateInvoiceXml(invoice, goAhead);
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
+        }
         return xml;
     }
 
-    InvoiceKsefDto  createDto(Invoice invoice, Company goAhead) throws JAXBException, IOException {
+    InvoiceKsefDto createDto(Invoice invoice, Company goAhead) {
         return ksefXmlGenerator.generateInvoice(invoice, goAhead);
     }
 
-    private String loginWithCertificate(Company company) throws ApiException, IOException, JAXBException, InterruptedException {
+    private String loginWithToken(Company company) {
+     try{
+         AuthenticationChallengeResponse challenge = ksefClient.getAuthChallenge();
+        DefaultCryptographyService defaultCryptographyService = new DefaultCryptographyService(ksefClient);
+        byte[] encryptedToken = defaultCryptographyService.encryptKsefTokenWithRSAUsingPublicKey(properties.getToken(), challenge.getTimestamp());
+
+        AuthKsefTokenRequest authTokenRequest = new AuthKsefTokenRequestBuilder()
+                .withChallenge(challenge.getChallenge())
+                .withContextIdentifier(new ContextIdentifier(ContextIdentifier.IdentifierType.NIP, company.getNipWithoutDashes()))
+                .withEncryptedToken(Base64.getEncoder().encodeToString(encryptedToken))
+                .build();
+
+        SignatureResponse response = ksefClient.authenticateByKSeFToken(authTokenRequest);
+
+        waitForAuthProcess(response.getReferenceNumber(), response.getAuthenticationToken().getToken());
+
+         AuthOperationStatusResponse tokenResponse = ksefClient.redeemToken(response.getAuthenticationToken().getToken());
+         System.out.println();
+
+         // Zapisz token w cache
+         this.cachedAccessToken = tokenResponse.getAccessToken().getToken();
+         this.tokenCreationTime = LocalDateTime.now();
+
+         return tokenResponse.getAccessToken().getToken();
+
+    } catch (ApiException | InterruptedException e) {
+        throw new KsefResponseException("Failed to login with certificate to KSeF system", e);
+    }
+    }
+
+
+    private String loginWithCertificate(Company company) {
         DefaultSignatureService signatureService = new DefaultSignatureService();
         DefaultCertificateService certificateService = new DefaultCertificateService();
         //"9720495827";//NIP
         //wykonanie auth challenge
-        AuthenticationChallengeResponse challenge = ksefClient.getAuthChallenge();
+        try {
 
-        //xml niezbędny do uwierzytelnienia
-        AuthTokenRequest authTokenRequest = new AuthTokenRequestBuilder()
-                .withChallenge(challenge.getChallenge())
-                .withContextNip(company.getNipWithoutDashes())
-                .withSubjectType(SubjectIdentifierTypeEnum.CERTIFICATE_SUBJECT)
-                .build();
+            AuthenticationChallengeResponse challenge = ksefClient.getAuthChallenge();
 
-        String xml = AuthTokenRequestSerializer.authTokenRequestSerializer(authTokenRequest);
+            //xml niezbędny do uwierzytelnienia
+            AuthTokenRequest authTokenRequest = new AuthTokenRequestBuilder()
+                    .withChallenge(challenge.getChallenge())
+                    .withContextNip(company.getNipWithoutDashes())
+                    .withSubjectType(SubjectIdentifierTypeEnum.CERTIFICATE_SUBJECT)
+                    .build();
 
-        //wygenerowanie certyfikatu oraz klucza prywatnego
-        CertificateBuilders.X500NameHolder x500 = new CertificateBuilders()
-                .buildForOrganization(company.getName(), "VATPL-" + company.getNipWithoutDashes(), company.getName(), "PL");
+            String xml = AuthTokenRequestSerializer.authTokenRequestSerializer(authTokenRequest);
 
-        SelfSignedCertificate cert = certificateService.generateSelfSignedCertificateRsa(x500);
+            //wygenerowanie certyfikatu oraz klucza prywatnego
+            CertificateBuilders.X500NameHolder x500 = new CertificateBuilders()
+                    .buildForOrganization(company.getName(), "VATPL-" + company.getNipWithoutDashes(), company.getName(), "PL");
 
-        //podpisanie xml wygenerowanym certyfikatem oraz kluczem prywatnym
-        String signedXml = signatureService.sign(xml.getBytes(), cert.certificate(), cert.getPrivateKey());
+            SelfSignedCertificate cert = certificateService.generateSelfSignedCertificateRsa(x500);
 
-        // Przesłanie podpisanego XML do systemu KSeF
-        SignatureResponse submitAuthTokenResponse = ksefClient.submitAuthTokenRequest(signedXml, false);
+            //podpisanie xml wygenerowanym certyfikatem oraz kluczem prywatnym
+            String signedXml = signatureService.sign(xml.getBytes(), cert.certificate(), cert.getPrivateKey());
 
-        //Czekanie na zakończenie procesu
-        waitForAuthProcess(submitAuthTokenResponse.getReferenceNumber(), submitAuthTokenResponse.getAuthenticationToken().getToken());
-        //pobranie tokenów
-        AuthOperationStatusResponse token = ksefClient.redeemToken(submitAuthTokenResponse.getAuthenticationToken().getToken());
+            // Przesłanie podpisanego XML do systemu KSeF
+            SignatureResponse submitAuthTokenResponse = ksefClient.submitAuthTokenRequest(signedXml, false);
 
-        System.out.println();
-        
-        // Zapisz token w cache
-        this.cachedAccessToken = token.getAccessToken().getToken();
-        this.tokenCreationTime = LocalDateTime.now();
-        
+            //Czekanie na zakończenie procesu
+            waitForAuthProcess(submitAuthTokenResponse.getReferenceNumber(), submitAuthTokenResponse.getAuthenticationToken().getToken());
+            //pobranie tokenów
+            AuthOperationStatusResponse token = ksefClient.redeemToken(submitAuthTokenResponse.getAuthenticationToken().getToken());
+
+            System.out.println();
+
+            // Zapisz token w cache
+            this.cachedAccessToken = token.getAccessToken().getToken();
+            this.tokenCreationTime = LocalDateTime.now();
+
+        } catch (ApiException | IOException | JAXBException | InterruptedException e) {
+            throw new KsefResponseException("Failed to login with certificate to KSeF system", e);
+        }
         return this.cachedAccessToken;
     }
-    public void generateInvoice(){
 
+
+    public List<InvoiceKsefDto> findInvoices(LocalDate fromDate, LocalDate toDate, InvoiceQuerySubjectType subjectType) {
+        List<InvoiceKsefDto> foundInvoices = new ArrayList<>();
+        try {
+            DefaultCryptographyService defaultCryptographyService = new DefaultCryptographyService(ksefClient);
+            String accessToken = getToken();
+            EncryptionData encryptionData = defaultCryptographyService.getEncryptionData();
+            InvoiceExportFilters filters = new InvoicesAsyncQueryFiltersBuilder()
+                    .withSubjectType(subjectType)
+                    .withDateRange(new InvoiceQueryDateRange(InvoiceQueryDateType.INVOICING, fromDate.atStartOfDay().atOffset(ZoneOffset.UTC), toDate.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC)))
+                    .build();
+
+            InvoiceExportRequest request = new InvoiceExportRequest(
+                    new EncryptionInfo(encryptionData.encryptionInfo().getEncryptedSymmetricKey(),
+                            encryptionData.encryptionInfo().getInitializationVector()), filters);
+
+            InitAsyncInvoicesQueryResponse response = ksefClient.initAsyncQueryInvoice(request, accessToken);
+
+            waitForCondition(() -> isFindInvoicesQueryProcessed(response.getReferenceNumber(), accessToken), 45, 5);
+
+            InvoiceExportStatus invoiceExportStatus = ksefClient.checkStatusAsyncQueryInvoice(response.getReferenceNumber(), accessToken);
+
+            List<InvoicePackagePart> parts = invoiceExportStatus.getPackageParts().getParts();
+            byte[] mergedZip = FilesUtil.mergeZipParts(
+                    encryptionData,
+                    parts,
+                    ksefClient::downloadPackagePart,
+                    defaultCryptographyService::decryptBytesWithAes256
+            );
+            Map<String, String> downloadedFiles = FilesUtil.unzip(mergedZip);
+
+            String metadataJson = downloadedFiles.keySet()
+                    .stream()
+                    .filter(fileName -> fileName.endsWith(".json"))
+                    .findFirst()
+                    .map(downloadedFiles::get)
+                    .orElse(null);
+//        InvoicePackageMetadata invoicePackageMetadata = objectMapper.readValue(metadataJson, InvoicePackageMetadata.class);
+
+            List<String> invoices = downloadedFiles.keySet()
+                    .stream()
+                    .filter(fileName -> fileName.endsWith(".xml"))
+                    .toList();
+
+            for (String fileName : invoices) {
+                String xmlContent = downloadedFiles.get(fileName);
+                System.out.println("Nazwa pliku: " + fileName);
+                //System.out.println("Treść XML: " + xmlContent);
+
+                try {
+                    JAXBContext context = JAXBContext.newInstance(InvoiceKsefDto.class);
+                    Unmarshaller unmarshaller = context.createUnmarshaller();
+                    InvoiceKsefDto invoiceDto = (InvoiceKsefDto) unmarshaller.unmarshal(new StringReader(xmlContent));
+                    foundInvoices.add(invoiceDto);
+                } catch (JAXBException e) {
+                    log.error("Błąd mapowania XML na InvoiceKsefDto: " + e.getMessage(), e);
+                }
+
+                System.out.println();
+            }
+        } catch (ApiException | IOException | InterruptedException e) {
+            throw new KsefResponseException("Failed to login with certificate to KSeF system", e);
+        }
+        return foundInvoices;
     }
 
-    public String sendInvoice(String accessToken, String contextNip, String xml) throws JAXBException, IOException, ApiException, InterruptedException {
-        DefaultCryptographyService defaultCryptographyService = new DefaultCryptographyService(ksefClient);
-
-        EncryptionData encryptionData = defaultCryptographyService.getEncryptionData();
-
-        // Step 1: Open session and return referenceNumber
-        String sessionReferenceNumber = openOnlineSession(encryptionData, SystemCode.FA_2, SchemaVersion.VERSION_1_0E, SessionValue.FA, accessToken);
-
-        // Step 2: Send invoice
-        String invoiceReferenceNumber = sendInvoiceOnlineSession(contextNip, sessionReferenceNumber, encryptionData,
-                xml, accessToken);
-
-        // Wait for invoice to be processed && check session status
-        waitForCondition(() -> isInvoicesInSessionProcessed(sessionReferenceNumber, accessToken), 90, 15, "Invoice processing did not finish in time.");
-
-        // Step 3: Close session
-        closeOnlineSession(sessionReferenceNumber, accessToken);
-
-        waitForCondition(() -> isUpoGenerated(sessionReferenceNumber, accessToken), 30, 5, "UPO generation did not finish in time.");
-
-        // Step 4: Get documents
-        SessionInvoiceStatusResponse sessionInvoice = getOnlineSessionDocuments(sessionReferenceNumber, accessToken);
-        return sessionInvoice.getKsefNumber();
+    private boolean isFindInvoicesQueryProcessed(String referenceNumber, String accessToken) {
+        try {
+            InvoiceExportStatus status = ksefClient.checkStatusAsyncQueryInvoice(referenceNumber, accessToken);
+            // 200 - OK, UPO jest dostępne
+            return status != null && status.getStatus() != null && status.getStatus().getCode() == 200;
+        } catch (ApiException e) {
+            log.warn("Failed to check status of async query invoice: {}", e.getMessage());
+            return false;
+        }
     }
 
-    public void onlineSessionE2EIntegrationTest(String accessToken, String contextNip, String xml) throws JAXBException, IOException, ApiException, InterruptedException {
-        DefaultCryptographyService defaultCryptographyService = new DefaultCryptographyService(ksefClient);
+    public List<SendKsefInvoiceResponse> sendInvoices(List<String> xmls) {
+        try {
+            String accessToken = getToken();
+            DefaultCryptographyService defaultCryptographyService = new DefaultCryptographyService(ksefClient);
 
-        EncryptionData encryptionData = defaultCryptographyService.getEncryptionData();
+            EncryptionData encryptionData = defaultCryptographyService.getEncryptionData();
 
-        // Step 1: Open session and return referenceNumber
-        String sessionReferenceNumber = openOnlineSession(encryptionData, SystemCode.FA_2, SchemaVersion.VERSION_1_0E, SessionValue.FA, accessToken);
+            // Step 1: Open session and return referenceNumber
+            String sessionReferenceNumber = openOnlineSession(encryptionData, accessToken);
 
-        // Step 2: Send invoice
-        String invoiceReferenceNumber = sendInvoiceOnlineSession(contextNip, sessionReferenceNumber, encryptionData,
-                xml, accessToken);
 
-        // Wait for invoice to be processed && check session status
-        waitForCondition(() -> isInvoicesInSessionProcessed(sessionReferenceNumber, accessToken), 30, 5, "Invoice processing did not finish in time.");
+            // Step 2: Send invoice
+            List<String> invoiceReferenceNumbers = new ArrayList<>();
+            for (String xml : xmls) {
+                String invoiceReferenceNumber = sendInvoiceOnlineSession(sessionReferenceNumber, encryptionData,
+                        xml, accessToken);
+                invoiceReferenceNumbers.add(invoiceReferenceNumber);
+            }
 
-        // Step 3: Close session
-        closeOnlineSession(sessionReferenceNumber, accessToken);
+            List<SessionInvoiceStatusResponse> invoiceStatusResponses = new ArrayList<>();
+            for (String invoiceReferenceNumber : invoiceReferenceNumbers) {
+                waitForCondition(() -> isInvoiceInSessionProcessed(sessionReferenceNumber, invoiceReferenceNumber, accessToken), 40, 5);
+                SessionInvoiceStatusResponse sessionInvoiceStatus = ksefClient.getSessionInvoiceStatus(sessionReferenceNumber, invoiceReferenceNumber, accessToken);
+                invoiceStatusResponses.add(sessionInvoiceStatus);
+            }
 
-        waitForCondition(() -> isUpoGenerated(sessionReferenceNumber, accessToken), 30, 5, "UPO generation did not finish in time.");
+            // Step 3: Close session
+            closeOnlineSession(sessionReferenceNumber, accessToken);
 
-        // Step 4: Get documents
-        SessionInvoiceStatusResponse sessionInvoice = getOnlineSessionDocuments(sessionReferenceNumber, accessToken);
-        String ksefNumber = sessionInvoice.getKsefNumber();
+            waitForCondition(() -> isUpoGenerated(sessionReferenceNumber, accessToken), 30, 7);
 
-        // Step 5: Get status after close
-        String upoReferenceNumber = getOnlineSessionUpoAfterCloseSession(sessionReferenceNumber, accessToken);
+            SessionStatusResponse sessionStatus = ksefClient.getSessionStatus(sessionReferenceNumber, accessToken);
 
-        // Step 6: Get UPO
-        getOnlineSessionInvoiceUpo(sessionReferenceNumber, ksefNumber, accessToken);
-        getOnlineSessionInvoiceUpoByInvoiceReferenceNumber(sessionReferenceNumber, invoiceReferenceNumber, accessToken);
+            List<SendKsefInvoiceResponse> sendKsefInvoiceRespons = new ArrayList<>();
+            for (SessionInvoiceStatusResponse sessionInvoiceStatus : invoiceStatusResponses) {
+                String upo = null;
+                if (sessionInvoiceStatus.getKsefNumber() != null) {
+                    byte[] sessionInvoiceUpoByKsefNumber = ksefClient.getSessionInvoiceUpoByKsefNumber(sessionReferenceNumber, sessionInvoiceStatus.getKsefNumber(), accessToken);
+                    upo = new String(sessionInvoiceUpoByKsefNumber);
+                }
 
-        // Step 7: Get session UPO
-        getOnlineSessionUpo(sessionReferenceNumber, upoReferenceNumber, accessToken);
-
-        // Step 8: Get invoice
-        getInvoice(sessionInvoice.getKsefNumber(), accessToken);
-        System.out.println();
+                int invoiceCount = sessionStatus.getInvoiceCount();
+                int successfulInvoiceCount = Optional.of(sessionStatus).map(SessionStatusResponse::getSuccessfulInvoiceCount).orElse(0);
+                int failedInvoiceCount = Optional.of(sessionStatus).map(SessionStatusResponse::getFailedInvoiceCount).orElse(0);
+                sendKsefInvoiceRespons.add(new SendKsefInvoiceResponse(sessionInvoiceStatus.getKsefNumber(), sessionInvoiceStatus.getInvoiceNumber(), upo, invoiceCount, successfulInvoiceCount, failedInvoiceCount));
+            }
+            return sendKsefInvoiceRespons;
+        } catch (ApiException | InterruptedException e) {
+            throw new KsefResponseException("Failed to login with certificate to KSeF system", e);
+        }
     }
 
-    private void getInvoice(String ksefNumber, String accessToken) throws ApiException {
-        byte[] invoiceBytes = ksefClient.getInvoice(ksefNumber, accessToken);
+
+    private void getInvoiceByKsefNumber(String ksefNumber) throws ApiException {
+        byte[] invoiceBytes = ksefClient.getInvoice(ksefNumber, getToken());
         if (invoiceBytes == null || invoiceBytes.length == 0) {
             throw new KsefResponseException(String.format("Failed to get invoice '%s'. Response was empty.", ksefNumber));
         }
     }
+
     private void getOnlineSessionInvoiceUpo(String sessionReferenceNumber, String ksefNumber, String accessToken) throws ApiException {
         byte[] upoResponse = ksefClient.getSessionInvoiceUpoByKsefNumber(sessionReferenceNumber, ksefNumber, accessToken);
 
@@ -209,6 +322,7 @@ public class KsefService {
             throw new KsefResponseException(String.format("Failed to get session invoice UPO for reference number '%s'. Response was empty.", invoiceReferenceNumber));
         }
     }
+
     private void getOnlineSessionUpo(String sessionReferenceNumber, String upoReferenceNumber, String accessToken) throws ApiException {
         byte[] sessionUpo = ksefClient.getSessionUpo(sessionReferenceNumber, upoReferenceNumber, accessToken);
 
@@ -216,10 +330,10 @@ public class KsefService {
             throw new KsefResponseException(String.format("Failed to get session UPO for reference number '%s'. Response was empty.", upoReferenceNumber));
         }
     }
-        private String openOnlineSession(EncryptionData encryptionData, SystemCode systemCode,
-                                     SchemaVersion schemaVersion, SessionValue value, String accessToken) throws ApiException {
+
+    private String openOnlineSession(EncryptionData encryptionData, String accessToken) throws ApiException {
         OpenOnlineSessionRequest request = new OpenOnlineSessionRequestBuilder()
-                .withFormCode(new FormCode(systemCode, schemaVersion, value))
+                .withFormCode(new FormCode(SystemCode.FA_3, SchemaVersion.VERSION_1_0E, SessionValue.FA))
                 .withEncryptionInfo(encryptionData.encryptionInfo())
                 .build();
 
@@ -232,15 +346,10 @@ public class KsefService {
         return openOnlineSessionResponse.getReferenceNumber();
     }
 
-    private String sendInvoiceOnlineSession(String nip, String sessionReferenceNumber, EncryptionData encryptionData,
-                                            String xml, String accessToken) throws IOException, ApiException {
+    private String sendInvoiceOnlineSession(String sessionReferenceNumber, EncryptionData encryptionData,
+                                            String xml, String accessToken) throws ApiException {
         DefaultCryptographyService defaultCryptographyService = new DefaultCryptographyService(ksefClient);
-        String invoiceTemplate = xml
-                .replace("#nip#", nip)
-                .replace("#invoicing_date#", LocalDate.of(2025, 6, 15).format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-                .replace("#invoice_number#", UUID.randomUUID().toString());
-
-        byte[] invoice = invoiceTemplate.getBytes(StandardCharsets.UTF_8);
+        byte[] invoice = xml.getBytes(StandardCharsets.UTF_8);
 
         byte[] encryptedInvoice = defaultCryptographyService.encryptBytesWithAES256(invoice,
                 encryptionData.cipherKey(),
@@ -265,7 +374,7 @@ public class KsefService {
 
         return sendInvoiceResponse.getReferenceNumber();
     }
-    
+
     private void isAuthStatusReady(String referenceNumber, String tempToken) throws ApiException {
         AuthStatus authStatus = ksefClient.getAuthStatus(referenceNumber, tempToken);
 
@@ -278,33 +387,18 @@ public class KsefService {
         ksefClient.closeOnlineSession(sessionReferenceNumber, accessToken);
     }
 
-    private SessionInvoiceStatusResponse getOnlineSessionDocuments(String sessionReferenceNumber, String accessToken) throws ApiException {
-        SessionInvoicesResponse sessionInvoices = ksefClient.getSessionInvoices(sessionReferenceNumber, null, 10, accessToken);
 
-        if (sessionInvoices == null || sessionInvoices.getInvoices() == null || sessionInvoices.getInvoices().size() != 1) {
-            int count = (sessionInvoices == null || sessionInvoices.getInvoices() == null) ? 0 : sessionInvoices.getInvoices().size();
-            throw new KsefResponseException(String.format("Expected exactly one invoice in the session, but found %d.", count));
-        }
 
-        SessionInvoiceStatusResponse invoice = sessionInvoices.getInvoices().getFirst();
-
-        if (invoice == null || invoice.getKsefNumber() == null || invoice.getStatus() == null) {
-            throw new KsefResponseException("Received incomplete invoice data from KSeF. KSeF number or status is null.");
-        }
-
-        if (invoice.getStatus().getCode() != 200) {
-            throw new KsefResponseException(String.format("Invoice processing failed with status code: %d. Message: %s",
-                    invoice.getStatus().getCode(), invoice.getStatus().getDescription()));
-        }
-
-        return invoice;
-    }
-    
     private void waitForAuthProcess(String referenceNumber, String tempToken) throws InterruptedException, ApiException {
-        for (int i = 0; i < 14; i++) { // Pętla próbująca 10 razy
+        for (int i = 0; i < 15; i++) { // Pętla próbująca przez ok. 15 sekund
             AuthStatus authStatus = ksefClient.getAuthStatus(referenceNumber, tempToken);
-            if (authStatus.getStatus().getCode() == 200) {
+            int code = authStatus.getStatus().getCode();
+
+            if (code == 200) {
                 return; // Sukces, proces zakończony
+            }
+            if (code >= 400) {
+                throw new KsefResponseException("Błąd uwierzytelnienia KSeF (kod " + code + "): " + authStatus.getStatus().getDescription());
             }
             TimeUnit.SECONDS.sleep(1); // Czekaj 1 sekundę przed kolejną próbą
         }
@@ -315,9 +409,19 @@ public class KsefService {
         try {
             SessionStatusResponse statusResponse = ksefClient.getSessionStatus(sessionReferenceNumber, accessToken);
             // 315 - zakończono przetwarzanie
-            return  statusResponse != null &&
+            return statusResponse != null &&
                     statusResponse.getSuccessfulInvoiceCount() != null &&
                     statusResponse.getSuccessfulInvoiceCount() > 0;
+        } catch (ApiException e) {
+            log.warn("Polling for invoice processing status failed for session {}: {}", sessionReferenceNumber, e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean isInvoiceInSessionProcessed(String sessionReferenceNumber, String invoiceReferenceNumber, String accessToken) {
+        try {
+            SessionInvoiceStatusResponse status = ksefClient.getSessionInvoiceStatus(sessionReferenceNumber, invoiceReferenceNumber, accessToken);
+            return status != null && status.getStatus() != null && status.getStatus().getCode() == 200;
         } catch (ApiException e) {
             log.warn("Polling for invoice processing status failed for session {}: {}", sessionReferenceNumber, e.getMessage());
             return false;
@@ -361,7 +465,7 @@ public class KsefService {
         return upoPageResponse.getReferenceNumber();
     }
 
-    private void waitForCondition(BooleanSupplier condition, int timeoutSeconds, int pollIntervalSeconds, String timeoutMessage) throws InterruptedException {
+    private void waitForCondition(BooleanSupplier condition, int timeoutSeconds, int pollIntervalSeconds) throws InterruptedException {
         long endTime = System.currentTimeMillis() + (timeoutSeconds * 1000L);
         while (System.currentTimeMillis() < endTime) {
             if (condition.getAsBoolean()) {
@@ -369,34 +473,5 @@ public class KsefService {
             }
             TimeUnit.SECONDS.sleep(pollIntervalSeconds);
         }
-        throw new StatusWaitingException(timeoutMessage);
     }
-
-//    protected AuthTokensPair authWithCustomPesel(String context, String pesel, EncryptionMethod encryptionMethod) throws ApiException, JAXBException, IOException {
-//        AuthenticationChallengeResponse challenge = ksefClient.getAuthChallenge();
-//
-//        AuthTokenRequest authTokenRequest = new AuthTokenRequestBuilder()
-//                .withChallenge(challenge.getChallenge())
-//                .withContextNip(context)
-//                .withSubjectType(SubjectIdentifierTypeEnum.CERTIFICATE_SUBJECT)
-//                .build();
-//
-//        String xml = AuthTokenRequestSerializer.authTokenRequestSerializer(authTokenRequest);
-//
-//        SelfSignedCertificate cert = certificateService.getPersonalCertificate("M", "B", "PNOPL", pesel, "M B", encryptionMethod);
-//
-//        String signedXml = signatureService.sign(xml.getBytes(), cert.certificate(), cert.getPrivateKey());
-//
-//        SignatureResponse submitAuthTokenResponse = ksefClient.submitAuthTokenRequest(signedXml, false);
-//
-//        //Czekanie na zakończenie procesu
-//        await().atMost(14, SECONDS)
-//                .pollInterval(1, SECONDS)
-//                .until(() -> isAuthProcessReady(submitAuthTokenResponse.getReferenceNumber(), submitAuthTokenResponse.getAuthenticationToken().getToken()));
-//
-//        AuthOperationStatusResponse tokenResponse = ksefClient.redeemToken(submitAuthTokenResponse.getAuthenticationToken().getToken());
-//
-//        return new AuthTokensPair(tokenResponse.getAccessToken().getToken(), tokenResponse.getRefreshToken().getToken());
-//    }
-
 }

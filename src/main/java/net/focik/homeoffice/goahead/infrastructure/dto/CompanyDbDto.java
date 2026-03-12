@@ -14,6 +14,7 @@ import net.focik.homeoffice.addresses.infrastructure.dto.AddressDbDto;
 public class CompanyDbDto {
     @Id
     private String name;
+    private String fullName;
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "idAddress")
     private AddressDbDto address;

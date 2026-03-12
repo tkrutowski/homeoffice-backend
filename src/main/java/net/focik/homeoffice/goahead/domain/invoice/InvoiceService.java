@@ -35,9 +35,9 @@ class InvoiceService {
 
     private void validate(Invoice invoice) {
         log.debug("Validating invoice {}", invoice);
-        Optional<Invoice> byNumber = invoiceRepository.findByNumber(invoice.getInvoiceNumber());
+        Optional<Invoice> byNumber = invoiceRepository.findByNumber(invoice.getNumber());
         if (byNumber.isPresent())
-            throw new InvoiceAlreadyExistException("Faktura o numerze " + invoice.getInvoiceNumber() + " już istnieje.");
+            throw new InvoiceAlreadyExistException("Faktura o numerze " + invoice.getNumber() + " już istnieje.");
     }
 
     public Invoice findById(Integer id) {
@@ -66,7 +66,7 @@ class InvoiceService {
     public int getNewInvoiceNumber(int year) {
         log.info("Trying to get new invoice number for year " + year);
         int latestNumber = invoiceRepository.findLastInvoiceNumberByYear(year).stream()
-                .map(Invoice::getInvoiceNumber)
+                .map(Invoice::getNumber)
                 .map(s -> s.split("/"))
                 .filter(strings -> Integer.parseInt(strings[0]) == year)
                 .mapToInt(value -> Integer.parseInt(value[1]))

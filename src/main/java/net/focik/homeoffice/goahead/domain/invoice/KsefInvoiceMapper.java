@@ -26,16 +26,16 @@ public class KsefInvoiceMapper {
         }
 
         List<InvoiceItem> items = invoice.getInvoiceItems();
+        List<Pozycja> pozycje = IntStream.range(0, items.size())
+                .mapToObj(i -> toPozycja(items.get(i), i + 1))
+                .collect(Collectors.toList());
+        Platnosc platnosc = buildPlatnosc(invoice);
 
         return InvoiceKsefDto.builder()
                 .naglowek(buildNaglowek())
                 .podmiot1(buildPodmiot1(goAhead))
                 .podmiot2(buildPodmiot2(invoice.getCustomer()))
-                .fakturaCtrl(buildFakturaCtrl(invoice))
-                .pozycje(IntStream.range(0, items.size())
-                        .mapToObj(i -> toPozycja(items.get(i), i + 1))
-                        .collect(Collectors.toList()))
-                .platnosc(buildPlatnosc(invoice))
+                .fakturaCtrl(buildFakturaCtrl(invoice, pozycje, platnosc))
                 .build();
     }
 
@@ -88,12 +88,12 @@ public class KsefInvoiceMapper {
                 .build();
     }
 
-    private FakturaCtrl buildFakturaCtrl(Invoice invoice) {
+    private FakturaCtrl buildFakturaCtrl(Invoice invoice, List<Pozycja> pozycje, Platnosc platnosc) {
         FakturaCtrl.FakturaCtrlBuilder builder = FakturaCtrl.builder()
                 .kodWaluty("PLN")
                 .dataWystawienia(invoice.getInvoiceDate())
                 .dataSprzedazy(invoice.getSellDate())
-                .numerFaktury(invoice.getInvoiceNumber())
+                .numerFaktury(invoice.getNumber())
                 .rodzajFaktury("VAT");
 
         // 1. Grupujemy pozycje faktury po stawce VAT
@@ -145,10 +145,38 @@ public class KsefInvoiceMapper {
         }
 
         builder.p15(totalGrossAmount.doubleValue());
+        builder.adnotacje(buildAdnotacje(itemsByVatRate.containsKey(Vat.VAT_ZW)));
+        builder.pozycje(pozycje);
+        builder.platnosc(platnosc);
 
         return builder.build();
     }
 
+    private Adnotacje buildAdnotacje(boolean isVatZw) {
+        // Ustawienie wartości domyślnych dla standardowej faktury (większość na "nie" / "brak")
+        // Wartość 2 oznacza "NIE" dla pól typu TWybor1_2
+        // Wartość 1 oznacza "TAK" dla pól negatywnych (np. P_19N - brak zwolnienia)
+        Zwolnienie zwolnienie;
+        if (isVatZw) {
+            zwolnienie = Zwolnienie.builder()
+                    .p19(1)
+                    .p19A("Ustawa o VAT (Dz.U. z 2004 r. nr 54, poz. 535) art. 43 ust. 1 pkt 28.")
+                    .build();
+        } else {
+            zwolnienie = Zwolnienie.builder().p19N(1).build();
+        }
+
+        return Adnotacje.builder()
+                .p16(2) // Metoda kasowa - NIE
+                .p17(2) // Samofakturowanie - NIE
+                .p18(2) // Odwrotne obciążenie - NIE
+                .p18A(2) // MPP (Split Payment) - NIE (tu można dodać logikę sprawdzającą kwotę > 15k i towary z załącznika 15)
+                .zwolnienie(zwolnienie)
+                .noweSrodkiTransportu(NoweSrodkiTransportu.builder().p22N(1).build()) // Brak nowych środków transportu
+                .p23(2) // Procedura uproszczona - NIE
+                .pMarzy(PMarzy.builder().pPMarzyN(1).build()) // Brak marży
+                .build();
+    }
 
     private Pozycja toPozycja(InvoiceItem item, int lp) {
         Money itemGrossAmount = item.getAmount().multiply(item.getQuantity());
@@ -161,14 +189,14 @@ public class KsefInvoiceMapper {
                 .lpFa(lp) // Używamy przekazanego numeru porządkowego
                 .nazwaTowaruUslugi(item.getName())
                 .pkwiu(item.getPkwiu())
-                .ilosc((double) item.getQuantity())
                 .jednostkaMiary(item.getUnit())
+                .ilosc((double) item.getQuantity())
                 .cenaJednostkowaNetto(item.getAmount().getNumber().numberValue(BigDecimal.class)
                         .divide(vatRateDecimal, 2, RoundingMode.HALF_UP).doubleValue())
-                .stawkaPodatku(item.getVat().getNumberValue())
                 .kwotaNetto(itemNetDecimal.doubleValue())
-                .kwotaVat(itemVatDecimal.doubleValue())
                 .kwotaBrutto(itemGrossDecimal.doubleValue())
+                .kwotaVat(itemVatDecimal.doubleValue())
+                .stawkaPodatku(item.getVat().getKsefValue())
                 .build();
     }
 

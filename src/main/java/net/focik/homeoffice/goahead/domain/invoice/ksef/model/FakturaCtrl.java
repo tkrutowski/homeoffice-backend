@@ -8,6 +8,7 @@ import lombok.*;
 import net.focik.homeoffice.utils.LocalDateAdapter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Builder
 @AllArgsConstructor
@@ -64,7 +65,16 @@ public class FakturaCtrl {
     @XmlElement(name = "P_15")
     private Double p15;
 
+    @XmlElement(name = "Adnotacje")
+    private Adnotacje adnotacje;
+
     //TODO dodać typ RodzajFaktury, dodać obsługę korekt
     @XmlElement(name = "RodzajFaktury")
     private String rodzajFaktury; // np. VAT
+
+    @XmlElement(name = "FaWiersz")
+    private List<Pozycja> pozycje;
+
+    @XmlElement(name = "Platnosc")
+    private Platnosc platnosc;
 }
