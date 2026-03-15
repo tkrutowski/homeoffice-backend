@@ -18,6 +18,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.Normalizer;
 import java.util.UUID;
 
 @Slf4j
@@ -28,7 +29,7 @@ public class FileHelperS3 implements IFileHelper {
     private final String homeUrl;
     private final String bucketName;
 
-    public FileHelperS3(@Autowired S3Client s3Client, @Value("${homeoffice.url}") String homeUrl,  @Value("${aws.bucket.name}") String bucketName) {
+    public FileHelperS3(@Autowired S3Client s3Client, @Value("${homeoffice.url}") String homeUrl, @Value("${aws.bucket.name}") String bucketName) {
         this.homeUrl = homeUrl;
         this.bucketName = bucketName;
         this.s3Client = s3Client;
@@ -45,7 +46,8 @@ public class FileHelperS3 implements IFileHelper {
             String path = url.getPath();
             String extension = path.substring(path.lastIndexOf("."));
 
-            String fileName = name.trim().replace(" ", "_") + "_" + UUID.randomUUID() + extension; // Generowanie unikalnej nazwy pliku
+            String safeName = sanitizeFileName(name);
+            String fileName = safeName + "_" + UUID.randomUUID() + extension;
 
             String directory = module.getDirectory()
                     .replaceFirst("^/+", "");  // Usuń wiodące slashe
@@ -88,10 +90,10 @@ public class FileHelperS3 implements IFileHelper {
             throw e;
 
         } catch (IOException e) {
-            log.error("Error downloading ans saving image (return null)",e);
+            log.error("Error downloading ans saving image (return null)", e);
             return null;
         } catch (URISyntaxException e) {
-            log.error("Error downloading ans saving image",e);
+            log.error("Error downloading ans saving image", e);
             throw new RuntimeException(e);
         }
     }
@@ -122,4 +124,20 @@ public class FileHelperS3 implements IFileHelper {
             return null;
         }
     }
+
+    private String sanitizeFileName(String name) {
+        String normalized = Normalizer.normalize(name == null ? "" : name, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+
+        String sanitized = normalized
+                .trim()
+                .replaceAll("\\s+", "_")
+                .replaceAll("[\\\\/:*?\"<>|#%&{}$!@+=`~\\[\\]()';,]+", "_")
+                .replaceAll("[^a-zA-Z0-9._-]", "_")
+                .replaceAll("_+", "_")
+                .replaceAll("^[_ .-]+|[_ .-]+$", "");
+
+        return sanitized.isBlank() ? "file" : sanitized;
+    }
 }
+
