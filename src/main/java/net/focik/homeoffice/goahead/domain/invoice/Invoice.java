@@ -31,6 +31,9 @@ public class Invoice {
     private Customer customer;
     private String ksefNumber;
     private String upo;
+    private String upoUrl;
+    private String ksefUrl;
+    private String pdfUrl;
 
     public void changePaymentStatus(PaymentStatus newPaymentStatus) {
         this.paymentStatus = newPaymentStatus;

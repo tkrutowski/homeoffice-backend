@@ -40,6 +40,9 @@ public class InvoiceDbDto {
     private PaymentMethod paymentMethod;
     private String otherInfo;
     private String upo;
+    private String upoUrl;
+    private String ksefUrl;
+    private String pdfUrl;
 
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InvoiceItemDbDto> invoiceItems;
