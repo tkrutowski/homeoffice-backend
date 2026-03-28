@@ -17,10 +17,16 @@ public class ApiLookupMapper {
 
         LookupResponse.Subject subject = response.getResult().getSubject();
 
+        String firstAccountNumber = null;
+        if (subject.getAccountNumbers() != null && !subject.getAccountNumbers().isEmpty()) {
+            firstAccountNumber = subject.getAccountNumbers().get(0);
+        }
+
         return LookupResponseDto.builder()
                 .name(subject.getName())
                 .nip(subject.getNip())
                 .regon(subject.getRegon())
+                .accountNumber(firstAccountNumber)
                 .addressDto(parseAddress(subject.getWorkingAddress()))
                 .build();
     }

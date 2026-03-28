@@ -20,6 +20,7 @@ import pl.akmf.ksef.sdk.client.model.invoice.InvoiceQuerySubjectType;
 import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -105,7 +106,7 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
         //sendXML
         List<SendKsefInvoiceResponse> ksefInvoiceResponses = ksefService.sendInvoices(xmlList);
 
-        List<Invoice> updatedInvoices = new java.util.ArrayList<>();
+        List<Invoice> updatedInvoices = new ArrayList<>();
         for (SendKsefInvoiceResponse response : ksefInvoiceResponses) {
             Invoice invoice = invoices.get(response.invoiceNumber());
             invoice.setKsefNumber(response.ksefNumber());
@@ -117,9 +118,10 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
     }
 
     @Override
-    public void findKsefInvoices(LocalDate fromDate, LocalDate toDate, boolean sendInvoices) {
+    public List<InvoiceKsefDto> findKsefInvoices(LocalDate fromDate, LocalDate toDate, boolean sendInvoices) {
         InvoiceQuerySubjectType subjectType = sendInvoices ? InvoiceQuerySubjectType.SUBJECT1 : InvoiceQuerySubjectType.SUBJECT2;
         List<InvoiceKsefDto> invoices = ksefService.findInvoices(fromDate, toDate, subjectType);
         System.out.println();
+        return invoices;
     }
 }

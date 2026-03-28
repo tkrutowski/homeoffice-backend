@@ -13,5 +13,6 @@ public class LookupResponseDto {
     private String name;
     private String nip;
     private String regon;
+    private String accountNumber;
     private AddressDto addressDto;
 }

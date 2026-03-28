@@ -1,8 +1,12 @@
 package net.focik.homeoffice.goahead.domain.customer;
 
+import lombok.Getter;
+
+@Getter
 public enum CustomerType {
     CUSTOMER("Klient"),
-    COMPANY("Firma");
+    COMPANY("Firma"),
+    SELLER("Sprzedawca");
 
     private final String viewValue;
 
@@ -10,7 +14,4 @@ public enum CustomerType {
         this.viewValue = viewValue;
     }
 
-    public String getViewValue() {
-        return viewValue;
-    }
 }

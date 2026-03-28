@@ -1,6 +1,7 @@
 package net.focik.homeoffice.goahead.domain.invoice.port.primary;
 
 import net.focik.homeoffice.goahead.domain.invoice.Invoice;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.model.InvoiceKsefDto;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.data.domain.Page;
 
@@ -23,6 +24,5 @@ public interface GetInvoiceUseCase {
     Map<Integer, List<BigDecimal>> getStatistic();
     Map<Integer, List<BigDecimal>> getStatisticByCustomer(Integer year);
 
-
-    void findKsefInvoices(LocalDate fromDate, LocalDate toDate, boolean sendInvoices);
+    List<InvoiceKsefDto> findKsefInvoices(LocalDate fromDate, LocalDate toDate, boolean sendInvoices);
 }
