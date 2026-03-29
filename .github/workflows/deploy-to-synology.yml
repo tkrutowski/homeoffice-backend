@@ -90,6 +90,7 @@ jobs:
               -e DB_URL="${{ secrets.DB_URL }}" \
               -e DB_USERNAME="${{ secrets.DB_USERNAME }}" \
               -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+              -e KSEF_TOKEN="${{ secrets.KSEF_TOKEN }}" \
               homeoffice:${{ steps.get_version.outputs.version }}
      
 

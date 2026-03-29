@@ -16,6 +16,7 @@ import net.focik.homeoffice.goahead.domain.invoice.port.primary.GetInvoiceUseCas
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.UpdateInvoiceUseCase;
 import net.focik.homeoffice.utils.exceptions.ExceptionHandling;
 import net.focik.homeoffice.utils.exceptions.HttpResponse;
+import net.focik.homeoffice.utils.exceptions.ObjectNotSavedException;
 import net.focik.homeoffice.utils.share.PaymentMethod;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.data.domain.Page;
@@ -94,19 +95,18 @@ public class InvoiceController extends ExceptionHandling {
         return ResponseEntity.ok(dtoPage);
     }
 
-    @GetMapping("/pdf/{id}")
+    @PostMapping("/pdf/{id}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
-    ResponseEntity<?> getPdfById(@PathVariable int id) {
-        log.info("Request to generate PDF for invoice with id: {}", id);
-        String url = getInvoiceUseCase.sendInvoiceToS3(id);
-
-        if (url == null) {
-            log.warn("No invoice found with id: {}", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    void generateAndSavePdfById(@PathVariable int id) {
+        log.info("Request to generate PDF and save to S3 for invoice with id: {}", id);
+        String s3Url = getInvoiceUseCase.generateAndSendInvoiceToS3(id);
+        
+        if (s3Url == null) {
+            log.error("Failed to generate and save PDF to S3 for invoice with id: {}", id);
+            throw new ObjectNotSavedException("Nie udało się wygenerować i zapisać pliku PDF dla faktury o ID: " + id);
         }
-
-        log.info("Generated pdf for Invoice with id {}, URL: {}", id, url);
-        return new ResponseEntity<>(url, OK);
+        
+        log.info("Successfully generated and saved pdf to S3 for Invoice with id {}", id);
     }
 
     @GetMapping("/number/{year}")
@@ -161,22 +161,6 @@ public class InvoiceController extends ExceptionHandling {
             log.warn("Attempt to update invoice with KSeF number: {}", existingInvoice.getKsefNumber());
             return response(HttpStatus.BAD_REQUEST, "Faktura została już wysłana do KSeF. Aby dokonać zmian, należy wystawić fakturę korygującą.");
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         Invoice invoiceToUpdate = mapper.toDomain(invoiceDto);
         log.debug(MAPPED_INVOICE_DTO_TO_DOMAIN_OBJECT, invoiceToUpdate);

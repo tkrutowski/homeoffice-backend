@@ -19,7 +19,7 @@ public interface GetInvoiceUseCase {
                                                   String globalFilter, Integer idCustomer, LocalDate date,
                                                   String dateComparisonType, BigDecimal amount,
                                                   String amountComparisonType, PaymentStatus status);
-    String sendInvoiceToS3(int invoice);
+    String generateAndSendInvoiceToS3(int invoice);
 
     Map<Integer, List<BigDecimal>> getStatistic();
     Map<Integer, List<BigDecimal>> getStatisticByCustomer(Integer year);

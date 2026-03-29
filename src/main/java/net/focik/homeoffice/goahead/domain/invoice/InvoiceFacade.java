@@ -68,7 +68,7 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
     }
 
     @Override
-    public String sendInvoiceToS3(int idInvoice) {
+    public String generateAndSendInvoiceToS3(int idInvoice) {
         Invoice invoice = findById(idInvoice);
         String filePath = InvoicePdf.createPdf(invoice);
         if (filePath == null) {
