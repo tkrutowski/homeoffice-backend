@@ -31,7 +31,7 @@ public class InvoicePdf {
         Document document = new Document();
         File tempFile = null;
         try {
-            tempFile = File.createTempFile("invoice-" + invoice.getInvoiceNumber().replace('/', '_') + "-", ".pdf");
+            tempFile = File.createTempFile("invoice-" + invoice.getNumber().replace('/', '_') + "-", ".pdf");
             PdfWriter.getInstance(document, new FileOutputStream(tempFile));
             document.open();
 
@@ -80,7 +80,7 @@ public class InvoicePdf {
         cellNr.setVerticalAlignment(Element.ALIGN_MIDDLE);
         cellNr.setRowspan(2);
         table.addCell(cellNr);
-        PdfPCell cellNr2 = new PdfPCell(new Phrase(invoice.getInvoiceNumber(), FONT_12_BOLD));
+        PdfPCell cellNr2 = new PdfPCell(new Phrase(invoice.getNumber(), FONT_12_BOLD));
         cellNr2.setHorizontalAlignment(Element.ALIGN_CENTER);
         cellNr2.setVerticalAlignment(Element.ALIGN_MIDDLE);
         cellNr2.setRowspan(2);

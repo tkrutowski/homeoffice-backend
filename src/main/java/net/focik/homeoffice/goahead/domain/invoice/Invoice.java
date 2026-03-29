@@ -20,7 +20,7 @@ import java.util.Optional;
 @ToString
 public class Invoice {
     private int idInvoice;
-    private String invoiceNumber;
+    private String number;
     private PaymentMethod paymentMethod;
     private LocalDate sellDate;//data sprzedaży
     private LocalDate invoiceDate;//data faktury
@@ -29,6 +29,11 @@ public class Invoice {
     private String otherInfo;
     private List<InvoiceItem> invoiceItems;
     private Customer customer;
+    private String ksefNumber;
+    private String upo;
+    private String upoUrl;
+    private String ksefUrl;
+    private String pdfUrl;
 
     public void changePaymentStatus(PaymentStatus newPaymentStatus) {
         this.paymentStatus = newPaymentStatus;

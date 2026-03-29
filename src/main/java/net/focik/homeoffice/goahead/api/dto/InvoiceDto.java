@@ -17,7 +17,7 @@ import java.util.List;
 public class InvoiceDto {
     private int idInvoice;
     private CustomerDto customer;
-    private String invoiceNumber;
+    private String number;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Europe/Warsaw")
     private LocalDate sellDate;//data sprzedaży
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Europe/Warsaw")
@@ -28,6 +28,10 @@ public class InvoiceDto {
     private PaymentStatus paymentStatus;
     private PaymentMethod paymentMethod;
     private String otherInfo;
+    private String ksefNumber;
+    private String upoUrl;
+    private String ksefUrl;
+    private String pdfUrl;
     private List<InvoiceItemDto> invoiceItems;
 
 }

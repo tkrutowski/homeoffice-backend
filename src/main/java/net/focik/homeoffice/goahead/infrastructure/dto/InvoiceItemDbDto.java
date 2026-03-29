@@ -3,6 +3,8 @@ package net.focik.homeoffice.goahead.infrastructure.dto;
 import lombok.*;
 
 import jakarta.persistence.*;
+import net.focik.homeoffice.utils.share.Vat;
+
 import java.math.BigDecimal;
 
 @Builder
@@ -23,6 +25,9 @@ public class InvoiceItemDbDto {
     private String unit;
     private Float quantity;
     private BigDecimal amount;//brutto
+    @Column(name = "vat_type")
+    @Enumerated(EnumType.STRING)
+    private Vat vat;
 
     @ManyToOne
     @JoinColumn(name = "id_invoice", nullable = false) // Klucz obcy

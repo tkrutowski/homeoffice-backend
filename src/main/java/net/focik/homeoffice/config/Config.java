@@ -1,9 +1,13 @@
 package net.focik.homeoffice.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.userservice.domain.port.secondary.IAppUserRepository;
+import net.focik.homeoffice.utils.ksef.HttpClientBuilder;
+import net.focik.homeoffice.utils.ksef.HttpClientConfig;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +17,8 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import java.net.http.HttpClient;
 
 @Configuration
 @RequiredArgsConstructor
@@ -33,9 +39,15 @@ class Config {
 
     @Bean
     public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        return mapper;
+        return new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+    }
+
+    @Bean
+    public HttpClient apiClient() {
+        return  HttpClientBuilder.createHttpBuilder(new HttpClientConfig()).build();
     }
 
     @Bean

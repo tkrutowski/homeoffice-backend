@@ -27,6 +27,7 @@ public class InvoiceDbDto {
     @JoinColumn(name = "id_customer")
     private CustomerDbDto customer;
     private String number;
+    private String ksefNumber;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate sellDate;//data sprzedaży
     @DateTimeFormat(pattern = "yyyy-MM-dd")
@@ -38,6 +39,10 @@ public class InvoiceDbDto {
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
     private String otherInfo;
+    private String upo;
+    private String upoUrl;
+    private String ksefUrl;
+    private String pdfUrl;
 
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InvoiceItemDbDto> invoiceItems;

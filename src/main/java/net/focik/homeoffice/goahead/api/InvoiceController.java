@@ -6,12 +6,17 @@ import net.focik.homeoffice.goahead.api.dto.BasicDto;
 import net.focik.homeoffice.goahead.api.dto.InvoiceDto;
 import net.focik.homeoffice.goahead.api.mapper.ApiInvoiceMapper;
 import net.focik.homeoffice.goahead.domain.invoice.Invoice;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.model.FindKsefInvoiceRequest;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.model.InvoiceKsefDto;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.model.SendKsefInvoiceInfoResponse;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.model.SendKsefInvoiceRequest;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.AddInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.DeleteInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.GetInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.UpdateInvoiceUseCase;
 import net.focik.homeoffice.utils.exceptions.ExceptionHandling;
 import net.focik.homeoffice.utils.exceptions.HttpResponse;
+import net.focik.homeoffice.utils.exceptions.ObjectNotSavedException;
 import net.focik.homeoffice.utils.share.PaymentMethod;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.data.domain.Page;
@@ -90,19 +95,18 @@ public class InvoiceController extends ExceptionHandling {
         return ResponseEntity.ok(dtoPage);
     }
 
-    @GetMapping("/pdf/{id}")
+    @PostMapping("/pdf/{id}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
-    ResponseEntity<?> getPdfById(@PathVariable int id) {
-        log.info("Request to generate PDF for invoice with id: {}", id);
-        String url = getInvoiceUseCase.sendInvoiceToS3(id);
-
-        if (url == null) {
-            log.warn("No invoice found with id: {}", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    void generateAndSavePdfById(@PathVariable int id) {
+        log.info("Request to generate PDF and save to S3 for invoice with id: {}", id);
+        String s3Url = getInvoiceUseCase.generateAndSendInvoiceToS3(id);
+        
+        if (s3Url == null) {
+            log.error("Failed to generate and save PDF to S3 for invoice with id: {}", id);
+            throw new ObjectNotSavedException("Nie udało się wygenerować i zapisać pliku PDF dla faktury o ID: " + id);
         }
-
-        log.info("Generated pdf for Invoice with id {}, URL: {}", id, url);
-        return new ResponseEntity<>(url, OK);
+        
+        log.info("Successfully generated and saved pdf to S3 for Invoice with id {}", id);
     }
 
     @GetMapping("/number/{year}")
@@ -148,8 +152,15 @@ public class InvoiceController extends ExceptionHandling {
 
     @PutMapping
     @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
-    public ResponseEntity<InvoiceDto> updateInvoice(@RequestBody InvoiceDto invoiceDto) {
+    public ResponseEntity<?> updateInvoice(@RequestBody InvoiceDto invoiceDto) {
         log.info("Request to edit a computer received with data: {}", invoiceDto);
+
+        // Pobieramy aktualny stan faktury z bazy, aby sprawdzić czy ma numer KSeF
+        Invoice existingInvoice = getInvoiceUseCase.findById(invoiceDto.getIdInvoice());
+        if (existingInvoice != null && existingInvoice.getKsefNumber() != null) {
+            log.warn("Attempt to update invoice with KSeF number: {}", existingInvoice.getKsefNumber());
+            return response(HttpStatus.BAD_REQUEST, "Faktura została już wysłana do KSeF. Aby dokonać zmian, należy wystawić fakturę korygującą.");
+        }
 
         Invoice invoiceToUpdate = mapper.toDomain(invoiceDto);
         log.debug(MAPPED_INVOICE_DTO_TO_DOMAIN_OBJECT, invoiceToUpdate);
@@ -186,6 +197,25 @@ public class InvoiceController extends ExceptionHandling {
         log.info("Found {} payment types.", paymentTypes.size());
         return new ResponseEntity<>(paymentTypes, OK);
     }
+
+    @PutMapping("/ksef")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    public ResponseEntity<List<InvoiceDto>> addInvoiceToKsef( @RequestBody SendKsefInvoiceRequest request) {
+        log.info("Test");
+        SendKsefInvoiceInfoResponse response = updateInvoiceUseCase.sendInvoicesToKsef(request.invoicesIds());
+        log.info("Invoice total: {}, success: {}, failed: {}", response.invoiceCount(), response.successInvoiceCount(), response.failedInvoiceCount());
+
+        return new ResponseEntity<>(response.invoices().stream()
+                .map(mapper::toDto)
+                .toList(), HttpStatus.OK);
+    }
+
+    @GetMapping("/ksef")
+    public ResponseEntity<List<InvoiceKsefDto>> findTestInvoices(@RequestBody FindKsefInvoiceRequest request)  {
+        log.info("Test");
+        List<InvoiceKsefDto> ksefInvoices = getInvoiceUseCase.findKsefInvoices(request.fromDate(), request.toDate(), request.sendInvoices());
+        return new ResponseEntity<>(ksefInvoices, HttpStatus.OK);
+     }
 
     private ResponseEntity<HttpResponse> response(HttpStatus status, String message) {
         HttpResponse body = new HttpResponse(status.value(), status, status.getReasonPhrase(), message);
