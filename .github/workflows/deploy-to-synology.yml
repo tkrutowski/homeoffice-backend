@@ -19,6 +19,24 @@ jobs:
           java-version: 21
           distribution: 'corretto'
 
+      - name: Configure Maven settings for GitHub Packages
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<EOF
+          <settings>
+            <servers>
+              <server>
+                <id>github</id>
+                <username>${PACKAGES_USER}</username>
+                <password>${KSEF_PACKAGES_TOKEN}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+        env:
+          PACKAGES_USER: tkrutowski@gmail.com
+          KSEF_PACKAGES_TOKEN: ${{ secrets.KSEF_PACKAGES_TOKEN }}
+
       - name: Build JAR with Maven
         run: mvn -B clean package -DskipTests
 
@@ -92,6 +110,3 @@ jobs:
               -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
               -e KSEF_TOKEN="${{ secrets.KSEF_TOKEN }}" \
               homeoffice:${{ steps.get_version.outputs.version }}
-     
-
-
