@@ -34,7 +34,7 @@ jobs:
           </settings>
           EOF
         env:
-          GITHUB_PACKAGES_USER: tkrutowski@gmail.com
+          GITHUB_PACKAGES_USER: tkrutowski
           GITHUB_PACKAGES_TOKEN: ${{ secrets.GITHUB_PACKAGES_TOKEN }}
       
 
