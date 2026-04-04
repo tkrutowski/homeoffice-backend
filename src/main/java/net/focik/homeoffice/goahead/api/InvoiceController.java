@@ -97,7 +97,7 @@ public class InvoiceController extends ExceptionHandling {
 
     @PostMapping("/pdf/{id}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
-    void generateAndSavePdfById(@PathVariable int id) {
+    ResponseEntity<Map<String, String>> generateAndSavePdfById(@PathVariable int id) {
         log.info("Request to generate PDF and save to S3 for invoice with id: {}", id);
         String s3Url = getInvoiceUseCase.generateAndSendInvoiceToS3(id);
         
@@ -107,6 +107,7 @@ public class InvoiceController extends ExceptionHandling {
         }
         
         log.info("Successfully generated and saved pdf to S3 for Invoice with id {}", id);
+        return ResponseEntity.ok(Map.of("url", s3Url));
     }
 
     @GetMapping("/number/{year}")

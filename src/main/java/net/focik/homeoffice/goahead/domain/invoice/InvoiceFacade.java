@@ -77,6 +77,8 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
         File file = new File(filePath);
         String s3Url = fileHelperS3.saveInBucket(file, Module.GO_AHEAD);
         file.delete();
+        invoice.setPdfUrl(s3Url);
+        updateInvoice(invoice);
         return s3Url;
     }
 
