@@ -9,7 +9,6 @@ import net.focik.homeoffice.goahead.domain.invoice.Invoice;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.FindKsefInvoiceRequest;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.InvoiceKsefDto;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.SendKsefInvoiceInfoResponse;
-import net.focik.homeoffice.goahead.domain.invoice.ksef.model.SendKsefInvoiceRequest;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.AddInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.DeleteInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.GetInvoiceUseCase;
@@ -201,9 +200,9 @@ public class InvoiceController extends ExceptionHandling {
 
     @PutMapping("/ksef")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
-    public ResponseEntity<List<InvoiceDto>> addInvoiceToKsef( @RequestBody SendKsefInvoiceRequest request) {
+    public ResponseEntity<List<InvoiceDto>> addInvoiceToKsef( @RequestBody List<Integer> invoicesIds) {
         log.info("Test");
-        SendKsefInvoiceInfoResponse response = updateInvoiceUseCase.sendInvoicesToKsef(request.invoicesIds());
+        SendKsefInvoiceInfoResponse response = updateInvoiceUseCase.sendInvoicesToKsef(invoicesIds);
         log.info("Invoice total: {}, success: {}, failed: {}", response.invoiceCount(), response.successInvoiceCount(), response.failedInvoiceCount());
 
         return new ResponseEntity<>(response.invoices().stream()
@@ -214,7 +213,7 @@ public class InvoiceController extends ExceptionHandling {
     @GetMapping("/ksef")
     public ResponseEntity<List<InvoiceKsefDto>> findTestInvoices(@RequestBody FindKsefInvoiceRequest request)  {
         log.info("Test");
-        List<InvoiceKsefDto> ksefInvoices = getInvoiceUseCase.findKsefInvoices(request.fromDate(), request.toDate(), request.sendInvoices());
+        List<InvoiceKsefDto> ksefInvoices = getInvoiceUseCase.findKsefInvoices(request.fromDate(), request.toDate());
         return new ResponseEntity<>(ksefInvoices, HttpStatus.OK);
      }
 

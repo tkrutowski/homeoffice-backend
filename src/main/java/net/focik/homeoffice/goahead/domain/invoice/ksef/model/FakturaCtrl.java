@@ -72,6 +72,9 @@ public class FakturaCtrl {
     @XmlElement(name = "RodzajFaktury")
     private String rodzajFaktury; // np. VAT
 
+    @XmlElement(name = "DodatkowyOpis")
+    private List<TKluczWartosc> dodatkowyOpis;
+
     @XmlElement(name = "FaWiersz")
     private List<Pozycja> pozycje;
 

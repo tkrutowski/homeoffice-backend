@@ -39,7 +39,8 @@ public class InvoiceDbDto {
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
     private String otherInfo;
-    private String upo;
+    @Column(name = "upo")
+    private String upoXml;
     private String upoUrl;
     private String ksefUrl;
     private String pdfUrl;

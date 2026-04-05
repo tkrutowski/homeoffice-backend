@@ -30,7 +30,7 @@ public class Invoice {
     private List<InvoiceItem> invoiceItems;
     private Customer customer;
     private String ksefNumber;
-    private String upo;
+    private String upoXml;
     private String upoUrl;
     private String ksefUrl;
     private String pdfUrl;

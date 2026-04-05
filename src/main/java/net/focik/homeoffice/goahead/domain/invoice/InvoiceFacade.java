@@ -112,7 +112,7 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
         for (SendKsefInvoiceResponse response : ksefInvoiceResponses) {
             Invoice invoice = invoices.get(response.invoiceNumber());
             invoice.setKsefNumber(response.ksefNumber());
-            invoice.setUpo(response.upoXml());
+            invoice.setUpoXml(response.upoXml());
             updatedInvoices.add(updateInvoice(invoice));
 
         }
@@ -120,9 +120,8 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
     }
 
     @Override
-    public List<InvoiceKsefDto> findKsefInvoices(LocalDate fromDate, LocalDate toDate, boolean sendInvoices) {
-        InvoiceQuerySubjectType subjectType = sendInvoices ? InvoiceQuerySubjectType.SUBJECT1 : InvoiceQuerySubjectType.SUBJECT2;
-        List<InvoiceKsefDto> invoices = ksefService.findInvoices(fromDate, toDate, subjectType);
+    public List<InvoiceKsefDto> findKsefInvoices(LocalDate fromDate, LocalDate toDate) {
+        List<InvoiceKsefDto> invoices = ksefService.findInvoices(fromDate, toDate, InvoiceQuerySubjectType.SUBJECT1);
         System.out.println();
         return invoices;
     }

@@ -21,13 +21,14 @@ import static pl.akmf.ksef.sdk.client.Headers.*;
 @Component
 public class CustomKsefClient extends DefaultKsefClient {
 
-    private ObjectMapper objectMapper;
-    private HttpClient apiClient;
+    private final ObjectMapper objectMapper;
+    private final HttpClient apiClient;
     private KsefApiProperties ksefApiProperties;
     private String baseURl;
     private String suffixURl;
     private Duration timeout;
     private Map<String, String> defaultHeaders;
+    private final String baseUrl;
 
     public CustomKsefClient(HttpClient apiClient, KsefApiProperties ksefApiProperties, ObjectMapper objectMapper) {
         super(apiClient, ksefApiProperties, objectMapper);
@@ -37,6 +38,7 @@ public class CustomKsefClient extends DefaultKsefClient {
         this.baseURl = ksefApiProperties.getBaseUri();
         this.suffixURl = ksefApiProperties.getSuffixUri();
         this.defaultHeaders = ksefApiProperties.getDefaultHeaders();
+        this.baseUrl = ksefApiProperties.getBaseUri();
     }
 
     public byte[] getInvoicePdf(String invoiceKsefNumber, String invoiceXml, String accessToken) throws ApiException {
@@ -58,7 +60,7 @@ public class CustomKsefClient extends DefaultKsefClient {
             // Budowa request
             String URL_INVOICES_PDF = "/invoice/visualize";
             HttpRequest.Builder builder = HttpRequest.newBuilder()
-                    .uri(URI.create("https://ksefapi.pl/api-test" + URL_INVOICES_PDF));
+                    .uri(URI.create(baseUrl + URL_INVOICES_PDF));
 
             headers.forEach(builder::header);
 

@@ -5,9 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
+import net.focik.homeoffice.goahead.domain.invoice.InvoiceItem;
+import net.focik.homeoffice.goahead.infrastructure.dto.InvoiceItemDbDto;
 import net.focik.homeoffice.userservice.domain.port.secondary.IAppUserRepository;
 import net.focik.homeoffice.utils.ksef.HttpClientBuilder;
 import net.focik.homeoffice.utils.ksef.HttpClientConfig;
+import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,8 +36,23 @@ class Config {
         modelMapper.addConverter(new MoneyToBigDecimalConverter());
         modelMapper.addConverter(new BigDecimalToMoneyConverter());
         modelMapper.addConverter(new DoubleToMoneyConverter());
+
+        Converter<InvoiceItemDbDto, InvoiceItem> invoiceItemDbDtoToDomainConverter = context -> {
+            InvoiceItemDbDto source = context.getSource();
+            InvoiceItem destination = context.getDestination();
+            
+            if (source != null && destination != null) {
+                // Ręczne przypisanie właściwego ID faktury z powiązanej encji
+                if (source.getInvoice() != null && source.getInvoice().getIdInvoice() != null) {
+                    destination.setIdInvoice(source.getInvoice().getIdInvoice());
+                }
+            }
+            return destination;
+        };
+        modelMapper.typeMap(InvoiceItemDbDto.class, InvoiceItem.class)
+                   .setPostConverter(invoiceItemDbDtoToDomainConverter);
+
         return modelMapper;
-//        return new ModelMapper();
     }
 
     @Bean

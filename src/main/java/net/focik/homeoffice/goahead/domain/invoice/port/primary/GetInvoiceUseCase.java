@@ -24,5 +24,5 @@ public interface GetInvoiceUseCase {
     Map<Integer, List<BigDecimal>> getStatistic();
     Map<Integer, List<BigDecimal>> getStatisticByCustomer(Integer year);
 
-    List<InvoiceKsefDto> findKsefInvoices(LocalDate fromDate, LocalDate toDate, boolean sendInvoices);
+    List<InvoiceKsefDto> findKsefInvoices(LocalDate fromDate, LocalDate toDate);
 }

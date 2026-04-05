@@ -8,6 +8,7 @@ import net.focik.homeoffice.utils.share.PaymentStatus;
 import net.focik.homeoffice.utils.share.Vat;
 import org.javamoney.moneta.Money;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -20,11 +21,13 @@ import java.util.stream.IntStream;
 
 @Component
 public class KsefInvoiceMapper {
+
+    private Company company;
     public InvoiceKsefDto toKsefFaktura(Invoice invoice, Company goAhead) {
-        if (invoice == null) {
+        if (invoice == null || goAhead == null) {
             return null;
         }
-
+        company = goAhead;
         List<InvoiceItem> items = invoice.getInvoiceItems();
         List<Pozycja> pozycje = IntStream.range(0, items.size())
                 .mapToObj(i -> toPozycja(items.get(i), i + 1))
@@ -112,8 +115,9 @@ public class KsefInvoiceMapper {
                     .map(item -> item.getAmount().multiply(item.getQuantity()))
                     .reduce(Money.of(0, "PLN"), Money::add);
 
-            // Obliczamy sumę netto i VAT z sumy brutto
-            BigDecimal sumOfGrossDecimal = sumOfGrossForVat.getNumber().numberValue(BigDecimal.class);
+            // Obliczamy sumę netto i VAT z sumy brutto, zaokrąglając najpierw kwotę brutto
+            BigDecimal sumOfGrossDecimal = sumOfGrossForVat.getNumber().numberValue(BigDecimal.class)
+                    .setScale(2, RoundingMode.HALF_UP);
             BigDecimal vatRateDecimal = BigDecimal.valueOf(vat.getMultiplier());
             BigDecimal sumOfNetDecimal = sumOfGrossDecimal.divide(vatRateDecimal, 2, RoundingMode.HALF_UP);
             BigDecimal sumOfVatDecimal = sumOfGrossDecimal.subtract(sumOfNetDecimal);
@@ -146,6 +150,26 @@ public class KsefInvoiceMapper {
 
         builder.p15(totalGrossAmount.doubleValue());
         builder.adnotacje(buildAdnotacje(itemsByVatRate.containsKey(Vat.VAT_ZW)));
+        
+        if (StringUtils.hasText(invoice.getOtherInfo())) {
+            String otherInfo = invoice.getOtherInfo();
+            String klucz = "Inne";
+            String wartosc = otherInfo;
+            
+            if (otherInfo.contains("::")) {
+                String[] parts = otherInfo.split("::", 2);
+                klucz = parts[0].trim();
+                wartosc = parts[1].trim();
+            }
+            
+            builder.dodatkowyOpis(Collections.singletonList(
+                    TKluczWartosc.builder()
+                            .klucz(klucz)
+                            .wartosc(wartosc)
+                            .build()
+            ));
+        }
+
         builder.pozycje(pozycje);
         builder.platnosc(platnosc);
 
@@ -180,17 +204,21 @@ public class KsefInvoiceMapper {
 
     private Pozycja toPozycja(InvoiceItem item, int lp) {
         Money itemGrossAmount = item.getAmount().multiply(item.getQuantity());
-        BigDecimal itemGrossDecimal = itemGrossAmount.getNumber().numberValue(BigDecimal.class);
+        BigDecimal itemGrossDecimal = itemGrossAmount.getNumber().numberValue(BigDecimal.class)
+                .setScale(2, RoundingMode.HALF_UP);
         BigDecimal vatRateDecimal = BigDecimal.valueOf(item.getVat().getMultiplier());
         BigDecimal itemNetDecimal = itemGrossDecimal.divide(vatRateDecimal, 2, RoundingMode.HALF_UP);
         BigDecimal itemVatDecimal = itemGrossDecimal.subtract(itemNetDecimal);
+
+        // Używamy String.valueOf dla floata by zachować dokładność przed konwersją do Double
+        double quantityDouble = Double.parseDouble(String.valueOf(item.getQuantity()));
 
         return Pozycja.builder()
                 .lpFa(lp) // Używamy przekazanego numeru porządkowego
                 .nazwaTowaruUslugi(item.getName())
                 .pkwiu(item.getPkwiu())
                 .jednostkaMiary(item.getUnit())
-                .ilosc((double) item.getQuantity())
+                .ilosc(quantityDouble)
                 .cenaJednostkowaNetto(item.getAmount().getNumber().numberValue(BigDecimal.class)
                         .divide(vatRateDecimal, 2, RoundingMode.HALF_UP).doubleValue())
                 .kwotaNetto(itemNetDecimal.doubleValue())
@@ -223,10 +251,9 @@ public class KsefInvoiceMapper {
 
         // Dodanie numeru konta dla przelewu
         if (PaymentMethod.TRANSFER.equals(invoice.getPaymentMethod())) {
-            //TODO numer konta z konfiguracji
             builder.rachunekBankowy(Collections.singletonList(
                     RachunekBankowy.builder()
-                            .nrRB("12345678901234567890123456") // Przykładowy numer
+                            .nrRB(company.getAccountNo())
                             .build()
             ));
         }
