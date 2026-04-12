@@ -5,12 +5,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDeniedException;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Slf4j
 @Configuration
@@ -39,9 +41,13 @@ public class AwsConfig {
             try {
                 s3Client.headBucket(HeadBucketRequest.builder().bucket(bucketName).build());
                 log.info("AWS S3 credentials OK. Bucket '{}' is reachable.", bucketName);
+            } catch (AccessDeniedException e) {
+                log.error("Brak dostępu do bucketu '{}' (403 Forbidden). Sprawdź politykę IAM, bucket policy i region.", bucketName, e);
+            } catch (S3Exception e) {
+                log.error("Nie udało się zweryfikować bucketu '{}'. Status code: {}, message: {}",
+                        bucketName, e.statusCode(), e.awsErrorDetails() != null ? e.awsErrorDetails().errorMessage() : e.getMessage(), e);
             } catch (Exception e) {
                 log.error("AWS S3 credentials check FAILED for bucket '{}'.", bucketName, e);
-                throw e;
             }
         };
     }
