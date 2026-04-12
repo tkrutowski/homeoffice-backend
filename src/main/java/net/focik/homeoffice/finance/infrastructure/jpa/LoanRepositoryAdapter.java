@@ -121,4 +121,12 @@ class LoanRepositoryAdapter implements LoanRepository {
 
         return loanPage.map(mapper::toDomain);
     }
+
+    @Override
+    public List<Loan> findLoanByStatus(PaymentStatus loanStatus) {
+        return loanDtoRepository.findAllByLoanStatus(loanStatus)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
 }

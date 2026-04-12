@@ -30,6 +30,8 @@ public interface FeeRepository {
 
     List<Fee> findFeeByFirmId(Integer idFirm);
 
+    List<Fee> findFeeByStatus(PaymentStatus loanStatus);
+
     List<FeeInstallment> findFeeInstallmentByFeeId(Integer feeId);
 
     void deleteFeeById(int idFee);

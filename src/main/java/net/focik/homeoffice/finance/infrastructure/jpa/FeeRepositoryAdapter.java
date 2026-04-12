@@ -91,6 +91,14 @@ class FeeRepositoryAdapter implements FeeRepository {
     }
 
     @Override
+    public List<Fee> findFeeByStatus(PaymentStatus loanStatus) {
+        return feeDtoRepository.findAllByFeeStatus(loanStatus)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public List<FeeInstallment> findFeeInstallmentByFeeId(Integer loanId) {
         return feeInstallmentDtoRepository.findAllByIdFee(loanId).stream()
                 .map(loanInstallmentDto -> mapper.toDomain(loanInstallmentDto))

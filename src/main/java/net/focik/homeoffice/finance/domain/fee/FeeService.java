@@ -107,7 +107,12 @@ class FeeService {
     }
 
     List<Fee> findFeesByStatus(PaymentStatus paymentStatus, boolean withInstallment) {
-        List<Fee> feeList = feeRepository.findAll();
+        List<Fee> feeList;
+        if (paymentStatus == null || PaymentStatus.ALL.equals(paymentStatus)){
+            feeList = feeRepository.findAll();
+        }else {
+            feeList = feeRepository.findFeeByStatus(paymentStatus);
+        }
 
         if (withInstallment) {
             for (Fee fee : feeList) {
@@ -115,13 +120,6 @@ class FeeService {
                 fee.addFeeInstallment(feeInstallmentList);
             }
         }
-
-        if (paymentStatus == null || PaymentStatus.ALL.equals(paymentStatus))
-            return feeList;
-
-        feeList = feeList.stream()
-                .filter(loan -> loan.getFeeStatus().equals(paymentStatus))
-                .collect(Collectors.toList());
 
         return feeList;
     }

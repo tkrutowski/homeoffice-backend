@@ -119,7 +119,12 @@ class LoanService {
     }
 
     List<Loan> findLoansByStatus(PaymentStatus loanStatus, boolean withInstallment) {
-        List<Loan> loans = loanRepository.findAll();
+        List<Loan> loans;
+        if (loanStatus == null || PaymentStatus.ALL.equals(loanStatus)) {
+            loans = loanRepository.findAll();
+        } else {
+            loans = loanRepository.findLoanByStatus(loanStatus);
+        }
 
         if (withInstallment) {
             for (Loan l : loans) {
@@ -127,13 +132,6 @@ class LoanService {
                 l.addLoanInstallment(loanInstallmentList);
             }
         }
-
-        if (loanStatus == null || PaymentStatus.ALL.equals(loanStatus))
-            return loans;
-
-        loans = loans.stream()
-                .filter(loan -> loan.getLoanStatus().equals(loanStatus))
-                .collect(Collectors.toList());
 
         return loans;
     }

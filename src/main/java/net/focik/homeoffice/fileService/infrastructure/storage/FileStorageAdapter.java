@@ -3,6 +3,7 @@ package net.focik.homeoffice.fileService.infrastructure.storage;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.fileService.domain.port.secondary.FileRepository;
 import net.focik.homeoffice.utils.share.Module;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -10,26 +11,62 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 @Slf4j
 @Component
 public class FileStorageAdapter implements FileRepository {
-    private final Path rootLocation;
+    @Value("${homeoffice.directory.public}")
+    private final String localCatalog;
+    @Value("${homeoffice.url}")
+    private final String homeUrl;
 
-    public FileStorageAdapter(@Value("${homeoffice.directory.private}") String uploadDir) {
-        this.rootLocation = Paths.get(uploadDir);
+    public FileStorageAdapter(@Value("${homeoffice.directory.local}") String localCatalog, @Value("${homeoffice.url}") String homeUrl) {
+        this.localCatalog = localCatalog;
+        this.homeUrl = homeUrl;
     }
 
     @Override
-    public String save(MultipartFile file, Module module) {
+    public String downloadAndSaveImage(String imageUrl, String name, Module module) {
+        try {
+            log.debug("Downloading image {}", imageUrl);
+            URI uri = new URI(imageUrl);
+            URL url = uri.toURL();
+
+            // Pobieranie rozszerzenia pliku z URL
+            String path = url.getPath();
+            String extension = path.substring(path.lastIndexOf("."));
+
+            String fileName = name.trim().replace(" ", "_") + "_" + UUID.randomUUID() + extension; // Generowanie unikalnej nazwy pliku
+            File outputFile = new File(localCatalog + module.getDirectory() + "/" + fileName);
+            log.debug("Saving image {} in {}", fileName, outputFile);
+            // Pobierz plik z URL i zapisz go na dysku
+            FileUtils.copyURLToFile(url, outputFile, 10000, 10000);
+            log.debug("URL saved file: {}", homeUrl + fileName);
+            return homeUrl + module.getDirectory() +fileName;
+        } catch (IOException e) {
+            log.error("Error downloading ans saving image (return null)",e);
+            return null;
+        } catch (URISyntaxException e) {
+            log.error("Error downloading ans saving image",e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public String saveMultipartFile(MultipartFile file, Module module) {
         log.debug("Starting file save process. Original filename: {}, module: {}", file.getOriginalFilename(), module);
 
         try {
@@ -39,7 +76,7 @@ public class FileStorageAdapter implements FileRepository {
             }
 
             // Tworzenie podkatalogu dla konkretnego modułu
-            Path moduleDir = rootLocation.resolve(module.getDirectory());
+            Path moduleDir = Paths.get(localCatalog).resolve(module.getDirectory());
             createDirectoryIfNotExists(moduleDir);
             log.debug("Module directory ensured at: {}", moduleDir);
 
@@ -67,7 +104,7 @@ public class FileStorageAdapter implements FileRepository {
     public void deleteFile(Module module, String filename) {
         log.debug("Attempting to delete file: {} from module: {}", filename, module);
         try {
-            Path file = rootLocation.resolve(module.getDirectory()).resolve(filename);
+            Path file = Paths.get(localCatalog).resolve(module.getDirectory()).resolve(filename);
             log.debug("Resolved file path: {}", file);
 
             boolean deleted = Files.deleteIfExists(file);
@@ -82,7 +119,7 @@ public class FileStorageAdapter implements FileRepository {
     public Resource getFile(Module module, String filename) {
         log.debug("Attempting to get file: {} from module: {}", filename, module);
         try {
-            Path filePath = rootLocation.resolve(module.getDirectory()).resolve(filename);
+            Path filePath = Paths.get(localCatalog).resolve(module.getDirectory()).resolve(filename);
             log.debug("Resolved file path: {}", filePath);
 
             if (!Files.exists(filePath)) {
@@ -106,6 +143,11 @@ public class FileStorageAdapter implements FileRepository {
         }
     }
 
+    @Override
+    public String saveInBucket(File file, Module module) {
+        return "";
+    }
+
     private String generateUniqueFileName(String originalFilename) {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String extension = StringUtils.getFilenameExtension(originalFilename);
@@ -122,6 +164,6 @@ public class FileStorageAdapter implements FileRepository {
     }
 
     private Path getFilePath(Module module, String fileName) {
-        return Paths.get(rootLocation.toString(), module.getDirectory(), fileName);
+        return Paths.get(Paths.get(localCatalog).toString(), module.getDirectory(), fileName);
     }
 }

@@ -16,6 +16,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @AllArgsConstructor
 @Component
 public class PaymentFacade {

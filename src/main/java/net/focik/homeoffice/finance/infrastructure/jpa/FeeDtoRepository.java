@@ -19,6 +19,8 @@ interface FeeDtoRepository extends JpaRepository<FeeDbDto, Integer> {
 
     List<FeeDbDto> findAllByFirm_Id(Integer firmId);
 
+    List<FeeDbDto> findAllByFeeStatus(PaymentStatus loanStatus);
+
     @Query(value = "SELECT f FROM FeeDbDto f " +
             "LEFT JOIN AppUser u ON f.idUser = u.id " +
             "LEFT JOIN FirmDbDto firm ON f.firm.id = firm.id " +

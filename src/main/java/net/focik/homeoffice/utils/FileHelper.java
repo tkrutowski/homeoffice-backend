@@ -1,54 +1,44 @@
 package net.focik.homeoffice.utils;
 
 import lombok.extern.slf4j.Slf4j;
-import net.focik.homeoffice.utils.share.Module;
-import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.UUID;
+import java.text.Normalizer;
 
 @Slf4j
-@Service
-public class FileHelper implements IFileHelper {
-    @Value("${homeoffice.directory.public}")
-    private final String mainCatalog;
-    @Value("${homeoffice.url}")
-    private final String homeUrl;
+public class FileHelper {
 
-    public FileHelper(@Value("${homeoffice.directory.public}") String mainCatalog, @Value("${homeoffice.url}") String homeUrl) {
-        this.mainCatalog = mainCatalog;
-        this.homeUrl = homeUrl;
+    public static String sanitizeFileName(String name) {
+        String normalized = Normalizer.normalize(name == null ? "" : name, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+
+        String sanitized = normalized
+                .trim()
+                .replaceAll("\\s+", "_")
+                .replaceAll("[\\\\/:*?\"<>|#%&{}$!@+=`~\\[\\]()';,]+", "_")
+                .replaceAll("[^a-zA-Z0-9._-]", "_")
+                .replaceAll("_+", "_")
+                .replaceAll("^[_ .-]+|[_ .-]+$", "");
+
+        return sanitized.isBlank() ? "file" : sanitized;
     }
 
-    public String downloadAndSaveImage(String imageUrl, String name, Module module) {
-        try {
-            log.debug("Downloading image {}", imageUrl);
-            URI uri = new URI(imageUrl);
-            URL url = uri.toURL();
-
-            // Pobieranie rozszerzenia pliku z URL
-            String path = url.getPath();
-            String extension = path.substring(path.lastIndexOf("."));
-
-            String fileName = name.trim().replace(" ", "_") + "_" + UUID.randomUUID() + extension; // Generowanie unikalnej nazwy pliku
-            File outputFile = new File(mainCatalog + module.getDirectory() + "/" + fileName);
-            log.debug("Saving image {} in {}", fileName, outputFile);
-            // Pobierz plik z URL i zapisz go na dysku
-            FileUtils.copyURLToFile(url, outputFile, 10000, 10000);
-            log.debug("URL saved file: {}", homeUrl + fileName);
-            return homeUrl + module.getDirectory() +fileName;
-        } catch (IOException e) {
-            log.error("Error downloading ans saving image (return null)",e);
-            return null;
-        } catch (URISyntaxException e) {
-            log.error("Error downloading ans saving image",e);
-            throw new RuntimeException(e);
+    public static String getFileExtension(String fileName) {
+        if (fileName == null) {
+            return "";
         }
+        int index = fileName.lastIndexOf(".");
+        return index >= 0 ? fileName.substring(index) : "";
+    }
+
+    public static String resolveContentType(String extension) {
+        return switch (extension.toLowerCase()) {
+            case ".png" -> "image/png";
+            case ".jpg", ".jpeg" -> "image/jpeg";
+            case ".gif" -> "image/gif";
+            case ".webp" -> "image/webp";
+            case ".pdf" -> "application/pdf";
+            default -> "application/octet-stream";
+        };
     }
 }
+

@@ -20,12 +20,12 @@ public class FileStorageService {
     private final FileRepository fileRepository;
 
     public FileInfo store(MultipartFile file, Module module) {
-        String url = fileRepository.save(file, module);
+        String url = fileRepository.saveMultipartFile(file, module);
 
         // Tworzenie informacji o pliku
         return new FileInfo(
                 0,
-                Path.of(url).getFileName().toString(),
+                file.getOriginalFilename(),
                 url,
                 file.getContentType(),
                 (int) file.getSize(),

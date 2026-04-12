@@ -1,6 +1,7 @@
 package net.focik.homeoffice.goahead.domain.invoice;
 
 import lombok.AllArgsConstructor;
+import net.focik.homeoffice.fileService.domain.port.secondary.FileRepository;
 import net.focik.homeoffice.goahead.domain.company.Company;
 import net.focik.homeoffice.goahead.domain.company.CompanyFacade;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.InvoiceKsefDto;
@@ -10,7 +11,6 @@ import net.focik.homeoffice.goahead.domain.invoice.port.primary.AddInvoiceUseCas
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.DeleteInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.GetInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.UpdateInvoiceUseCase;
-import net.focik.homeoffice.utils.FileHelperS3;
 import net.focik.homeoffice.utils.share.Module;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.data.domain.Page;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase, AddInvoiceUseCase, GetInvoiceUseCase {
 
     private final InvoiceService invoiceService;
-    private final FileHelperS3 fileHelperS3;
+    private final FileRepository fileRepository;
     private final KsefService ksefService;
     private final CompanyFacade companyFacade;
 
@@ -75,7 +75,7 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
             return null;
         }
         File file = new File(filePath);
-        String s3Url = fileHelperS3.saveInBucket(file, Module.GO_AHEAD);
+        String s3Url = fileRepository.saveInBucket(file, Module.GO_AHEAD);
         file.delete();
         invoice.setPdfUrl(s3Url);
         updateInvoice(invoice);

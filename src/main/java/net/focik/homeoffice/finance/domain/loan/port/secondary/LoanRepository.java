@@ -28,6 +28,8 @@ public interface LoanRepository {
 
     List<Loan> findLoanByBankId(Integer idBank);
 
+    List<Loan> findLoanByStatus(PaymentStatus loanStatus);
+
     List<Loan> findAll();
 
     List<LoanInstallment> findLoanInstallmentByLoanId(Integer loanId);

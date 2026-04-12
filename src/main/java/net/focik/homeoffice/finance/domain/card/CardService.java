@@ -3,6 +3,7 @@ package net.focik.homeoffice.finance.domain.card;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.fileService.domain.port.secondary.FileRepository;
 import net.focik.homeoffice.finance.domain.card.port.secondary.CardRepository;
 import net.focik.homeoffice.finance.domain.exception.CardAlreadyExistException;
 import net.focik.homeoffice.finance.domain.exception.CardCanNotBeDeletedException;
@@ -10,7 +11,6 @@ import net.focik.homeoffice.finance.domain.exception.CardNotFoundException;
 import net.focik.homeoffice.finance.domain.exception.CardNotValidException;
 import net.focik.homeoffice.finance.domain.purchase.Purchase;
 import net.focik.homeoffice.finance.domain.purchase.PurchaseFacade;
-import net.focik.homeoffice.utils.FileHelper;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 import net.focik.homeoffice.utils.share.Module;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ class CardService {
 
     private final CardRepository cardRepository;
     private final PurchaseFacade purchaseFacade;
-    private final FileHelper fileHelper;
+    private final FileRepository fileRepository;
 
 
     Card addCard(Card card) {
@@ -36,7 +36,7 @@ class CardService {
         if(!cardRepository.findCardByName(card.getCardName()).isEmpty())
             throw new CardAlreadyExistException("Karta o tej nazwie już istnieje.");
 
-        card.setImageUrl(fileHelper.downloadAndSaveImage(card.getImageUrl(), card.getCardName(), Module.CARD));
+        card.setImageUrl(fileRepository.downloadAndSaveImage(card.getImageUrl(), card.getCardName(), Module.CARD));
         return cardRepository.saveCard(card);
     }
 

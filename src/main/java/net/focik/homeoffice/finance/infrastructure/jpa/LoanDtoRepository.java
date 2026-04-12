@@ -19,6 +19,8 @@ interface LoanDtoRepository extends JpaRepository<LoanDbDto, Integer> {
 
     List<LoanDbDto> findAllByBank_Id(Integer bankId);
 
+    List<LoanDbDto> findAllByLoanStatus(PaymentStatus loanStatus);
+
     @Query(value = "SELECT l FROM LoanDbDto l " +
             "LEFT JOIN AppUser u ON l.idUser = u.id " +
             "LEFT JOIN BankDbDto b ON l.bank.id = b.id " +

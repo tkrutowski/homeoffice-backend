@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.devices.domain.exception.DeviceNotFoundException;
 import net.focik.homeoffice.devices.domain.model.Device;
 import net.focik.homeoffice.devices.domain.port.secondary.DeviceRepository;
-import net.focik.homeoffice.utils.IFileHelper;
+import net.focik.homeoffice.fileService.domain.port.secondary.FileRepository;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 import net.focik.homeoffice.utils.share.Module;
 import org.apache.commons.lang3.StringUtils;
@@ -19,7 +19,7 @@ import java.util.Optional;
 @AllArgsConstructor
 class DeviceService {
     private final DeviceRepository deviceRepository;
-    private final IFileHelper fileHelperS3;
+    private final FileRepository fileRepository;
 
     public List<Device> getDevices(ActiveStatus activeStatus) {
         List<Device> allDevices = deviceRepository.findAllDevices();
@@ -41,7 +41,7 @@ class DeviceService {
             log.debug("No image url found for device {}", device);
         } else {
             log.debug("Image url found for device {}", device);
-            device.setImageUrl(fileHelperS3.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
+            device.setImageUrl(fileRepository.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
         }
         return deviceRepository.saveDevice(device);
     }
@@ -50,7 +50,7 @@ class DeviceService {
         log.debug("Updating device {}", device);
 
         if (device.getImageUrl() != null && !device.getImageUrl().contains("focik-home")) {
-            device.setImageUrl(fileHelperS3.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
+            device.setImageUrl(fileRepository.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
         }
         Device savedDevice = deviceRepository.saveDevice(device);
         log.debug("Updated device {}", savedDevice);
