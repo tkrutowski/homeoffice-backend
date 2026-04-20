@@ -28,7 +28,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 public class FileStorageAdapter implements FileRepository {
-    @Value("${homeoffice.directory.public}")
+    @Value("${homeoffice.directory.local}")
     private final String localCatalog;
     @Value("${homeoffice.url}")
     private final String homeUrl;
