@@ -16,6 +16,7 @@ public class Payment {
 
     private int id;
     private int idUser;
+    private int idIssuer;
 
     private String name;
     private int paymentDay;

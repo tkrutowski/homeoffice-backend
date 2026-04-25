@@ -45,6 +45,7 @@ public class ApiPaymentMapper {
                 .paymentType(p.getPaymentType())
                 .paymentStatus(p.getPaymentStatus())
                 .installments(installmentToDto(p.getInstallments()))
+                .idIssuer(p.getIdIssuer())
                 .build();
     }
 

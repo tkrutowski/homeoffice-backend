@@ -20,4 +20,5 @@ public class PaymentDto {
     private List<? extends InstallmentDto> installments;
     private PaymentType paymentType;
     private PaymentStatus paymentStatus;
+    private int idIssuer;
 }

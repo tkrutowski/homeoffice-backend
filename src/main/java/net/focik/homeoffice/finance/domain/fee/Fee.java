@@ -55,6 +55,7 @@ public class Fee implements FinancialTransaction {
                 .paymentType(PaymentType.FEE)
                 .paymentStatus(feeStatus)
                 .installments(installments)
+                .idIssuer(firm.getId())
                 .build();
     }
 }

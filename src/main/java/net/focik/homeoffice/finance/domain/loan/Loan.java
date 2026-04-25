@@ -56,6 +56,7 @@ public class Loan implements FinancialTransaction {
                 .paymentType(PaymentType.LOAN)
                 .paymentStatus(loanStatus)
                 .installments(installments)
+                .idIssuer(bank.getId())
                 .build();
     }
 }
