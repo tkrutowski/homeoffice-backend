@@ -26,7 +26,7 @@ public class InvoicePdf {
     public InvoicePdf() throws DocumentException, IOException {
     }
 
-    public static String createPdf(Invoice invoice) {
+    public static String createPdf(Invoice invoice, byte[] qrCode) {
         log.debug("Trying to create pdf file for invoice {}",invoice);
         Document document = new Document();
         File tempFile = null;
@@ -51,6 +51,13 @@ public class InvoicePdf {
             log.debug("Created payment summary");
             document.add(createPaymentSummaryByWord(invoice));
             log.debug("Created payment summary by word");
+
+            if (qrCode != null) {
+                Image img = Image.getInstance(qrCode);
+                document.add(img);
+                log.debug("Created qr code");
+            }
+
             document.add(createOtherInfo(invoice.getOtherInfo()));
             log.debug("Created other info");
             document.add(createSignatures());

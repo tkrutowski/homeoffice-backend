@@ -42,7 +42,7 @@ public class InvoiceDbDto {
     @Column(name = "upo")
     private String upoXml;
     private String upoUrl;
-    private String ksefUrl;
+    private String invoiceHash;
     private String pdfUrl;
 
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)

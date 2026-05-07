@@ -22,9 +22,7 @@ import pl.akmf.ksef.sdk.api.builders.certificate.CertificateBuilders;
 import pl.akmf.ksef.sdk.api.builders.invoices.InvoicesAsyncQueryFiltersBuilder;
 import pl.akmf.ksef.sdk.api.builders.session.OpenOnlineSessionRequestBuilder;
 import pl.akmf.ksef.sdk.api.builders.session.SendInvoiceOnlineSessionRequestBuilder;
-import pl.akmf.ksef.sdk.api.services.DefaultCertificateService;
-import pl.akmf.ksef.sdk.api.services.DefaultCryptographyService;
-import pl.akmf.ksef.sdk.api.services.DefaultSignatureService;
+import pl.akmf.ksef.sdk.api.services.*;
 import pl.akmf.ksef.sdk.client.model.ApiException;
 import pl.akmf.ksef.sdk.client.model.UpoVersion;
 import pl.akmf.ksef.sdk.client.model.auth.*;
@@ -93,33 +91,33 @@ public class KsefService {
     }
 
     private String loginWithToken(Company company) {
-     try{
-         AuthenticationChallengeResponse challenge = ksefClient.getAuthChallenge();
-        DefaultCryptographyService defaultCryptographyService = new DefaultCryptographyService(ksefClient);
-        byte[] encryptedToken = defaultCryptographyService.encryptKsefTokenWithRSAUsingPublicKey(properties.getToken(), challenge.getTimestamp());
+        try {
+            AuthenticationChallengeResponse challenge = ksefClient.getAuthChallenge();
+            DefaultCryptographyService defaultCryptographyService = new DefaultCryptographyService(ksefClient);
+            byte[] encryptedToken = defaultCryptographyService.encryptKsefTokenWithRSAUsingPublicKey(properties.getToken(), challenge.getTimestamp());
 
-        AuthKsefTokenRequest authTokenRequest = new AuthKsefTokenRequestBuilder()
-                .withChallenge(challenge.getChallenge())
-                .withContextIdentifier(new ContextIdentifier(ContextIdentifier.IdentifierType.NIP, company.getNipWithoutDashes()))
-                .withEncryptedToken(Base64.getEncoder().encodeToString(encryptedToken))
-                .build();
+            AuthKsefTokenRequest authTokenRequest = new AuthKsefTokenRequestBuilder()
+                    .withChallenge(challenge.getChallenge())
+                    .withContextIdentifier(new ContextIdentifier(ContextIdentifier.IdentifierType.NIP, company.getNipWithoutDashes()))
+                    .withEncryptedToken(Base64.getEncoder().encodeToString(encryptedToken))
+                    .build();
 
-        SignatureResponse response = ksefClient.authenticateByKSeFToken(authTokenRequest);
+            SignatureResponse response = ksefClient.authenticateByKSeFToken(authTokenRequest);
 
-        waitForAuthProcess(response.getReferenceNumber(), response.getAuthenticationToken().getToken());
+            waitForAuthProcess(response.getReferenceNumber(), response.getAuthenticationToken().getToken());
 
-         AuthOperationStatusResponse tokenResponse = ksefClient.redeemToken(response.getAuthenticationToken().getToken());
-         System.out.println();
+            AuthOperationStatusResponse tokenResponse = ksefClient.redeemToken(response.getAuthenticationToken().getToken());
+            System.out.println();
 
-         // Zapisz token w cache
-         this.cachedAccessToken = tokenResponse.getAccessToken().getToken();
-         this.tokenCreationTime = LocalDateTime.now();
+            // Zapisz token w cache
+            this.cachedAccessToken = tokenResponse.getAccessToken().getToken();
+            this.tokenCreationTime = LocalDateTime.now();
 
-         return tokenResponse.getAccessToken().getToken();
+            return tokenResponse.getAccessToken().getToken();
 
-    } catch (ApiException | InterruptedException e) {
-        throw new KsefResponseException("Failed to login with certificate to KSeF system", e);
-    }
+        } catch (ApiException | InterruptedException e) {
+            throw new KsefResponseException("Failed to login with certificate to KSeF system", e);
+        }
     }
 
 
@@ -283,15 +281,17 @@ public class KsefService {
             List<SendKsefInvoiceResponse> sendKsefInvoiceRespons = new ArrayList<>();
             for (SessionInvoiceStatusResponse sessionInvoiceStatus : invoiceStatusResponses) {
                 String upo = null;
+                String invoiceHash  = null;
                 if (sessionInvoiceStatus.getKsefNumber() != null) {
                     byte[] sessionInvoiceUpoByKsefNumber = ksefClient.getSessionInvoiceUpoByKsefNumber(sessionReferenceNumber, sessionInvoiceStatus.getKsefNumber(), accessToken);
                     upo = new String(sessionInvoiceUpoByKsefNumber);
+                    invoiceHash  = sessionInvoiceStatus.getInvoiceHash();
                 }
 
                 int invoiceCount = sessionStatus.getInvoiceCount();
                 int successfulInvoiceCount = Optional.of(sessionStatus).map(SessionStatusResponse::getSuccessfulInvoiceCount).orElse(0);
                 int failedInvoiceCount = Optional.of(sessionStatus).map(SessionStatusResponse::getFailedInvoiceCount).orElse(0);
-                sendKsefInvoiceRespons.add(new SendKsefInvoiceResponse(sessionInvoiceStatus.getKsefNumber(), sessionInvoiceStatus.getInvoiceNumber(), upo, invoiceCount, successfulInvoiceCount, failedInvoiceCount));
+                sendKsefInvoiceRespons.add(new SendKsefInvoiceResponse(sessionInvoiceStatus.getKsefNumber(), sessionInvoiceStatus.getInvoiceNumber(), invoiceHash, upo, invoiceCount, successfulInvoiceCount, failedInvoiceCount));
             }
             return sendKsefInvoiceRespons;
         } catch (ApiException | InterruptedException e) {
@@ -300,11 +300,12 @@ public class KsefService {
     }
 
 
-    private void getInvoiceByKsefNumber(String ksefNumber) throws ApiException {
+    private byte[] getInvoiceByKsefNumber(String ksefNumber) throws ApiException {
         byte[] invoiceBytes = ksefClient.getInvoice(ksefNumber, getToken());
         if (invoiceBytes == null || invoiceBytes.length == 0) {
             throw new KsefResponseException(String.format("Failed to get invoice '%s'. Response was empty.", ksefNumber));
         }
+        return invoiceBytes;
     }
 
     private void getOnlineSessionInvoiceUpo(String sessionReferenceNumber, String ksefNumber, String accessToken) throws ApiException {
@@ -473,5 +474,12 @@ public class KsefService {
             }
             TimeUnit.SECONDS.sleep(pollIntervalSeconds);
         }
+    }
+
+    public byte[] getQrCode(Invoice invoice) {
+        if (invoice == null || invoice.getKsefNumber() == null) {
+            return null;
+        }
+        return ksefClient.getQrCode(invoice.getKsefNumber(), invoice.getInvoiceHash(),companyFacade.get().getNipWithoutDashes(),invoice.getInvoiceDate());
     }
 }

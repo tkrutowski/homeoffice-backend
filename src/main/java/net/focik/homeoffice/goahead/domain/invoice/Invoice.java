@@ -32,7 +32,7 @@ public class Invoice {
     private String ksefNumber;
     private String upoXml;
     private String upoUrl;
-    private String ksefUrl;
+    private String invoiceHash;
     private String pdfUrl;
 
     public void changePaymentStatus(PaymentStatus newPaymentStatus) {

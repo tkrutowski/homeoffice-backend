@@ -30,7 +30,6 @@ public class InvoiceDto {
     private String otherInfo;
     private String ksefNumber;
     private String upoUrl;
-    private String ksefUrl;
     private String pdfUrl;
     private List<InvoiceItemDto> invoiceItems;
 

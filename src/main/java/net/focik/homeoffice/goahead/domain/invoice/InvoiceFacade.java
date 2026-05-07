@@ -70,7 +70,10 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
     @Override
     public String generateAndSendInvoiceToS3(int idInvoice) {
         Invoice invoice = findById(idInvoice);
-        String filePath = InvoicePdf.createPdf(invoice);
+
+        byte[] qrCode = ksefService.getQrCode(invoice);
+
+        String filePath = InvoicePdf.createPdf(invoice, qrCode);
         if (filePath == null) {
             return null;
         }
@@ -112,6 +115,7 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
         for (SendKsefInvoiceResponse response : ksefInvoiceResponses) {
             Invoice invoice = invoices.get(response.invoiceNumber());
             invoice.setKsefNumber(response.ksefNumber());
+            invoice.setInvoiceHash(response.invoiceHash());
             invoice.setUpoXml(response.upoXml());
             updatedInvoices.add(updateInvoice(invoice));
 
