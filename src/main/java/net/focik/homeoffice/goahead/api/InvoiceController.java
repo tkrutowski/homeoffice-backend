@@ -6,9 +6,12 @@ import net.focik.homeoffice.goahead.api.dto.BasicDto;
 import net.focik.homeoffice.goahead.api.dto.InvoiceDto;
 import net.focik.homeoffice.goahead.api.mapper.ApiInvoiceMapper;
 import net.focik.homeoffice.goahead.domain.invoice.Invoice;
+import net.focik.homeoffice.goahead.domain.invoice.InvoiceFacade;
+import net.focik.homeoffice.goahead.domain.invoice.KsefJobService;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.FindKsefInvoiceRequest;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.InvoiceKsefDto;
-import net.focik.homeoffice.goahead.domain.invoice.ksef.model.SendKsefInvoiceInfoResponse;
+import net.focik.homeoffice.async.AsyncTask;
+import net.focik.homeoffice.async.AsyncTaskStartResponse;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.AddInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.DeleteInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.GetInvoiceUseCase;
@@ -44,6 +47,7 @@ public class InvoiceController extends ExceptionHandling {
     private final AddInvoiceUseCase addInvoiceUseCase;
     private final UpdateInvoiceUseCase updateInvoiceUseCase;
     private final DeleteInvoiceUseCase deleteInvoiceUseCase;
+    private final KsefJobService ksefJobService;
     private final ApiInvoiceMapper mapper;
 
     @GetMapping("/{id}")
@@ -200,14 +204,26 @@ public class InvoiceController extends ExceptionHandling {
 
     @PutMapping("/ksef")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
-    public ResponseEntity<List<InvoiceDto>> addInvoiceToKsef( @RequestBody List<Integer> invoicesIds) {
-        log.info("Test");
-        SendKsefInvoiceInfoResponse response = updateInvoiceUseCase.sendInvoicesToKsef(invoicesIds);
-        log.info("Invoice total: {}, success: {}, failed: {}", response.invoiceCount(), response.successInvoiceCount(), response.failedInvoiceCount());
-
-        return new ResponseEntity<>(response.invoices().stream()
-                .map(mapper::toDto)
-                .toList(), HttpStatus.OK);
+    public ResponseEntity<AsyncTaskStartResponse> addInvoiceToKsef(@RequestBody List<Integer> invoicesIds) {
+        log.info("Request to send {} invoices to KSeF", invoicesIds.size());
+        
+        String jobId = ksefJobService.startJob(invoicesIds);
+        
+        return new ResponseEntity<>(new AsyncTaskStartResponse(jobId), HttpStatus.ACCEPTED);
+    }
+    
+    @GetMapping("/ksef/jobs/{jobId}")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    public ResponseEntity<AsyncTask> getKsefJobStatus(@PathVariable String jobId) {
+        log.info("Request to get KSeF job status for jobId: {}", jobId);
+        
+        AsyncTask jobStatus = ksefJobService.getJobStatus(jobId);
+        
+        if (jobStatus == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        
+        return new ResponseEntity<>(jobStatus, HttpStatus.OK);
     }
 
     @GetMapping("/ksef")
