@@ -9,7 +9,6 @@ import net.focik.homeoffice.utils.MoneyUtils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.time.Period;
 import java.util.Arrays;
 import java.util.List;
@@ -23,7 +22,7 @@ public class InvoicePdf {
     private final static List<String> ITEMS_HEADERS = Arrays.asList("L.p", "Nazwa usługi", "VAT*", "Jm",
             "Ilość", "Wartość jednostkowa", "Wartość usługi");
 
-    public InvoicePdf() throws DocumentException, IOException {
+    public InvoicePdf() {
     }
 
     public static String createPdf(Invoice invoice, byte[] qrCode) {
@@ -54,6 +53,7 @@ public class InvoicePdf {
 
             if (qrCode != null) {
                 Image img = Image.getInstance(qrCode);
+                img.scalePercent(40);
                 document.add(img);
                 log.debug("Created qr code");
             }
@@ -126,8 +126,7 @@ public class InvoicePdf {
         //payment
         Phrase pay = new Phrase();
         Chunk pay1 = new Chunk("Forma płatności: ", FONT_10);
-                //TODO dodać tłumaczenie invoice.getPaymentMethod()
-        Chunk pay2 = new Chunk(String.format(" %s %d dni", invoice.getPaymentMethod(),
+        Chunk pay2 = new Chunk(String.format(" %s %d dni", invoice.getPaymentMethod().getTranslate(),
                 Period.between(invoice.getInvoiceDate(), invoice.getPaymentDate()).getDays()), FONT_10_BOLD);
         Chunk pay3 = new Chunk("    Termin płatności: ", FONT_10);
         Chunk pay4 = new Chunk(invoice.getPaymentDate().toString(), FONT_10_BOLD);
@@ -138,12 +137,11 @@ public class InvoicePdf {
         pay.add(Chunk.NEWLINE);
         pay.add(new Chunk(" ", FONT_EMPTY_SPACE));
         pay.add(Chunk.NEWLINE);
-//        pay.setLeading(50f);
 
         //bank
         Phrase bank = new Phrase();
         Chunk bank1 = new Chunk("Bank: ", FONT_10);
-        Chunk bank2 = new Chunk("Santander Bank", FONT_10_BOLD);
+        Chunk bank2 = new Chunk("Erste Bank", FONT_10_BOLD);
         Chunk bank3 = new Chunk("   Nr konta: ", FONT_10);
         Chunk bank4 = new Chunk("93 1910 1048 2273 6485 5801 0001", FONT_10_BOLD);
         bank.add(bank1);
@@ -305,28 +303,13 @@ public class InvoicePdf {
         table.setWidthPercentage(100);
         addTableHeader(table, ITEMS_HEADERS);
         addRows(table, invoice.getInvoiceItems());
-//
-//        PdfPCell cell = new PdfPCell(new Phrase("*Ustawa o VAT (DZ. U. z 2004r. nr.54, poz.535) art. 43 pkt 1 ust. 28", smallFont));
-//      cell.setHorizontalAlignment(Element.ALIGN_LEFT);
-//        cell.setColspan(3);
-//        cell.setBorder(0);
-//        table.addCell(cell);
-//
-//        PdfPCell cellStr = new PdfPCell(new Phrase("RAZEM", mainFont));
-//        cellStr.setBackgroundColor(GrayColor.GRAYBLACK);
-//        cellStr.setHorizontalAlignment(Element.ALIGN_CENTER);
-//        table.addCell(cellStr);
-
         return table;
     }
 
     private static void addTableHeader(PdfPTable table, java.util.List<String> headers) {
-//        Stream.of("L.p", "Nazwa towaru/usługi", "Podstawa prawna zwolnienia*","Jm",
-//                        "Ilość","Wartość jednostkowa","Wartość towaru/usługi")
         headers.forEach(columnTitle -> {
             PdfPCell header = new PdfPCell();
             header.setBackgroundColor(HEADER_COLOR);
-//            header.setBorderWidth(2);
             header.setHorizontalAlignment(Element.ALIGN_CENTER);
             header.setVerticalAlignment(Element.ALIGN_MIDDLE);
             header.setPhrase(new Phrase(columnTitle, FONT_10));
@@ -378,14 +361,6 @@ public class InvoicePdf {
             cellSum.setHorizontalAlignment(Element.ALIGN_CENTER);
             cellSum.setVerticalAlignment(Element.ALIGN_MIDDLE);
             table.addCell(cellSum);
-
-//            table.addCell(String.valueOf(index++));//lp
-//            table.addCell(item.getName());//name
-//            table.addCell("zw");//podstawa prawna zwolnienia
-//            table.addCell(item.getUnit());//jm
-//            table.addCell(String.valueOf(item.getQuantity()));//ilosc
-//            table.addCell(String.format("%.2f", item.getAmount().getNumberStripped()));
-//            table.addCell(String.format("%.2f", item.getAmount().multiply(item.getQuantity()).getNumberStripped()));
         }
     }
 
@@ -397,21 +372,14 @@ public class InvoicePdf {
 
         PdfPCell cell = new PdfPCell(new Phrase("*Ustawa o VAT (DZ. U. z 2004r. nr.54, poz.535) art. 43 pkt 1 ust. 28", FONT_8));
         cell.setHorizontalAlignment(Element.ALIGN_LEFT);
-//        cell.setColspan(3);
         cell.setBorder(0);
         table.addCell(cell);
-
-//        PdfPCell cellEmpty = new PdfPCell(new Phrase("RAZEM", mainFont));
-//        cellEmpty.setBackgroundColor(BaseColor.LIGHT_GRAY);
-//        cellEmpty.setHorizontalAlignment(Element.ALIGN_CENTER);
-//        table.addCell(cellEmpty);
 
         PdfPCell cellStr = new PdfPCell(new Phrase("RAZEM", FONT_10));
         cellStr.setBackgroundColor(HEADER_COLOR);
         cellStr.setHorizontalAlignment(Element.ALIGN_CENTER);
         cellStr.setVerticalAlignment(Element.ALIGN_MIDDLE);
         table.addCell(cellStr);
-
 
         PdfPCell cellSum = new PdfPCell(new Phrase(String.format("%.2f", invoice.getAmountSum().getNumberStripped()), FONT_10));
         cellSum.setHorizontalAlignment(Element.ALIGN_CENTER);
@@ -460,7 +428,6 @@ public class InvoicePdf {
         //to pay by word
         Phrase toPayByWord = new Phrase();
         Chunk toPayByWord1 = new Chunk("Słownie: ", FONT_10);
-//        Chunk toPayByWord2 = new Chunk("Test", mainFontBold);
         Chunk toPayByWord2 = new Chunk(MoneyUtils.amountByWords(invoice.getAmountSum()), FONT_10_BOLD);
         toPayByWord.add(toPayByWord1);
         toPayByWord.add(toPayByWord2);
@@ -481,10 +448,10 @@ public class InvoicePdf {
 
         PdfPTable table = new PdfPTable(1);
         table.setWidthPercentage(100);
+        table.setSpacingBefore(15f);
 
         PdfPCell header = new PdfPCell();
         header.setBackgroundColor(HEADER_COLOR);
-//        header.setBorderWidth(2);
         header.setHorizontalAlignment(Element.ALIGN_CENTER);
         header.setVerticalAlignment(Element.ALIGN_MIDDLE);
         header.setPhrase(new Phrase("UWAGI", FONT_10));
@@ -552,60 +519,6 @@ public class InvoicePdf {
         PdfPCell cellEmptySec5 = new PdfPCell(new Phrase("", FONT_10));
         cellEmptySec5.setBorderWidth(0);
         table.addCell(cellEmptySec5);
-
-
         return table;
-    }
-
-    private static void addCustomRows(PdfPTable table)
-            throws URISyntaxException, BadElementException, IOException {
-//        Path path = Paths.get(ClassLoader.getSystemResource("Java_logo.png").toURI());
-//        Image img = Image.getInstance(path.toAbsolutePath().toString());
-//        img.scalePercent(10);
-
-//        PdfPCell imageCell = new PdfPCell(img);
-//        table.addCell(imageCell);
-
-        PdfPCell horizontalAlignCell = new PdfPCell(new Phrase("row 2, col 2"));
-        horizontalAlignCell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        table.addCell(horizontalAlignCell);
-
-        PdfPCell verticalAlignCell = new PdfPCell(new Phrase("row 2, col 3"));
-        verticalAlignCell.setVerticalAlignment(Element.ALIGN_BOTTOM);
-        table.addCell(verticalAlignCell);
-    }
-
-    public void createPdf(String dest) throws IOException, DocumentException, com.itextpdf.text.DocumentException {
-        Document document = new Document(PageSize.A4.rotate());
-        PdfWriter.getInstance(document, new FileOutputStream(dest));
-        document.open();
-        float[] columnWidths = {1, 5, 5};
-        PdfPTable table = new PdfPTable(columnWidths);
-        table.setWidthPercentage(100);
-        table.getDefaultCell().setUseAscender(true);
-        table.getDefaultCell().setUseDescender(true);
-        Font f = new Font(Font.FontFamily.HELVETICA, 13, Font.NORMAL, GrayColor.GRAYWHITE);
-        PdfPCell cell = new PdfPCell(new Phrase("This is a header", f));
-        cell.setBackgroundColor(GrayColor.GRAYBLACK);
-        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        cell.setColspan(3);
-        table.addCell(cell);
-        table.getDefaultCell().setBackgroundColor(new GrayColor(0.75f));
-        for (int i = 0; i < 2; i++) {
-            table.addCell("#");
-            table.addCell("Key");
-            table.addCell("Value");
-        }
-        table.setHeaderRows(3);
-        table.setFooterRows(1);
-        table.getDefaultCell().setBackgroundColor(GrayColor.GRAYWHITE);
-        table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_CENTER);
-        for (int counter = 1; counter < 101; counter++) {
-            table.addCell(String.valueOf(counter));
-            table.addCell("key " + counter);
-            table.addCell("value " + counter);
-        }
-        document.add(table);
-        document.close();
     }
 }
