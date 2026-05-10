@@ -125,8 +125,8 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
 
     @Override
     public List<InvoiceKsefDto> findKsefInvoices(LocalDate fromDate, LocalDate toDate) {
-        List<InvoiceKsefDto> invoices = ksefService.findInvoices(fromDate, toDate, InvoiceQuerySubjectType.SUBJECT1);
+        Map<InvoiceKsefDto, String>  invoices = ksefService.findInvoices(fromDate, toDate, InvoiceQuerySubjectType.SUBJECT1);
         System.out.println();
-        return invoices;
+        return invoices.keySet().stream().toList();
     }
 }

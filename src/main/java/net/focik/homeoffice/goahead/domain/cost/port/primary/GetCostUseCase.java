@@ -17,4 +17,6 @@ public interface GetCostUseCase {
                                             String dateComparisonType, BigDecimal amount, String amountComparisonType,
                                             PaymentStatus status);
     List<Cost> findKsefCosts(LocalDate fromDate, LocalDate toDate);
+
+    String generateAndSendCostToS3(int idCost);
 }

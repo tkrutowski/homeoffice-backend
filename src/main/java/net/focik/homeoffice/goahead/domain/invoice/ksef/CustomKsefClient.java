@@ -7,7 +7,6 @@ import pl.akmf.ksef.sdk.api.DefaultKsefClient;
 import pl.akmf.ksef.sdk.api.KsefApiProperties;
 import pl.akmf.ksef.sdk.api.services.DefaultQrCodeService;
 import pl.akmf.ksef.sdk.api.services.DefaultVerificationLinkService;
-import pl.akmf.ksef.sdk.client.model.ApiException;
 
 import java.net.http.HttpClient;
 import java.time.Duration;

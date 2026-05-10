@@ -1,5 +1,6 @@
 package net.focik.homeoffice.goahead.domain.invoice;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
@@ -169,8 +170,8 @@ public class KsefService {
     }
 
 
-    public List<InvoiceKsefDto> findInvoices(LocalDate fromDate, LocalDate toDate, InvoiceQuerySubjectType subjectType) {
-        List<InvoiceKsefDto> foundInvoices = new ArrayList<>();
+    public Map<InvoiceKsefDto, String> findInvoices(LocalDate fromDate, LocalDate toDate, InvoiceQuerySubjectType subjectType) {
+        Map<InvoiceKsefDto, String> foundInvoices = new HashMap<>();
         try {
             DefaultCryptographyService defaultCryptographyService = new DefaultCryptographyService(ksefClient);
             String accessToken = getToken();
@@ -199,13 +200,26 @@ public class KsefService {
             );
             Map<String, String> downloadedFiles = FilesUtil.unzip(mergedZip);
 
-            String metadataJson = downloadedFiles.keySet()
+            Map<String, String> ksefToInvoiceJson = downloadedFiles.keySet()
                     .stream()
                     .filter(fileName -> fileName.endsWith(".json"))
                     .findFirst()
                     .map(downloadedFiles::get)
-                    .orElse(null);
-//        InvoicePackageMetadata invoicePackageMetadata = objectMapper.readValue(metadataJson, InvoicePackageMetadata.class);
+                    .map(json -> {
+                        try {
+                            com.fasterxml.jackson.databind.JsonNode root = objectMapper.readTree(json);
+                            return java.util.stream.StreamSupport.stream(root.path("invoices").spliterator(), false)
+                                    .collect(java.util.stream.Collectors.toMap(
+                                            n -> n.path("ksefNumber").asText(),
+                                            JsonNode::toString,
+                                            (a, b) -> a
+                                    ));
+                        } catch (Exception e) {
+                            log.error("Błąd parsowania pliku JSON", e);
+                            return Collections.<String, String>emptyMap();
+                        }
+                    })
+                    .orElseGet(Collections::emptyMap);
 
             List<String> invoices = downloadedFiles.keySet()
                     .stream()
@@ -221,7 +235,11 @@ public class KsefService {
                     JAXBContext context = JAXBContext.newInstance(InvoiceKsefDto.class);
                     Unmarshaller unmarshaller = context.createUnmarshaller();
                     InvoiceKsefDto invoiceDto = (InvoiceKsefDto) unmarshaller.unmarshal(new StringReader(xmlContent));
-                    foundInvoices.add(invoiceDto);
+                    
+                    String ksefNumber = fileName.replace(".xml", "");
+                    String invoiceJsonString = ksefToInvoiceJson.get(ksefNumber);
+                    
+                    foundInvoices.put(invoiceDto, invoiceJsonString);
                 } catch (JAXBException e) {
                     log.error("Błąd mapowania XML na InvoiceKsefDto: " + e.getMessage(), e);
                 }
@@ -473,6 +491,19 @@ public class KsefService {
                 return; // Warunek spełniony
             }
             TimeUnit.SECONDS.sleep(pollIntervalSeconds);
+        }
+    }
+
+    public String getFromJson(String invoiceJson, String param) {
+        if (invoiceJson == null || invoiceJson.isBlank() || param == null || param.isBlank()) {
+            return null;
+        }
+        try {
+            JsonNode node = objectMapper.readTree(invoiceJson);
+            return node.path(param).asText(null);
+        } catch (Exception e) {
+            log.error("Błąd podczas parsowania JSON i wyciągania parametru: " + param, e);
+            return null;
         }
     }
 

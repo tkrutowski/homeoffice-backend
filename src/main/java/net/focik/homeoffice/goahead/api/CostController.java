@@ -2,14 +2,19 @@ package net.focik.homeoffice.goahead.api;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.async.AsyncTask;
+import net.focik.homeoffice.async.AsyncTaskStartResponse;
 import net.focik.homeoffice.goahead.api.dto.CostDto;
 import net.focik.homeoffice.goahead.api.mapper.ApiCostMapper;
 import net.focik.homeoffice.goahead.domain.cost.Cost;
+import net.focik.homeoffice.goahead.domain.cost.KsefCostJobService;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.AddCostUseCase;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.DeleteCostUseCase;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.GetCostUseCase;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.UpdateCostUseCase;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.model.FindKsefInvoiceRequest;
 import net.focik.homeoffice.utils.exceptions.ExceptionHandling;
+import net.focik.homeoffice.utils.exceptions.ObjectNotSavedException;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -21,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -34,6 +40,7 @@ public class CostController extends ExceptionHandling {
     private final UpdateCostUseCase updateCostUseCase;
     private final DeleteCostUseCase deleteCostUseCase;
     private final ApiCostMapper mapper;
+    private final KsefCostJobService ksefCostJobService;
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
@@ -95,6 +102,21 @@ public class CostController extends ExceptionHandling {
         return new ResponseEntity<>(mapper.toDto(savedCost), HttpStatus.CREATED);
     }
 
+    @PostMapping("/pdf/{id}")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    ResponseEntity<Map<String, String>> generateAndSavePdfById(@PathVariable int id) {
+        log.info("Request to generate PDF and save to S3 for cost with id: {}", id);
+        String s3Url = getCostUseCase.generateAndSendCostToS3(id);
+
+        if (s3Url == null) {
+            log.error("Failed to generate and save PDF to S3 for cost with id: {}", id);
+            throw new ObjectNotSavedException("Nie udało się wygenerować i zapisać pliku PDF dla kosztu o ID: " + id);
+        }
+
+        log.info("Successfully generated and saved pdf to S3 for Cost with id {}", id);
+        return ResponseEntity.ok(Map.of("url", s3Url));
+    }
+
     @PutMapping
     @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
     public ResponseEntity<CostDto> updateCost(@RequestBody CostDto costDto) {
@@ -112,11 +134,27 @@ public class CostController extends ExceptionHandling {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/ksef")
-    public ResponseEntity<List<CostDto>> findKsefCosts(@RequestParam(name = "dateFrom") LocalDate fromDate, @RequestParam(name = "dateTo") LocalDate toDate )  {
-        log.info("Request to find KSeF costs from {} to {}", fromDate, toDate);
-        List<Cost> ksefInvoices = getCostUseCase.findKsefCosts(fromDate, toDate);
-        log.info("Found {} KSeF costs", ksefInvoices.size());
-        return new ResponseEntity<>(ksefInvoices.stream().map(mapper::toDto).toList(), HttpStatus.OK);
+    @PostMapping("/ksef")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    public ResponseEntity<AsyncTaskStartResponse> findKsefCosts(@RequestBody FindKsefInvoiceRequest request )  {
+        log.info("Request to start job to find KSeF costs from {} to {}", request.fromDate(), request.toDate());
+        
+        String jobId = ksefCostJobService.startJob(request.fromDate(), request.toDate());
+        
+        return new ResponseEntity<>(new AsyncTaskStartResponse(jobId), HttpStatus.ACCEPTED);
+    }
+    
+    @GetMapping("/ksef/jobs/{jobId}")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    public ResponseEntity<AsyncTask> getKsefCostJobStatus(@PathVariable String jobId) {
+        log.info("Request to get KSeF cost job status for jobId: {}", jobId);
+        
+        AsyncTask jobStatus = ksefCostJobService.getJobStatus(jobId);
+        
+        if (jobStatus == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        
+        return new ResponseEntity<>(jobStatus, HttpStatus.OK);
     }
 }

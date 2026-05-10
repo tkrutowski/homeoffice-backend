@@ -29,7 +29,7 @@ public class CostDbDto {
     
     private String number;
     private String ksefNumber;
-    private String ksefUrl;
+    private String invoiceHash;
     private String pdfUrl;
     
     @DateTimeFormat(pattern = "yyyy-MM-dd")

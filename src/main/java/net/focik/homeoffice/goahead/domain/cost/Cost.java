@@ -27,7 +27,7 @@ public class Cost {
     private List<CostItem> costItems;
     private Supplier supplier;
     private String ksefNumber;
-    private String ksefUrl;
+    private String invoiceHash;
     private String pdfUrl;
 
     public void changePaymentStatus(PaymentStatus newPaymentStatus) {
