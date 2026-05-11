@@ -2,23 +2,23 @@ package net.focik.homeoffice.goahead.api;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.async.AsyncTask;
+import net.focik.homeoffice.async.AsyncTaskStartResponse;
 import net.focik.homeoffice.goahead.api.dto.BasicDto;
 import net.focik.homeoffice.goahead.api.dto.InvoiceDto;
 import net.focik.homeoffice.goahead.api.mapper.ApiInvoiceMapper;
 import net.focik.homeoffice.goahead.domain.invoice.Invoice;
 import net.focik.homeoffice.goahead.domain.invoice.InvoiceFacade;
 import net.focik.homeoffice.goahead.domain.invoice.KsefJobService;
+import net.focik.homeoffice.goahead.domain.invoice.PdfJobService;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.FindKsefInvoiceRequest;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.InvoiceKsefDto;
-import net.focik.homeoffice.async.AsyncTask;
-import net.focik.homeoffice.async.AsyncTaskStartResponse;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.AddInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.DeleteInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.GetInvoiceUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.UpdateInvoiceUseCase;
 import net.focik.homeoffice.utils.exceptions.ExceptionHandling;
 import net.focik.homeoffice.utils.exceptions.HttpResponse;
-import net.focik.homeoffice.utils.exceptions.ObjectNotSavedException;
 import net.focik.homeoffice.utils.share.PaymentMethod;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.data.domain.Page;
@@ -48,7 +48,9 @@ public class InvoiceController extends ExceptionHandling {
     private final UpdateInvoiceUseCase updateInvoiceUseCase;
     private final DeleteInvoiceUseCase deleteInvoiceUseCase;
     private final KsefJobService ksefJobService;
+    private final PdfJobService pdfJobService;
     private final ApiInvoiceMapper mapper;
+    private final InvoiceFacade invoiceFacade;
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
@@ -98,19 +100,28 @@ public class InvoiceController extends ExceptionHandling {
         return ResponseEntity.ok(dtoPage);
     }
 
-    @PostMapping("/pdf/{id}")
+    @PostMapping("/pdf")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
-    ResponseEntity<Map<String, String>> generateAndSavePdfById(@PathVariable int id) {
-        log.info("Request to generate PDF and save to S3 for invoice with id: {}", id);
-        String s3Url = getInvoiceUseCase.generateAndSendInvoiceToS3(id);
+    public ResponseEntity<AsyncTaskStartResponse> generateAndSavePdfById(@RequestBody List<Integer> invoicesIds) {
+        log.info("Request to generate PDF and save to S3 for {} invoices", invoicesIds.size());
         
-        if (s3Url == null) {
-            log.error("Failed to generate and save PDF to S3 for invoice with id: {}", id);
-            throw new ObjectNotSavedException("Nie udało się wygenerować i zapisać pliku PDF dla faktury o ID: " + id);
+        String jobId = pdfJobService.startJob(invoicesIds);
+        
+        return new ResponseEntity<>(new AsyncTaskStartResponse(jobId), HttpStatus.ACCEPTED);
+    }
+    
+    @GetMapping("/pdf/jobs/{jobId}")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    public ResponseEntity<AsyncTask> getPdfJobStatus(@PathVariable String jobId) {
+        log.info("Request to get PDF job status for jobId: {}", jobId);
+        
+        AsyncTask jobStatus = pdfJobService.getJobStatus(jobId);
+        
+        if (jobStatus == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         
-        log.info("Successfully generated and saved pdf to S3 for Invoice with id {}", id);
-        return ResponseEntity.ok(Map.of("url", s3Url));
+        return new ResponseEntity<>(jobStatus, HttpStatus.OK);
     }
 
     @GetMapping("/number/{year}")

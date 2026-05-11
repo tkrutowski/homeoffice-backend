@@ -2,6 +2,7 @@ package net.focik.homeoffice.goahead.infrastructure.jpa;
 
 import lombok.AllArgsConstructor;
 import net.focik.homeoffice.goahead.domain.invoice.Invoice;
+import net.focik.homeoffice.goahead.domain.invoice.InvoiceItem;
 import net.focik.homeoffice.goahead.domain.invoice.port.secondary.InvoiceRepository;
 import net.focik.homeoffice.goahead.infrastructure.dto.InvoiceDbDto;
 import net.focik.homeoffice.utils.share.PaymentStatus;
@@ -45,7 +46,7 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
         }
         
         InvoiceDbDto saved = invoiceDtoRepository.save(dbDto);
-        return mapper.map(saved, Invoice.class);
+        return mapToDomain(saved);
     }
 
     @Override
@@ -57,20 +58,20 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
     public List<Invoice> findAll() {
         List<InvoiceDbDto> all = invoiceDtoRepository.findAll();
         return all.stream()
-                .map(invoiceDbDto -> mapper.map(invoiceDbDto, Invoice.class))
+                .map(this::mapToDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public Optional<Invoice> findById(Integer id) {
         return invoiceDtoRepository.findById(id)
-                .map(invoiceDbDto -> mapper.map(invoiceDbDto, Invoice.class));
+                .map(this::mapToDomain);
     }
 
     @Override
     public Optional<Invoice> findByNumber(String number) {
         return invoiceDtoRepository.findByNumber(number)
-                .map(invoiceDbDto -> mapper.map(invoiceDbDto, Invoice.class));
+                .map(this::mapToDomain);
     }
 
     @Override
@@ -103,13 +104,13 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
         }
 
         return invoiceDtoRepository.findAll(spec, pageable)
-                .map(invoiceDbDto -> mapper.map(invoiceDbDto, Invoice.class));
+                .map(this::mapToDomain);
     }
 
     @Override
     public List<Invoice> findLastInvoiceNumberByYear(Integer year) {
         return invoiceDtoRepository.findInvoiceDbDtosByNumberContainsOrderByNumberDesc(year.toString()).stream()
-                .map(invoiceDbDto -> mapper.map(invoiceDbDto, Invoice.class))
+                .map(this::mapToDomain)
                 .collect(Collectors.toList());
     }
 
@@ -176,5 +177,17 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
                     return cb.equal(root.get("grossAmount"), amount);
             }
         };
+    }
+
+    private Invoice mapToDomain(InvoiceDbDto dbDto) {
+        Invoice invoice = mapper.map(dbDto, Invoice.class);
+        if (dbDto.getInvoiceItems() != null) {
+            // ModelMapper can sometimes have issues with persistent bags, we can manually map the items or copy them to a new arraylist
+            List<InvoiceItem> items = dbDto.getInvoiceItems().stream()
+                .map(item -> mapper.map(item, InvoiceItem.class))
+                .collect(Collectors.toList());
+            invoice.setInvoiceItems(items);
+        }
+        return invoice;
     }
 }
