@@ -9,12 +9,14 @@ import net.focik.homeoffice.goahead.domain.cost.port.primary.GetCostUseCase;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.UpdateCostUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.KsefService;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.InvoiceKsefDto;
+import net.focik.homeoffice.utils.share.Module;
 import net.focik.homeoffice.utils.share.PaymentMethod;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import pl.akmf.ksef.sdk.client.model.invoice.InvoiceQuerySubjectType;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -89,21 +91,20 @@ public class CostFacade implements AddCostUseCase, GetCostUseCase, UpdateCostUse
 
     @Override
     public String generateAndSendCostToS3(int idCost) {
-//        Cost cost = getCost(idCost);
-//
-//        byte[] qrCode = ksefService.getQrCode(cost);
-//
-//        String filePath = InvoicePdf.createPdf(cost, qrCode);
-//        if (filePath == null) {
-//            return null;
-//        }
-//        File file = new File(filePath);
-//        String s3Url = fileRepository.saveInBucket(file, Module.GO_AHEAD);
-//        file.delete();
-//        cost.setPdfUrl(s3Url);
-//        updateCost(cost);
-//        return s3Url;
-        return null;
+        Cost cost = getCost(idCost);
+
+        byte[] qrCode = ksefService.getQrCode(cost);
+
+        String filePath = CostPdf.createPdf(cost, qrCode);
+        if (filePath == null) {
+            return null;
+        }
+        File file = new File(filePath);
+        String s3Url = fileRepository.saveInBucket(file, Module.GO_AHEAD);
+        file.delete();
+        cost.setPdfUrl(s3Url);
+        updateCost(cost);
+        return s3Url;
     }
 
     @Override

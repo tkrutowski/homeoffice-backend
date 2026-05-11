@@ -15,7 +15,7 @@ import java.util.List;
 @Setter
 @ToString
 public class CostDto {
-    private int id;
+    private int idCost;
     private SupplierDto supplier;
     private String number;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Europe/Warsaw")

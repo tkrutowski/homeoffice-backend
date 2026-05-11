@@ -10,5 +10,5 @@ public interface GetSupplierUseCase {
 
     List<Supplier> findByName(String name);
 
-    List<Supplier> findByAll(CustomerStatus customerStatus);
+    List<Supplier> findByAll(CustomerStatus status);
 }

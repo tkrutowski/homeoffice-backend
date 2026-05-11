@@ -4,13 +4,15 @@ import lombok.Getter;
 
 @Getter
 public enum PaymentMethod {
-    CASH(1),
-    CASH_LATE(1),
-    TRANSFER(6);
+    CASH(1, "Gotówka"),
+    CASH_LATE(1, "Płatność odroczona"),
+    TRANSFER(6, "Przelew");
 
     private final int ksefCode;
+    private final String translate;
 
-    PaymentMethod(int ksefCode) {
+    PaymentMethod(int ksefCode, String translate) {
         this.ksefCode = ksefCode;
+        this.translate = translate;
     }
 }

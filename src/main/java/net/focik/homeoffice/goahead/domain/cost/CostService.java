@@ -1,5 +1,6 @@
 package net.focik.homeoffice.goahead.domain.cost;
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import net.focik.homeoffice.goahead.domain.cost.port.secondary.CostRepository;
 import net.focik.homeoffice.utils.share.PaymentStatus;
@@ -23,6 +24,7 @@ class CostService {
         return costRepository.addCost(cost);
     }
 
+    @Transactional
     public Cost getCost(int id) {
         return costRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Cost not found with id: " + id));

@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import net.focik.homeoffice.goahead.domain.cost.Cost;
 import net.focik.homeoffice.goahead.domain.cost.port.secondary.CostRepository;
 import net.focik.homeoffice.goahead.infrastructure.dto.CostDbDto;
+import net.focik.homeoffice.goahead.infrastructure.mapper.JpaCostMapper;
 import net.focik.homeoffice.utils.share.PaymentStatus;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,11 +22,11 @@ import java.util.stream.Collectors;
 public class CostRepositoryAdapter implements CostRepository {
 
     private final CostDtoRepository costDtoRepository;
-    private final ModelMapper mapper;
+    private final JpaCostMapper mapper;
 
     @Override
     public Cost addCost(Cost cost) {
-        CostDbDto dbDto = mapper.map(cost, CostDbDto.class);
+        CostDbDto dbDto = mapper.toDto(cost);
         if (dbDto.getIdCost() != null && dbDto.getIdCost() == 0) {
             dbDto.setIdCost(null);
         }
@@ -40,7 +40,7 @@ public class CostRepositoryAdapter implements CostRepository {
         }
         
         CostDbDto saved = costDtoRepository.save(dbDto);
-        return mapper.map(saved, Cost.class);
+        return mapper.toDomain(saved);
     }
 
     @Override
@@ -56,20 +56,20 @@ public class CostRepositoryAdapter implements CostRepository {
     @Override
     public List<Cost> findAll() {
         return costDtoRepository.findAll().stream()
-                .map(dto -> mapper.map(dto, Cost.class))
+                .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public Optional<Cost> findById(int id) {
         return costDtoRepository.findById(id)
-                .map(dto -> mapper.map(dto, Cost.class));
+                 .map(mapper::toDomain);
     }
 
     @Override
     public List<Cost> findByDate(LocalDate date) {
         return costDtoRepository.findByInvoiceDate(date).stream()
-                .map(dto -> mapper.map(dto, Cost.class))
+                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
 
@@ -99,7 +99,7 @@ public class CostRepositoryAdapter implements CostRepository {
         }
 
         return costDtoRepository.findAll(spec, pageable)
-                .map(costDbDto -> mapper.map(costDbDto, Cost.class));
+                .map(mapper::toDomain);
     }
 
     private Specification<CostDbDto> getSpecificationByDate(LocalDate date, String dateComparisonType) {

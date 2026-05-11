@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.config.KsefInvoiceApiProperties;
 import net.focik.homeoffice.goahead.domain.company.Company;
 import net.focik.homeoffice.goahead.domain.company.CompanyFacade;
+import net.focik.homeoffice.goahead.domain.cost.Cost;
 import net.focik.homeoffice.goahead.domain.exception.KsefResponseException;
 import net.focik.homeoffice.goahead.domain.exception.StatusWaitingException;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.CustomKsefClient;
@@ -508,9 +509,16 @@ public class KsefService {
     }
 
     public byte[] getQrCode(Invoice invoice) {
-        if (invoice == null || invoice.getKsefNumber() == null) {
+        if (invoice == null || invoice.getKsefNumber() == null || invoice.getInvoiceHash() == null) {
             return null;
         }
         return ksefClient.getQrCode(invoice.getKsefNumber(), invoice.getInvoiceHash(),companyFacade.get().getNipWithoutDashes(),invoice.getInvoiceDate());
+    }
+
+    public byte[] getQrCode(Cost cost) {
+        if (cost == null || cost.getKsefNumber() == null || cost.getInvoiceHash() == null) {
+            return null;
+        }
+        return ksefClient.getQrCode(cost.getKsefNumber(), cost.getInvoiceHash(),companyFacade.get().getNipWithoutDashes(),cost.getInvoiceDate());
     }
 }

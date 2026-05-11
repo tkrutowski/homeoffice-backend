@@ -40,6 +40,7 @@ class InvoiceService {
             throw new InvoiceAlreadyExistException("Faktura o numerze " + invoice.getNumber() + " już istnieje.");
     }
 
+    @Transactional
     public Invoice findById(Integer id) {
         log.debug("Trying to find invoice with id {}", id);
         Optional<Invoice> byId = invoiceRepository.findById(id);
@@ -50,6 +51,7 @@ class InvoiceService {
         return byId.get();
     }
 
+    @Transactional
     public List<Invoice> findAllBy(PaymentStatus paymentStatus) {
         log.debug("Trying to find invoice with payment status {}", paymentStatus);
         List<Invoice> invoiceList = invoiceRepository.findAll();
@@ -63,6 +65,7 @@ class InvoiceService {
         return invoiceList;
     }
 
+    @Transactional
     public int getNewInvoiceNumber(int year) {
         log.info("Trying to get new invoice number for year " + year);
         int latestNumber = invoiceRepository.findLastInvoiceNumberByYear(year).stream()
@@ -75,6 +78,7 @@ class InvoiceService {
         return ++latestNumber;
     }
 
+    @Transactional
     public Page<Invoice> findInvoicesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, Integer idCustomer, LocalDate sellDate, String sellDateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortField);
         PageRequest pageRequest = PageRequest.of(page, size, sort);

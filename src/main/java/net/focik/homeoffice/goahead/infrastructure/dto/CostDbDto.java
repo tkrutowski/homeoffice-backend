@@ -49,6 +49,6 @@ public class CostDbDto {
     
     private String otherInfo;
 
-    @OneToMany(mappedBy = "cost", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "cost", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<CostItemDbDto> costItems;
 }
