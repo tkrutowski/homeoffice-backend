@@ -30,6 +30,6 @@ public class SupplierDbDto {
     @Enumerated(EnumType.STRING)
     private CustomerStatus status;
     private String accountNumber;
-    private String bank;
+    private String bankName;
 
 }

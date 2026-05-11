@@ -145,7 +145,7 @@ public class CostPdf {
         //bank
         Phrase bank = new Phrase();
         Chunk bank1 = new Chunk("Bank: ", FONT_10);
-        Chunk bank2 = new Chunk(cost.getSupplier().getBank() == null ? "" : cost.getSupplier().getBank(), FONT_10_BOLD);
+        Chunk bank2 = new Chunk(cost.getSupplier().getBankName() == null ? "" : cost.getSupplier().getBankName(), FONT_10_BOLD);
         Chunk bank3 = new Chunk("   Nr konta: ", FONT_10);
         Chunk bank4 = new Chunk(cost.getSupplier().getAccountNumber() == null ? "" : cost.getSupplier().getAccountNumber(), FONT_10_BOLD);
         bank.add(bank1);

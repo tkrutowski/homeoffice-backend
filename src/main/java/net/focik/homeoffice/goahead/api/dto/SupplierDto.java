@@ -20,6 +20,6 @@ public class SupplierDto {
     private String otherInfo;
     private AddressDto address;
     private String accountNumber;
-    private String bank;
+    private String bankName;
 
 }

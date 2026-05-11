@@ -22,7 +22,7 @@ public class Supplier {
     private CustomerStatus status;
     private Address address;
     private String accountNumber;
-    private String bank;
+    private String bankName;
 
     public void updateAddress(String city, String street, String zip) {
         if (StringUtils.isNotEmpty(city)) {

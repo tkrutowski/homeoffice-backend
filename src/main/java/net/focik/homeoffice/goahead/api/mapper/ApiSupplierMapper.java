@@ -24,7 +24,7 @@ public class ApiSupplierMapper {
                 .status(dto.getCustomerStatus())
                 .address(mapper.map(dto.getAddress(), Address.class))
                 .accountNumber(dto.getAccountNumber())
-                .bank(dto.getBank())
+                .bankName(dto.getBankName())
                 .build();
     }
 
@@ -39,7 +39,7 @@ public class ApiSupplierMapper {
                 .customerStatus(s.getStatus())
                 .address(mapper.map(s.getAddress(), AddressDto.class))
                 .accountNumber(s.getAccountNumber())
-                .bank(s.getBank())
+                .bankName(s.getBankName())
                 .build();
     }
 }

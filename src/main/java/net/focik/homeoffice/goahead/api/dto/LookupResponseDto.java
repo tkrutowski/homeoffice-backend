@@ -14,5 +14,6 @@ public class LookupResponseDto {
     private String nip;
     private String regon;
     private String accountNumber;
+    private String bankName;
     private AddressDto addressDto;
 }
