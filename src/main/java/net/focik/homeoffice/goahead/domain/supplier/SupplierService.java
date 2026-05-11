@@ -63,7 +63,7 @@ class SupplierService implements ISupplierService {
 
         if (customerStatus != null && customerStatus != CustomerStatus.ALL) {
             supplierList = supplierList.stream()
-                    .filter(supplier -> customerStatus.equals(supplier.getCustomerStatus()))
+                    .filter(supplier -> customerStatus.equals(supplier.getStatus()))
                     .collect(Collectors.toList());
         }
 

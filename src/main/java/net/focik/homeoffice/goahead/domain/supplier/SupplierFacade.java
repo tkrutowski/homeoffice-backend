@@ -47,7 +47,7 @@ public class SupplierFacade implements AddSupplierUseCase, UpdateSupplierUseCase
     }
 
     @Override
-    public List<Supplier> findByAll(CustomerStatus customerStatus) {
-        return supplierService.findByAll(customerStatus);
+    public List<Supplier> findByAll(CustomerStatus status) {
+        return supplierService.findByAll(status);
     }
 }

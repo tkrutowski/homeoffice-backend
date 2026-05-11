@@ -21,9 +21,10 @@ public class ApiSupplierMapper {
                 .phone(dto.getPhone())
                 .mail(dto.getMail())
                 .otherInfo(dto.getOtherInfo())
-                .customerStatus(dto.getCustomerStatus())
+                .status(dto.getCustomerStatus())
                 .address(mapper.map(dto.getAddress(), Address.class))
                 .accountNumber(dto.getAccountNumber())
+                .bank(dto.getBank())
                 .build();
     }
 
@@ -35,9 +36,10 @@ public class ApiSupplierMapper {
                 .phone(s.getPhone())
                 .otherInfo(s.getOtherInfo())
                 .mail(s.getMail())
-                .customerStatus(s.getCustomerStatus())
+                .customerStatus(s.getStatus())
                 .address(mapper.map(s.getAddress(), AddressDto.class))
-                .accountNumber(s.getAccountNumber() == null ? "" : s.getAccountNumber())
+                .accountNumber(s.getAccountNumber())
+                .bank(s.getBank())
                 .build();
     }
 }

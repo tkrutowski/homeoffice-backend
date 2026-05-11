@@ -19,9 +19,10 @@ public class Supplier {
     private String phone;
     private String mail;
     private String otherInfo;
-    private CustomerStatus customerStatus;
+    private CustomerStatus status;
     private Address address;
     private String accountNumber;
+    private String bank;
 
     public void updateAddress(String city, String street, String zip) {
         if (StringUtils.isNotEmpty(city)) {
@@ -40,7 +41,7 @@ public class Supplier {
     }
 
     public void changeCustomerStatus(CustomerStatus newCustomerStatus) {
-        this.customerStatus = newCustomerStatus;
+        this.status = newCustomerStatus;
     }
 
     public String getNipWithoutDashes() {
