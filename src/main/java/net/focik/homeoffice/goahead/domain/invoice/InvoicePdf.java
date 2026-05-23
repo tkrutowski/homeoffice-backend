@@ -38,8 +38,8 @@ public class InvoicePdf {
             log.debug("Created number");
             document.add(createPayment(invoice));
             log.debug("Created payment");
-            document.add(createSeller(invoice));
-            log.debug("Created seller");
+            document.add(createSupplier(invoice));
+            log.debug("Created supplier");
             document.add(createBuyer(invoice.getCustomer()));
             log.debug("Created buyer");
             document.add(createItemTable(invoice));
@@ -165,7 +165,7 @@ public class InvoicePdf {
         return table;
     }
 
-    private static PdfPTable createSeller(Invoice invoice) {
+    private static PdfPTable createSupplier(Invoice invoice) {
         PdfPTable table = new PdfPTable(1);
         table.setWidthPercentage(100);
 

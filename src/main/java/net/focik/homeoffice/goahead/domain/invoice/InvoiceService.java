@@ -67,7 +67,7 @@ class InvoiceService {
 
     @Transactional
     public int getNewInvoiceNumber(int year) {
-        log.info("Trying to get new invoice number for year " + year);
+        log.info("Trying to get new invoice number for year {}", year);
         int latestNumber = invoiceRepository.findLastInvoiceNumberByYear(year).stream()
                 .map(Invoice::getNumber)
                 .map(s -> s.split("/"))
