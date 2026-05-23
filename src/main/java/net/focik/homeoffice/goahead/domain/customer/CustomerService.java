@@ -59,12 +59,12 @@ class CustomerService implements ICustomerService {
         return byName;
     }
 
-    public List<Customer> findByAll(CustomerStatus customerStatus, CustomerType customerType) {
+    public List<Customer> findByAll(ActiveStatus activeStatus, CustomerType customerType) {
         List<Customer> customerList = customerRepository.findAll();
 
-        if (customerStatus != null && customerStatus != CustomerStatus.ALL) {
+        if (activeStatus != null && activeStatus != ActiveStatus.ALL) {
             customerList = customerList.stream()
-                    .filter(customer -> customerStatus.equals(customer.getCustomerStatus()))
+                    .filter(customer -> activeStatus.equals(customer.getActiveStatus()))
                     .collect(Collectors.toList());
         }
 
@@ -77,7 +77,7 @@ class CustomerService implements ICustomerService {
         return customerList;
     }
 
-    public void updateCustomerStatus(Integer id, CustomerStatus status) {
+    public void updateCustomerStatus(Integer id, ActiveStatus status) {
         Customer customer = findById(id);
         customer.changeCustomerStatus(status);
 

@@ -17,7 +17,7 @@ public interface ICustomerService {
 
     List<Customer> findByName(String name);
 
-    List<Customer> findByAll(CustomerStatus customerStatus, CustomerType customerType);
+    List<Customer> findByAll(ActiveStatus activeStatus, CustomerType customerType);
 
-    void updateCustomerStatus(Integer id, CustomerStatus status);
+    void updateCustomerStatus(Integer id, ActiveStatus status);
 }

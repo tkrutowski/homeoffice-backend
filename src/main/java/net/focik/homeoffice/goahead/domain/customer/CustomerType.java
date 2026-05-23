@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum CustomerType {
     CUSTOMER("Klient"),
     COMPANY("Firma"),
-    SELLER("Sprzedawca");
+    SUPPLIER("Sprzedawca");
 
     private final String viewValue;
 

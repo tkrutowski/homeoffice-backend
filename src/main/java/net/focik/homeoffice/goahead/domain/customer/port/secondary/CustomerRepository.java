@@ -1,7 +1,7 @@
 package net.focik.homeoffice.goahead.domain.customer.port.secondary;
 
 import net.focik.homeoffice.goahead.domain.customer.Customer;
-import net.focik.homeoffice.goahead.domain.customer.CustomerStatus;
+import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -22,5 +22,5 @@ public interface CustomerRepository {
 
     List<Customer> findByName(String name);
 
-    List<Customer> findAllByActive(CustomerStatus status);
+    List<Customer> findAllByActive(ActiveStatus status);
 }

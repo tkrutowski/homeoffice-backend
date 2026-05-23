@@ -1,7 +1,7 @@
 package net.focik.homeoffice.goahead.infrastructure.jpa;
 
 import lombok.AllArgsConstructor;
-import net.focik.homeoffice.goahead.domain.customer.CustomerStatus;
+import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 import net.focik.homeoffice.goahead.domain.supplier.Supplier;
 import net.focik.homeoffice.goahead.domain.supplier.port.secondary.SupplierRepository;
 import net.focik.homeoffice.goahead.infrastructure.dto.SupplierDbDto;
@@ -62,7 +62,7 @@ public class SupplierRepositoryAdapter implements SupplierRepository {
     }
 
     @Override
-    public List<Supplier> findAllByActive(CustomerStatus status) {
+    public List<Supplier> findAllByActive(ActiveStatus status) {
         return null; // To be implemented based on actual query if required
     }
 }

@@ -5,7 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import net.focik.homeoffice.goahead.api.dto.BasicDto;
 import net.focik.homeoffice.goahead.api.dto.SupplierDto;
 import net.focik.homeoffice.goahead.api.mapper.ApiSupplierMapper;
-import net.focik.homeoffice.goahead.domain.customer.CustomerStatus;
+import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 import net.focik.homeoffice.goahead.domain.supplier.Supplier;
 import net.focik.homeoffice.goahead.domain.supplier.port.primary.AddSupplierUseCase;
 import net.focik.homeoffice.goahead.domain.supplier.port.primary.DeleteSupplierUseCase;
@@ -58,7 +58,7 @@ public class SupplierController extends ExceptionHandling {
 
     @GetMapping()
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
-    ResponseEntity<List<SupplierDto>> getAllSuppliers(@RequestParam(required = false) CustomerStatus status) {
+    ResponseEntity<List<SupplierDto>> getAllSuppliers(@RequestParam(required = false) ActiveStatus status) {
         log.info("Request to find all suppliers with status: {}", status);
 
         List<Supplier> supplierList = getSupplierUseCase.findByAll(status);
@@ -115,7 +115,7 @@ public class SupplierController extends ExceptionHandling {
     @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
     public void updateSupplierStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
         log.info("Request to update supplier status for supplier with id: {} from status: {}", id, basicDto.getValue());
-        updateSupplierUseCase.updateSupplierStatus(id, CustomerStatus.valueOf(basicDto.getValue()));
+        updateSupplierUseCase.updateSupplierStatus(id, ActiveStatus.valueOf(basicDto.getValue()));
         log.info("Supplier status updated successfully for supplier with id: {} to status: {}", id, basicDto.getValue());
     }
 }

@@ -1,6 +1,6 @@
 package net.focik.homeoffice.goahead.domain.supplier.port.secondary;
 
-import net.focik.homeoffice.goahead.domain.customer.CustomerStatus;
+import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 import net.focik.homeoffice.goahead.domain.supplier.Supplier;
 import org.springframework.stereotype.Component;
 
@@ -22,5 +22,5 @@ public interface SupplierRepository {
 
     List<Supplier> findByName(String name);
 
-    List<Supplier> findAllByActive(CustomerStatus status);
+    List<Supplier> findAllByActive(ActiveStatus status);
 }

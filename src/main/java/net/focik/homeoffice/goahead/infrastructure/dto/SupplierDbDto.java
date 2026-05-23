@@ -2,7 +2,7 @@ package net.focik.homeoffice.goahead.infrastructure.dto;
 
 import lombok.*;
 import net.focik.homeoffice.addresses.infrastructure.dto.AddressDbDto;
-import net.focik.homeoffice.goahead.domain.customer.CustomerStatus;
+import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 
 import jakarta.persistence.*;
 
@@ -28,7 +28,7 @@ public class SupplierDbDto {
     private String mail;
     private String otherInfo;
     @Enumerated(EnumType.STRING)
-    private CustomerStatus status;
+    private ActiveStatus status;
     private String accountNumber;
     private String bankName;
 

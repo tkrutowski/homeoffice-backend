@@ -20,7 +20,7 @@ public class Customer{
     private String mail;
     private CustomerType customerType;
     private String otherInfo;
-    private CustomerStatus customerStatus;
+    private ActiveStatus activeStatus;
     private String regon;
     private Address address;
 
@@ -52,8 +52,8 @@ public class Customer{
         this.address = new Address(null, city, street, zip);
     }
 
-    public void changeCustomerStatus(CustomerStatus newCustomerStatus) {
-        this.customerStatus = newCustomerStatus;
+    public void changeCustomerStatus(ActiveStatus newActiveStatus) {
+        this.activeStatus = newActiveStatus;
     }
 
     public String getNipWithoutDashes() {

@@ -2,7 +2,7 @@ package net.focik.homeoffice.goahead.infrastructure.inMemory;
 
 import lombok.extern.java.Log;
 import net.focik.homeoffice.goahead.domain.customer.Customer;
-import net.focik.homeoffice.goahead.domain.customer.CustomerStatus;
+import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 import net.focik.homeoffice.goahead.domain.customer.port.secondary.CustomerRepository;
 import net.focik.homeoffice.goahead.infrastructure.dto.CustomerDbDto;
 import net.focik.homeoffice.goahead.infrastructure.mapper.JpaCustomerMapper;
@@ -77,7 +77,7 @@ public class InMemoryCustomerRepositoryAdapter implements CustomerRepository {
     }
 
     @Override
-    public List<Customer> findAllByActive(CustomerStatus status) {
+    public List<Customer> findAllByActive(ActiveStatus status) {
         return DataBaseCustomer.getCustomerHashMap()
                 .values()
                 .stream()

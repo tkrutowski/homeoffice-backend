@@ -2,7 +2,7 @@ package net.focik.homeoffice.goahead.domain.supplier;
 
 import lombok.*;
 import net.focik.homeoffice.addresses.domain.Address;
-import net.focik.homeoffice.goahead.domain.customer.CustomerStatus;
+import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 import org.apache.commons.lang3.StringUtils;
 
 @Builder
@@ -19,7 +19,7 @@ public class Supplier {
     private String phone;
     private String mail;
     private String otherInfo;
-    private CustomerStatus status;
+    private ActiveStatus status;
     private Address address;
     private String accountNumber;
     private String bankName;
@@ -40,8 +40,8 @@ public class Supplier {
         this.address = new Address(null, city, street, zip);
     }
 
-    public void changeCustomerStatus(CustomerStatus newCustomerStatus) {
-        this.status = newCustomerStatus;
+    public void changeCustomerStatus(ActiveStatus newActiveStatus) {
+        this.status = newActiveStatus;
     }
 
     public String getNipWithoutDashes() {

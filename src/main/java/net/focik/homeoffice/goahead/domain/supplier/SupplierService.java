@@ -2,7 +2,7 @@ package net.focik.homeoffice.goahead.domain.supplier;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import net.focik.homeoffice.goahead.domain.customer.CustomerStatus;
+import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 import net.focik.homeoffice.goahead.domain.exception.CustomerAlreadyExistException;
 import net.focik.homeoffice.goahead.domain.exception.CustomerNotFoundException;
 import net.focik.homeoffice.goahead.domain.supplier.port.secondary.SupplierRepository;
@@ -58,19 +58,19 @@ class SupplierService implements ISupplierService {
         return byName;
     }
 
-    public List<Supplier> findByAll(CustomerStatus customerStatus) {
+    public List<Supplier> findByAll(ActiveStatus activeStatus) {
         List<Supplier> supplierList = supplierRepository.findAll();
 
-        if (customerStatus != null && customerStatus != CustomerStatus.ALL) {
+        if (activeStatus != null && activeStatus != ActiveStatus.ALL) {
             supplierList = supplierList.stream()
-                    .filter(supplier -> customerStatus.equals(supplier.getStatus()))
+                    .filter(supplier -> activeStatus.equals(supplier.getStatus()))
                     .collect(Collectors.toList());
         }
 
         return supplierList;
     }
 
-    public void updateSupplierStatus(Integer id, CustomerStatus status) {
+    public void updateSupplierStatus(Integer id, ActiveStatus status) {
         Supplier supplier = findById(id);
         supplier.changeCustomerStatus(status);
 

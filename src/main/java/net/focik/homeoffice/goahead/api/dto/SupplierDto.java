@@ -1,7 +1,7 @@
 package net.focik.homeoffice.goahead.api.dto;
 
 import lombok.*;
-import net.focik.homeoffice.goahead.domain.customer.CustomerStatus;
+import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 
 @Builder
 @AllArgsConstructor
@@ -16,7 +16,7 @@ public class SupplierDto {
     private String nip;
     private String phone;
     private String mail;
-    private CustomerStatus customerStatus;
+    private ActiveStatus status;
     private String otherInfo;
     private AddressDto address;
     private String accountNumber;

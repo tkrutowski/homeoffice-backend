@@ -24,7 +24,7 @@ public class CustomerFacade implements AddCustomerUseCase, UpdateCustomerUseCase
     }
 
     @Override
-    public void updateCustomerStatus(Integer id, CustomerStatus status) {
+    public void updateCustomerStatus(Integer id, ActiveStatus status) {
         customerService.updateCustomerStatus(id, status);
     }
 
@@ -41,7 +41,7 @@ public class CustomerFacade implements AddCustomerUseCase, UpdateCustomerUseCase
         return customerService.findByName(name);
     }
 
-    public List<Customer> findByAll(CustomerStatus customerStatus, CustomerType customerType) {
-        return customerService.findByAll(customerStatus, customerType);
+    public List<Customer> findByAll(ActiveStatus activeStatus, CustomerType customerType) {
+        return customerService.findByAll(activeStatus, customerType);
     }
 }

@@ -6,14 +6,13 @@ import net.focik.homeoffice.goahead.api.dto.BasicDto;
 import net.focik.homeoffice.goahead.api.dto.CustomerDto;
 import net.focik.homeoffice.goahead.api.mapper.ApiCustomerMapper;
 import net.focik.homeoffice.goahead.domain.customer.Customer;
-import net.focik.homeoffice.goahead.domain.customer.CustomerStatus;
+import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 import net.focik.homeoffice.goahead.domain.customer.CustomerType;
 import net.focik.homeoffice.goahead.domain.customer.port.primary.AddCustomerUseCase;
 import net.focik.homeoffice.goahead.domain.customer.port.primary.DeleteCustomerUseCase;
 import net.focik.homeoffice.goahead.domain.customer.port.primary.GetCustomerUseCase;
 import net.focik.homeoffice.goahead.domain.customer.port.primary.UpdateCustomerUseCase;
 import net.focik.homeoffice.utils.exceptions.ExceptionHandling;
-import net.focik.homeoffice.utils.exceptions.HttpResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -65,7 +64,7 @@ public class CustomerController extends ExceptionHandling {
 
     @GetMapping()
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
-    ResponseEntity<List<CustomerDto>> getAllCustomers(@RequestParam(required = false) CustomerStatus status,
+    ResponseEntity<List<CustomerDto>> getAllCustomers(@RequestParam(required = false) ActiveStatus status,
                                                       @RequestParam(required = false) CustomerType type) {
         log.info("Request to find all employees with status: {} and type: {}", status, type);
 
@@ -127,11 +126,11 @@ public class CustomerController extends ExceptionHandling {
         return new ResponseEntity<>(types, OK);
     }
 
-    @PutMapping("/customerstatus/{id}")
+    @PutMapping("/status/{id}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
     public void updateCustomerStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
         log.info("Request to update customer status for employee with id: {} from status: {}", id, basicDto.getValue());
-        updateCustomerUseCase.updateCustomerStatus(id, CustomerStatus.valueOf(basicDto.getValue()));
+        updateCustomerUseCase.updateCustomerStatus(id, ActiveStatus.valueOf(basicDto.getValue()));
         log.info("Customer status updated successfully for employee with id: {} to status: {}", id, basicDto.getValue());
     }
 }

@@ -1,7 +1,7 @@
 package net.focik.homeoffice.goahead.domain.supplier;
 
 import lombok.AllArgsConstructor;
-import net.focik.homeoffice.goahead.domain.customer.CustomerStatus;
+import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 import net.focik.homeoffice.goahead.domain.supplier.port.primary.AddSupplierUseCase;
 import net.focik.homeoffice.goahead.domain.supplier.port.primary.DeleteSupplierUseCase;
 import net.focik.homeoffice.goahead.domain.supplier.port.primary.GetSupplierUseCase;
@@ -27,7 +27,7 @@ public class SupplierFacade implements AddSupplierUseCase, UpdateSupplierUseCase
     }
 
     @Override
-    public void updateSupplierStatus(Integer id, CustomerStatus status) {
+    public void updateSupplierStatus(Integer id, ActiveStatus status) {
         supplierService.updateSupplierStatus(id, status);
     }
 
@@ -47,7 +47,7 @@ public class SupplierFacade implements AddSupplierUseCase, UpdateSupplierUseCase
     }
 
     @Override
-    public List<Supplier> findByAll(CustomerStatus status) {
+    public List<Supplier> findByAll(ActiveStatus status) {
         return supplierService.findByAll(status);
     }
 }
