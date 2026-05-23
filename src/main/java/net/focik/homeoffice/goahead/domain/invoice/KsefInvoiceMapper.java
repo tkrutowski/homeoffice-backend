@@ -64,7 +64,8 @@ public class KsefInvoiceMapper {
 
         Adres adres = Adres.builder()
                 .kodKraju("PL")
-                .adresL1(goAhead.getAddress().toString())
+                .adresL1(goAhead.getAddress().getStreet())
+                .adresL2(goAhead.getAddress().getZip() + " " + goAhead.getAddress().getCity())
                 .build();
 
         return Podmiot1.builder()
@@ -80,7 +81,8 @@ public class KsefInvoiceMapper {
 
         Adres adres = Adres.builder()
                 .kodKraju("PL")
-                .adresL1(customer.getAddress().toString())
+                .adresL1(customer.getAddress().getStreet())
+                .adresL2(customer.getAddress().getZip() + " " + customer.getAddress().getCity())
                 .build();
 
         return Podmiot2.builder()

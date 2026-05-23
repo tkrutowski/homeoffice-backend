@@ -107,11 +107,13 @@ class KsefInvoiceMapperTest {
         assertThat(result.getPodmiot1().getDaneIdentyfikacyjne().getNip()).isEqualTo("1234567890");
         assertThat(result.getPodmiot1().getDaneIdentyfikacyjne().getNazwa()).isEqualTo("GoAhead Sp. z o.o.");
         assertThat(result.getPodmiot1().getAdres().getAdresL1()).contains("Testowa 1").contains("Warszawa");
+        assertThat(result.getPodmiot1().getAdres().getAdresL2()).isEqualTo("00-001 Warszawa");
 
         // Podmiot 2 (Nabywca)
         assertThat(result.getPodmiot2().getDaneIdentyfikacyjne().getNip()).isEqualTo("0987654321");
         assertThat(result.getPodmiot2().getDaneIdentyfikacyjne().getNazwa()).isEqualTo("Jan Kowalski IT");
         assertThat(result.getPodmiot2().getAdres().getAdresL1()).contains("Długa 2").contains("Kraków");
+        assertThat(result.getPodmiot2().getAdres().getAdresL2()).isEqualTo("30-001 Kraków");
 
         // Faktura Ctrl
         assertThat(result.getFakturaCtrl().getNumerFaktury()).isEqualTo("FA/1/2023");
@@ -200,5 +202,6 @@ class KsefInvoiceMapperTest {
         assertThat(result.getFakturaCtrl().getPlatnosc().getZaplacono()).isEqualTo(1);
         assertThat(result.getFakturaCtrl().getPlatnosc().getDataZaplaty()).isEqualTo(LocalDate.of(2023, 1, 1));
         assertThat(result.getFakturaCtrl().getPlatnosc().getFormaPlatnosci()).isEqualTo(1); // CASH
+        assertThat(result.getPodmiot2().getAdres().getAdresL2()).isEqualTo("30-001 Kraków");
     }
 }

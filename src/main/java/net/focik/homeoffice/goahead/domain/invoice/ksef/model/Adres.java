@@ -19,4 +19,7 @@ public class Adres {
 
     @XmlElement(name = "AdresL1")
     private String adresL1;
+
+    @XmlElement(name = "AdresL2")
+    private String adresL2;
 }
