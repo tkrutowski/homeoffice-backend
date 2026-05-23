@@ -13,6 +13,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 @Slf4j
 @Configuration
@@ -33,9 +34,17 @@ public class AwsConfig {
     }
 
     @Bean
+    public S3Presigner s3Presigner(AwsProperties awsProperties) {
+        return S3Presigner.builder()
+                .region(Region.of(awsProperties.getRegion()))
+                .credentialsProvider(DefaultCredentialsProvider.create())
+                .build();
+    }
+
+    @Bean
     ApplicationRunner awsS3CredentialsChecker(
             S3Client s3Client,
-            @Value("${aws.bucket.name}") String bucketName
+            @Value("${aws.bucket-name}") String bucketName
     ) {
         return args -> {
             try {

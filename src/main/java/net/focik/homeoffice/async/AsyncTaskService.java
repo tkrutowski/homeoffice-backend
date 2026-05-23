@@ -36,4 +36,12 @@ public class AsyncTaskService {
     public AsyncTask updateTask(AsyncTask task) {
         return asyncTaskRepository.save(task);
     }
+
+    public void updateTaskStatus(String jobId, AsyncTaskStatus status) {
+        AsyncTask task = getJobStatus(jobId);
+        if (task != null) {
+            task.setStatus(status);
+            updateTask(task);
+        }
+    }
 }

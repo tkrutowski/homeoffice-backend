@@ -15,9 +15,28 @@
     <description>homeoffice</description>
     <properties>
         <java.version>21</java.version>
-        <spring-ai.version>1.0.0-M8</spring-ai.version>
+        <spring-ai.version>1.0.0-M3</spring-ai.version>
         <springframework-boot.version>3.5.7</springframework-boot.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom</artifactId>
+                <version>2.25.60</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -50,6 +69,11 @@
         <!--            <groupId>org.springframework.ai</groupId>-->
         <!--            <artifactId>spring-ai-openai-spring-boot-starter</artifactId>-->
         <!--        </dependency>-->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-anthropic-spring-boot-starter</artifactId>
+            <version>${spring-ai.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>com.mysql</groupId>
@@ -131,12 +155,26 @@
             <artifactId>itextpdf</artifactId>
             <version>5.5.13.3</version>
         </dependency>
- 
+
+        <!-- PDF text extraction -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
         <!-- AWS SDK v2 - nadal potrzebne, bo aplikacja korzysta z S3 -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
-            <version>2.28.1</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3-transfer-manager</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>textract</artifactId>
         </dependency>
 
         <!-- to save logs in S3    -->
@@ -157,7 +195,6 @@
             <artifactId>bcpkix-jdk18on</artifactId>
             <version>1.82</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api -->
         <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
@@ -196,6 +233,11 @@
     </dependencies>
 
     <repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+        </repository>
         <repository>
             <id>github</id>
             <name>GitHub CIRFMF ksef-client-java</name>

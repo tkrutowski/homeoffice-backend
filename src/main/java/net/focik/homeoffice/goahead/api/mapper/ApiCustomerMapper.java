@@ -24,7 +24,7 @@ public class ApiCustomerMapper {
                 .mail(dto.getMail())
                 .otherInfo(dto.getOtherInfo())
                 .customerType(dto.getCustomerType())
-                .customerStatus(dto.getCustomerStatus())
+                .activeStatus(dto.getActiveStatus())
                 .address(mapper.map(dto.getAddress(), Address.class))
                 .build();
     }
@@ -39,7 +39,7 @@ public class ApiCustomerMapper {
                 .phone(c.getPhone())
                 .otherInfo(c.getOtherInfo())
                 .mail(c.getMail())
-                .customerStatus(c.getCustomerStatus())
+                .activeStatus(c.getActiveStatus())
                 .customerType(c.getCustomerType())
                 .address(mapper.map(c.getAddress(), AddressDto.class))
                 .regon(c.getRegon() == null ? "" : c.getRegon())

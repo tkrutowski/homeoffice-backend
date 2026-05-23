@@ -38,6 +38,9 @@ public class AsyncTask {
     @Column(name = "message")
     private String message;
 
+    @Column(name = "textract_result_json", columnDefinition = "LONGTEXT")
+    private String textractResultJson;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "async_task_errors", joinColumns = @JoinColumn(name = "job_id"))
     private List<AsyncTaskError> errors = new ArrayList<>();
