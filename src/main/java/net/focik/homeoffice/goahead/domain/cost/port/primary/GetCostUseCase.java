@@ -1,6 +1,7 @@
 package net.focik.homeoffice.goahead.domain.cost.port.primary;
 
 import net.focik.homeoffice.goahead.domain.cost.Cost;
+import net.focik.homeoffice.goahead.domain.cost.KsefImportResult;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.data.domain.Page;
 
@@ -16,7 +17,7 @@ public interface GetCostUseCase {
                                             String globalFilter, Integer idSupplier, LocalDate sellDate,
                                             String dateComparisonType, BigDecimal amount, String amountComparisonType,
                                             PaymentStatus status);
-    List<Cost> findKsefCosts(LocalDate fromDate, LocalDate toDate);
+    KsefImportResult findKsefCosts(LocalDate fromDate, LocalDate toDate);
 
     String generateAndSendCostToS3(int idCost);
 }

@@ -112,4 +112,9 @@ public class CostRepositoryAdapter implements CostRepository {
             default -> cb.equal(root.get("sellDate"), date);
         };
     }
+
+    @Override
+    public boolean existsByKsefNumber(String ksefNumber) {
+        return costDtoRepository.existsByKsefNumber(ksefNumber);
+    }
 }

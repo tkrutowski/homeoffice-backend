@@ -7,8 +7,11 @@ import net.focik.homeoffice.goahead.domain.cost.port.primary.AddCostUseCase;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.DeleteCostUseCase;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.GetCostUseCase;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.UpdateCostUseCase;
+import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 import net.focik.homeoffice.goahead.domain.invoice.KsefService;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.InvoiceKsefDto;
+import net.focik.homeoffice.goahead.domain.supplier.Supplier;
+import net.focik.homeoffice.goahead.domain.supplier.SupplierFacade;
 import net.focik.homeoffice.utils.share.Module;
 import net.focik.homeoffice.utils.share.PaymentMethod;
 import net.focik.homeoffice.utils.share.PaymentStatus;
@@ -22,6 +25,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -32,6 +36,7 @@ public class CostFacade implements AddCostUseCase, GetCostUseCase, UpdateCostUse
     private final KsefService ksefService;
     private final KsefCostMapper ksefCostMapper;
     private final FileRepository fileRepository;
+    private final SupplierFacade supplierFacade;
 
     @Override
     public Cost addCost(Cost cost) {
@@ -59,9 +64,11 @@ public class CostFacade implements AddCostUseCase, GetCostUseCase, UpdateCostUse
     }
 
     @Override
-    public List<Cost> findKsefCosts(LocalDate fromDate, LocalDate toDate) {
+    public KsefImportResult findKsefCosts(LocalDate fromDate, LocalDate toDate) {
         Map<InvoiceKsefDto, String> invoices = ksefService.findInvoices(fromDate, toDate, InvoiceQuerySubjectType.SUBJECT2);
-        List<Cost> costs = new ArrayList<>();
+        List<Cost> newCosts = new ArrayList<>();
+        int duplicates = 0;
+
         for (Map.Entry<InvoiceKsefDto, String> entry : invoices.entrySet()) {
             InvoiceKsefDto invoice = entry.getKey();
             String metaData = entry.getValue();
@@ -70,13 +77,21 @@ public class CostFacade implements AddCostUseCase, GetCostUseCase, UpdateCostUse
             cost.setKsefNumber(ksefService.getFromJson(metaData, "ksefNumber"));
             if(cost.getPaymentMethod() == null)
                 cost.setPaymentMethod(PaymentMethod.CASH);
+
+            resolveSupplier(cost);
+
+            if (cost.getKsefNumber() != null && costService.existsByKsefNumber(cost.getKsefNumber())) {
+                duplicates++;
+                continue;
+            }
+
             Cost addedCost = addCostWithCheck(cost);
             if (addedCost != null) {
-                costs.add(cost);
+                newCosts.add(cost);
             }
         }
 
-        return costs;
+        return new KsefImportResult(newCosts, invoices.size(), duplicates);
     }
 
     private Cost addCostWithCheck(Cost cost) {
@@ -87,6 +102,22 @@ public class CostFacade implements AddCostUseCase, GetCostUseCase, UpdateCostUse
             log.error("Error saving cost from KSEF: {}", e.getMessage());
         }
         return addedCost;
+    }
+
+    private void resolveSupplier(Cost cost) {
+        Supplier supplier = cost.getSupplier();
+        if (supplier == null || supplier.getNip() == null) {
+            return;
+        }
+
+        Optional<Supplier> existingSupplier = supplierFacade.findByNip(supplier.getNip());
+        if (existingSupplier.isPresent()) {
+            cost.setSupplier(existingSupplier.get());
+        } else {
+            supplier.setStatus(ActiveStatus.ACTIVE);
+            Supplier savedSupplier = supplierFacade.addSupplier(supplier);
+            cost.setSupplier(savedSupplier);
+        }
     }
 
     @Override

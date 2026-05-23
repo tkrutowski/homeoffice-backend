@@ -21,4 +21,6 @@ public interface ISupplierService {
     List<Supplier> findByAll(ActiveStatus activeStatus);
 
     void updateSupplierStatus(Integer id, ActiveStatus status);
+
+    java.util.Optional<Supplier> findByNip(String nip);
 }

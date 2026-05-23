@@ -44,7 +44,7 @@ public class CostPdf {
             log.debug("Created payment");
             document.add(createSupplier(cost.getSupplier()));
             log.debug("Created supplier");
-            document.add(createBuyer(cost));
+            document.add(createBuyer());
             log.debug("Created buyer");
             document.add(createItemTable(cost));
             log.debug("Created items table");
@@ -169,7 +169,7 @@ public class CostPdf {
         return table;
     }
 
-    private static PdfPTable createBuyer(Cost cost) {
+    private static PdfPTable createBuyer() {
         PdfPTable table = new PdfPTable(1);
         table.setWidthPercentage(100);
 
@@ -305,14 +305,14 @@ public class CostPdf {
         float[] columnWidths = {1.1f, 5.8f, 1.4f, 1.2f, 1.4f, 2.2f, 2.4f, 2.0f, 2.2f, 2.4f};
         PdfPTable table = new PdfPTable(columnWidths);
         table.setWidthPercentage(100);
-        addTableHeader(table, ITEMS_HEADERS);
+        addTableHeader(table);
         addRows(table, cost.getCostItems());
         table.setSpacingAfter(5f);
         return table;
     }
 
-    private static void addTableHeader(PdfPTable table, List<String> headers) {
-        headers.forEach(columnTitle -> {
+    private static void addTableHeader(PdfPTable table) {
+        CostPdf.ITEMS_HEADERS.forEach(columnTitle -> {
             PdfPCell header = new PdfPCell();
             header.setBackgroundColor(HEADER_COLOR);
             header.setHorizontalAlignment(Element.ALIGN_CENTER);

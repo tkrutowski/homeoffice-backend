@@ -50,4 +50,8 @@ public class SupplierFacade implements AddSupplierUseCase, UpdateSupplierUseCase
     public List<Supplier> findByAll(ActiveStatus status) {
         return supplierService.findByAll(status);
     }
+
+    public java.util.Optional<Supplier> findByNip(String nip) {
+        return supplierService.findByNip(nip);
+    }
 }

@@ -76,4 +76,9 @@ class SupplierService implements ISupplierService {
 
         supplierRepository.save(supplier);
     }
+
+    @Override
+    public Optional<Supplier> findByNip(String nip) {
+        return supplierRepository.findByNip(nip);
+    }
 }

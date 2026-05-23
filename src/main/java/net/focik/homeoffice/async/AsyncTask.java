@@ -51,6 +51,9 @@ public class AsyncTask {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "duplicates")
+    private int duplicates;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

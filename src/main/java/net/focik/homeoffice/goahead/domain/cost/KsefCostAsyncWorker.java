@@ -11,7 +11,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Slf4j
 @Component
@@ -32,12 +31,13 @@ public class KsefCostAsyncWorker {
         log.info("Starting KseF cost fetch job: {} from {} to {}", jobId, fromDate, toDate);
 
         try {
-            List<Cost> costs = getCostUseCase.findKsefCosts(fromDate, toDate);
+            KsefImportResult result = getCostUseCase.findKsefCosts(fromDate, toDate);
 
-            job.setProcessed(costs.size());
-            job.setTotal(costs.size());
+            job.setTotal(result.found());
+            job.setProcessed(result.newCosts().size());
+            job.setDuplicates(result.duplicates());
             job.setStatus(AsyncTaskStatus.SUCCEEDED);
-            job.setMessage("Pomyślnie pobrano koszty z KSeF. Liczba: " + costs.size());
+            job.setMessage("Znaleziono: " + result.found() + ", Nowych: " + result.newCosts().size() + ", Duplikatów: " + result.duplicates());
 
         } catch (Exception e) {
             log.error("Error processing KSeF cost fetch job {}", jobId, e);

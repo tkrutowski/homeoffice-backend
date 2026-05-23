@@ -11,4 +11,5 @@ import java.util.List;
 @Repository
 interface CostDtoRepository extends JpaRepository<CostDbDto, Integer>, JpaSpecificationExecutor<CostDbDto> {
     List<CostDbDto> findByInvoiceDate(LocalDate date);
+    boolean existsByKsefNumber(String ksefNumber);
 }

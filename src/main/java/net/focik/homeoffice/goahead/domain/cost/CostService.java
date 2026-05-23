@@ -58,4 +58,8 @@ class CostService {
     public void deleteCost(int id) {
         costRepository.deleteCost(id);
     }
+
+    public boolean existsByKsefNumber(String ksefNumber) {
+        return costRepository.existsByKsefNumber(ksefNumber);
+    }
 }

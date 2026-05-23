@@ -29,4 +29,6 @@ public interface CostRepository {
     Page<Cost> findAll(Pageable pageable, String globalFilter, Integer idSupplier, LocalDate sellDate,
                        String dateComparisonType, BigDecimal amount, String amountComparisonType,
                        PaymentStatus status);
+
+    boolean existsByKsefNumber(String ksefNumber);
 }
