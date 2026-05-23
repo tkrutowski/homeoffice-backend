@@ -9,6 +9,7 @@ import net.focik.homeoffice.goahead.infrastructure.mapper.JpaSupplierMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -22,10 +23,10 @@ public class SupplierRepositoryAdapter implements SupplierRepository {
     @Override
     public Supplier save(Supplier supplier) {
         SupplierDbDto supplierDbDto = mapper.toDto(supplier);
-        if (supplierDbDto.getId() != null && supplierDbDto.getId() == 0){
+        if (Objects.equals(supplierDbDto.getId(), 0)) {
             supplierDbDto.setId(null);
         }
-        if (supplierDbDto.getAddress() != null && supplierDbDto.getAddress().getId() == 0){
+        if (supplierDbDto.getAddress() != null && Objects.equals(supplierDbDto.getAddress().getId(), 0)) {
             supplierDbDto.getAddress().setId(null);
         }
         SupplierDbDto save = supplierDtoRepository.save(supplierDbDto);

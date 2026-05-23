@@ -11,10 +11,14 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
 public class KsefCostMapper {
+
+    private static final Pattern ZIP_CODE_PATTERN = Pattern.compile("(\\d{2}-\\d{3})");
 
     public Cost toCost(InvoiceKsefDto invoiceKsefDto) {
         if (invoiceKsefDto == null) {
@@ -83,6 +87,12 @@ public class KsefCostMapper {
             Supplier supplier = new Supplier();
             supplier.setNip(podmiot1.getDaneIdentyfikacyjne().getNip());
             supplier.setName(podmiot1.getDaneIdentyfikacyjne().getNazwa());
+
+            Adres adres = podmiot1.getAdres();
+            if (adres != null) {
+                parseAndSetAddress(supplier, adres.getAdresL1(), adres.getAdresL2());
+            }
+
             cost.setSupplier(supplier);
         }
 
@@ -133,5 +143,45 @@ public class KsefCostMapper {
             }
         }
         return Vat.VAT_23; // domyślnie jeśli nie zmapowano
+    }
+
+    private void parseAndSetAddress(Supplier supplier, String adresL1, String adresL2) {
+        if (adresL1 == null || adresL1.isBlank()) {
+            return;
+        }
+
+        String street = adresL1.trim();
+        String city = null;
+        String zip = null;
+
+        Matcher zipMatcher = ZIP_CODE_PATTERN.matcher(street);
+        if (zipMatcher.find()) {
+            zip = zipMatcher.group(1);
+            int zipStart = zipMatcher.start();
+            city = street.substring(zipMatcher.end()).trim();
+            if (city.isEmpty()) {
+                city = null;
+            }
+            street = street.substring(0, zipStart).trim();
+        } else if (adresL2 != null && !adresL2.isBlank()) {
+            Matcher l2Matcher = ZIP_CODE_PATTERN.matcher(adresL2);
+            if (l2Matcher.find()) {
+                zip = l2Matcher.group(1);
+                String remaining = adresL2.substring(l2Matcher.end()).trim();
+                if (!remaining.isEmpty()) {
+                    city = remaining;
+                }
+            }
+        }
+
+        street = removeStreetPrefix(street);
+        supplier.setAddress(city, street, zip);
+    }
+
+    private String removeStreetPrefix(String street) {
+        if (street == null || street.isBlank()) {
+            return street;
+        }
+        return street.replaceAll("(?i)^(ul\\.?|ulica)\\s+", "").trim();
     }
 }
