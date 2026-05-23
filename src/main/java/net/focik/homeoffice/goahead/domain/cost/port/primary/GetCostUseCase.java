@@ -13,7 +13,7 @@ public interface GetCostUseCase {
     List<Cost> getAllCosts();
     List<Cost> getCostsByDate(LocalDate date);
     Page<Cost> findCostsPageableWithFilters(int page, int size, String sortField, String sortDirection,
-                                            String globalFilter, Integer idSeller, LocalDate sellDate,
+                                            String globalFilter, Integer idSupplier, LocalDate sellDate,
                                             String dateComparisonType, BigDecimal amount, String amountComparisonType,
                                             PaymentStatus status);
     List<Cost> findKsefCosts(LocalDate fromDate, LocalDate toDate);

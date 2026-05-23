@@ -36,7 +36,7 @@ public class FileStorageS3Adapter implements FileRepository {
     private final String homeUrl;
     private final String bucketName;
 
-    public FileStorageS3Adapter(@Autowired S3Client s3Client, @Value("${homeoffice.url}") String homeUrl, @Value("${aws.bucket.name}") String bucketName) {
+    public FileStorageS3Adapter(@Autowired S3Client s3Client, @Value("${homeoffice.url}") String homeUrl, @Value("${aws.bucket-name}") String bucketName) {
         this.homeUrl = homeUrl;
         this.bucketName = bucketName;
         this.s3Client = s3Client;

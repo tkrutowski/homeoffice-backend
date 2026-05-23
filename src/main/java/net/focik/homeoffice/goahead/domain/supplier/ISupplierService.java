@@ -1,6 +1,6 @@
 package net.focik.homeoffice.goahead.domain.supplier;
 
-import net.focik.homeoffice.goahead.domain.customer.CustomerStatus;
+import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,7 +18,7 @@ public interface ISupplierService {
 
     List<Supplier> findByName(String name);
 
-    List<Supplier> findByAll(CustomerStatus customerStatus);
+    List<Supplier> findByAll(ActiveStatus activeStatus);
 
-    void updateSupplierStatus(Integer id, CustomerStatus status);
+    void updateSupplierStatus(Integer id, ActiveStatus status);
 }
