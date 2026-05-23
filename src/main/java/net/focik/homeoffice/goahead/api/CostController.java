@@ -2,6 +2,7 @@ package net.focik.homeoffice.goahead.api;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.goahead.api.dto.BasicDto;
 import net.focik.homeoffice.goahead.api.dto.CostDto;
 import net.focik.homeoffice.goahead.api.mapper.ApiCostMapper;
 import net.focik.homeoffice.goahead.domain.cost.Cost;
@@ -14,6 +15,7 @@ import net.focik.homeoffice.goahead.domain.cost.port.primary.UpdateCostUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.FindKsefInvoiceRequest;
 import net.focik.homeoffice.utils.exceptions.ExceptionHandling;
 import net.focik.homeoffice.async.AsyncTask;
+import net.focik.homeoffice.async.AsyncTaskService;
 import net.focik.homeoffice.async.AsyncTaskStartResponse;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -41,6 +45,8 @@ public class CostController extends ExceptionHandling {
     private final ApiCostMapper mapper;
     private final KsefCostJobService ksefCostJobService;
     private final PdfCostJobService pdfCostJobService;
+    private final AsyncTaskService asyncTaskService;
+    private final ObjectMapper objectMapper;
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
@@ -69,18 +75,18 @@ public class CostController extends ExceptionHandling {
             @RequestParam(name = "sort", defaultValue = "idCost") String sortField,
             @RequestParam(name = "direction", defaultValue = "DESC") String sortDirection,
             @RequestParam(name = "globalFilter", required = false) String globalFilter,
-            @RequestParam(name = "idSeller", required = false) Integer idSeller,
+            @RequestParam(name = "idSupplier", required = false) Integer idSupplier,
             @RequestParam(name = "sellDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate sellDate,
             @RequestParam(name = "dateComparisonType", required = false, defaultValue = "EQUALS") String dateComparisonType,
             @RequestParam(name = "amount", required = false) BigDecimal amount,
             @RequestParam(name = "amountComparisonType", required = false, defaultValue = "EQUALS") String amountComparisonType,
             @RequestParam(name = "status", required = false) PaymentStatus status
     ) {
-        log.info("Request to get costs page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, idSeller: {}, date: {}, dateComparisonType: {}, amount: {}, amountComparisonType: {}, status: {}",
-                page, size, sortField, sortDirection, globalFilter, idSeller, sellDate, dateComparisonType, amount, amountComparisonType, status);
+        log.info("Request to get costs page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, idSupplier: {}, date: {}, dateComparisonType: {}, amount: {}, amountComparisonType: {}, status: {}",
+                page, size, sortField, sortDirection, globalFilter, idSupplier, sellDate, dateComparisonType, amount, amountComparisonType, status);
 
         Page<Cost> costsPage = getCostUseCase.findCostsPageableWithFilters(
-                page, size, sortField, sortDirection, globalFilter, idSeller,
+                page, size, sortField, sortDirection, globalFilter, idSupplier,
                 sellDate, dateComparisonType, amount, amountComparisonType, status);
 
         Page<CostDto> dtoPage = costsPage.map(mapper::toDto);
@@ -135,6 +141,14 @@ public class CostController extends ExceptionHandling {
         return ResponseEntity.ok(mapper.toDto(updatedCost));
     }
 
+    @PutMapping("/paymentstatus/{id}")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    public void updatePaymentStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
+        log.info("Request to update payment status for cost with id: {}", id);
+        updateCostUseCase.updatePaymentStatus(id, PaymentStatus.valueOf(basicDto.getValue()));
+        log.info("Payment status updated successfully for cost with id: {} to status: {}", id, basicDto.getValue());
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_DELETE_ALL')")
     public ResponseEntity<Void> deleteCost(@PathVariable int id) {
@@ -166,4 +180,42 @@ public class CostController extends ExceptionHandling {
         
         return new ResponseEntity<>(jobStatus, HttpStatus.OK);
     }
+
+    @GetMapping("/upload/jobs/{jobId}")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    public ResponseEntity<AsyncTask> getUploadJobStatus(@PathVariable String jobId) {
+        log.info("Pobieranie statusu uploadu: jobId={}", jobId);
+        AsyncTask jobStatus = asyncTaskService.getJobStatus(jobId);
+        if (jobStatus == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(jobStatus, HttpStatus.OK);
+    }
+
+    @GetMapping("/upload/jobs/{jobId}/result")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    public ResponseEntity<CostDto> getUploadJobResult(@PathVariable String jobId) {
+        log.info("Pobieranie wyniku parsowania: jobId={}", jobId);
+        AsyncTask jobStatus = asyncTaskService.getJobStatus(jobId);
+
+        if (jobStatus == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        if (jobStatus.getTextractResultJson() == null || jobStatus.getTextractResultJson().isEmpty()) {
+            log.warn("Brak wyników parsowania dla jobId {}", jobId);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+
+        try {
+            // Deserializacja JSON z AsyncTask do CostDto (JSON zawiera CostDto, nie Cost)
+            CostDto costDto = objectMapper.readValue(jobStatus.getTextractResultJson(), CostDto.class);
+            log.info("Zwrócony sparsowany cost dla jobId {}", jobId);
+            return ResponseEntity.ok(costDto);
+        } catch (Exception e) {
+            log.error("Błąd deserializacji wyniku parsowania dla jobId {}: {}", jobId, e.getMessage(), e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
+

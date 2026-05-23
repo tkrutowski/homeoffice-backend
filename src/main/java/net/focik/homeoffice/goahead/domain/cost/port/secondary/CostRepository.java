@@ -26,7 +26,7 @@ public interface CostRepository {
 
     List<Cost> findByDate(LocalDate date);
 
-    Page<Cost> findAll(Pageable pageable, String globalFilter, Integer idSeller, LocalDate sellDate,
+    Page<Cost> findAll(Pageable pageable, String globalFilter, Integer idSupplier, LocalDate sellDate,
                        String dateComparisonType, BigDecimal amount, String amountComparisonType,
                        PaymentStatus status);
 }

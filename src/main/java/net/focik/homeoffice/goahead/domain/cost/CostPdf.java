@@ -42,8 +42,8 @@ public class CostPdf {
             log.debug("Created number");
             document.add(createPayment(cost));
             log.debug("Created payment");
-            document.add(createSeller(cost.getSupplier()));
-            log.debug("Created seller");
+            document.add(createSupplier(cost.getSupplier()));
+            log.debug("Created supplier");
             document.add(createBuyer(cost));
             log.debug("Created buyer");
             document.add(createItemTable(cost));
@@ -234,7 +234,7 @@ public class CostPdf {
         return table;
     }
 
-    private static PdfPTable createSeller(Supplier supplier) {
+    private static PdfPTable createSupplier(Supplier supplier) {
         PdfPTable table = new PdfPTable(1);
         table.setWidthPercentage(100);
 

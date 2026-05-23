@@ -54,8 +54,8 @@ public class CostFacade implements AddCostUseCase, GetCostUseCase, UpdateCostUse
     }
 
     @Override
-    public Page<Cost> findCostsPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, Integer idSeller, LocalDate sellDate, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
-        return costService.findCostsPageableWithFilters(page, size, sortField, sortDirection, globalFilter, idSeller, sellDate, dateComparisonType, amount, amountComparisonType, status);
+    public Page<Cost> findCostsPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, Integer idSupplier, LocalDate sellDate, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+        return costService.findCostsPageableWithFilters(page, size, sortField, sortDirection, globalFilter, idSupplier, sellDate, dateComparisonType, amount, amountComparisonType, status);
     }
 
     @Override
@@ -110,6 +110,11 @@ public class CostFacade implements AddCostUseCase, GetCostUseCase, UpdateCostUse
     @Override
     public Cost updateCost(Cost cost) {
         return costService.updateCost(cost);
+    }
+
+    @Override
+    public void updatePaymentStatus(Integer id, PaymentStatus paymentStatus) {
+        costService.updatePaymentStatus(id, paymentStatus);
     }
 
     @Override

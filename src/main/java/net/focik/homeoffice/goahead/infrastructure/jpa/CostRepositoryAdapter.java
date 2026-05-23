@@ -38,6 +38,9 @@ public class CostRepositoryAdapter implements CostRepository {
                 }
             });
         }
+        if (dbDto.getKsefNumber() != null && dbDto.getKsefNumber().trim().isEmpty()) {
+            dbDto.setKsefNumber(null);
+        }
         
         CostDbDto saved = costDtoRepository.save(dbDto);
         return mapper.toDomain(saved);
@@ -74,20 +77,20 @@ public class CostRepositoryAdapter implements CostRepository {
     }
 
     @Override
-    public Page<Cost> findAll(Pageable pageable, String globalFilter, Integer idSeller, LocalDate sellDate, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+    public Page<Cost> findAll(Pageable pageable, String globalFilter, Integer idSupplier, LocalDate sellDate, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
         Specification<CostDbDto> spec = Specification.where(null);
 
         if (globalFilter != null && !globalFilter.isEmpty()) {
             spec = spec.and((root, query, cb) ->
                     cb.or(
                             cb.like(cb.lower(root.get("number")), "%" + globalFilter.toLowerCase() + "%"),
-                            cb.like(cb.lower(root.get("seller").get("name")), "%" + globalFilter.toLowerCase() + "%")
+                            cb.like(cb.lower(root.get("supplier").get("name")), "%" + globalFilter.toLowerCase() + "%")
                     )
             );
         }
 
-        if (idSeller != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("seller").get("id"), idSeller));
+        if (idSupplier != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("supplier").get("id"), idSupplier));
         }
 
         if (sellDate != null) {

@@ -38,14 +38,21 @@ class CostService {
         return costRepository.findByDate(date);
     }
 
-    public Page<Cost> findCostsPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, Integer idSeller, LocalDate sellDate, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+    public Page<Cost> findCostsPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, Integer idSupplier, LocalDate sellDate, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
         Sort sort = sortDirection.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
         PageRequest pageable = PageRequest.of(page, size, sort);
-        return costRepository.findAll(pageable, globalFilter, idSeller, sellDate, dateComparisonType, amount, amountComparisonType, status);
+        return costRepository.findAll(pageable, globalFilter, idSupplier, sellDate, dateComparisonType, amount, amountComparisonType, status);
     }
 
     public Cost updateCost(Cost cost) {
         return costRepository.updateCost(cost);
+    }
+
+    @Transactional
+    public void updatePaymentStatus(Integer id, PaymentStatus status) {
+        Cost cost = getCost(id);
+        cost.changePaymentStatus(status);
+        costRepository.updateCost(cost);
     }
 
     public void deleteCost(int id) {
