@@ -44,10 +44,10 @@ class CostService {
         return costRepository.findBySellDateBetween(from, to);
     }
 
-    public Page<Cost> findCostsPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, Integer idSupplier, LocalDate sellDate, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+    public Page<Cost> findCostsPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, Integer idSupplier, LocalDate sellDate, String dateComparisonType, LocalDate invoiceDate, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
         Sort sort = sortDirection.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
         PageRequest pageable = PageRequest.of(page, size, sort);
-        return costRepository.findAll(pageable, globalFilter, idSupplier, sellDate, dateComparisonType, amount, amountComparisonType, status);
+        return costRepository.findAll(pageable, globalFilter, idSupplier, sellDate, dateComparisonType, invoiceDate, amount, amountComparisonType, status);
     }
 
     @Transactional

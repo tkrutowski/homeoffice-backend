@@ -29,7 +29,7 @@ public interface CostRepository {
     List<Cost> findBySellDateBetween(LocalDate from, LocalDate to);
 
     Page<Cost> findAll(Pageable pageable, String globalFilter, Integer idSupplier, LocalDate sellDate,
-                       String dateComparisonType, BigDecimal amount, String amountComparisonType,
+                       String dateComparisonType, LocalDate invoiceDate, BigDecimal amount, String amountComparisonType,
                        PaymentStatus status);
 
     boolean existsByKsefNumber(String ksefNumber);

@@ -16,7 +16,7 @@ public interface GetCostUseCase {
     List<Cost> findBySellDateBetween(LocalDate from, LocalDate to);
     Page<Cost> findCostsPageableWithFilters(int page, int size, String sortField, String sortDirection,
                                             String globalFilter, Integer idSupplier, LocalDate sellDate,
-                                            String dateComparisonType, BigDecimal amount, String amountComparisonType,
+                                            String dateComparisonType, LocalDate invoiceDate, BigDecimal amount, String amountComparisonType,
                                             PaymentStatus status);
     KsefImportResult findKsefCosts(LocalDate fromDate, LocalDate toDate);
 

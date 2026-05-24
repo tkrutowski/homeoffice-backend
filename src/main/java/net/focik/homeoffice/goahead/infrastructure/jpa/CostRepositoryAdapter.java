@@ -5,6 +5,7 @@ import net.focik.homeoffice.goahead.domain.cost.Cost;
 import net.focik.homeoffice.goahead.domain.cost.port.secondary.CostRepository;
 import net.focik.homeoffice.goahead.infrastructure.dto.CostDbDto;
 import net.focik.homeoffice.goahead.infrastructure.mapper.JpaCostMapper;
+import net.focik.homeoffice.utils.JpaSpecificationHelper;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -84,7 +85,7 @@ public class CostRepositoryAdapter implements CostRepository {
     }
 
     @Override
-    public Page<Cost> findAll(Pageable pageable, String globalFilter, Integer idSupplier, LocalDate sellDate, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+    public Page<Cost> findAll(Pageable pageable, String globalFilter, Integer idSupplier, LocalDate sellDate, String dateComparisonType, LocalDate invoiceDate, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
         Specification<CostDbDto> spec = Specification.where(null);
 
         if (globalFilter != null && !globalFilter.isEmpty()) {
@@ -101,8 +102,16 @@ public class CostRepositoryAdapter implements CostRepository {
         }
 
         if (sellDate != null) {
-            spec = spec.and(getSpecificationByDate(sellDate, dateComparisonType));
+            spec = spec.and(JpaSpecificationHelper.byDate(sellDate, dateComparisonType, "sellDate"));
         }
+
+        if (invoiceDate != null) {
+            spec = spec.and(JpaSpecificationHelper.byDate(invoiceDate, dateComparisonType, "invoiceDate"));
+        }
+        //TODO dodać filtrowanie po kwocie
+//        if (amount != null) {
+//            spec = spec.and(JpaSpecificationHelper.byAmount(amount, amountComparisonType, "amount"));
+//        }
 
         if (status != null && status != PaymentStatus.ALL) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("paymentStatus"), status));
@@ -110,14 +119,6 @@ public class CostRepositoryAdapter implements CostRepository {
 
         return costDtoRepository.findAll(spec, pageable)
                 .map(mapper::toDomain);
-    }
-
-    private Specification<CostDbDto> getSpecificationByDate(LocalDate date, String dateComparisonType) {
-        return (root, query, cb) -> switch (dateComparisonType) {
-            case "AFTER" -> cb.greaterThan(root.get("sellDate"), date);
-            case "BEFORE" -> cb.lessThan(root.get("sellDate"), date);
-            default -> cb.equal(root.get("sellDate"), date);
-        };
     }
 
     @Override

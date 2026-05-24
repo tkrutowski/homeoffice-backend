@@ -78,16 +78,17 @@ public class CostController extends ExceptionHandling {
             @RequestParam(name = "idSupplier", required = false) Integer idSupplier,
             @RequestParam(name = "sellDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate sellDate,
             @RequestParam(name = "dateComparisonType", required = false, defaultValue = "EQUALS") String dateComparisonType,
+            @RequestParam(name = "invoiceDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate invoiceDate,
             @RequestParam(name = "amount", required = false) BigDecimal amount,
             @RequestParam(name = "amountComparisonType", required = false, defaultValue = "EQUALS") String amountComparisonType,
             @RequestParam(name = "status", required = false) PaymentStatus status
     ) {
-        log.info("Request to get costs page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, idSupplier: {}, date: {}, dateComparisonType: {}, amount: {}, amountComparisonType: {}, status: {}",
-                page, size, sortField, sortDirection, globalFilter, idSupplier, sellDate, dateComparisonType, amount, amountComparisonType, status);
+        log.info("Request to get costs page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, idSupplier: {}, date: {}, dateComparisonType: {}, invoiceDate: {}, amount: {}, amountComparisonType: {}, status: {}",
+                page, size, sortField, sortDirection, globalFilter, idSupplier, sellDate, dateComparisonType, invoiceDate, amount, amountComparisonType, status);
 
         Page<Cost> costsPage = getCostUseCase.findCostsPageableWithFilters(
                 page, size, sortField, sortDirection, globalFilter, idSupplier,
-                sellDate, dateComparisonType, amount, amountComparisonType, status);
+                sellDate, dateComparisonType, invoiceDate, amount, amountComparisonType, status);
 
         Page<CostDto> dtoPage = costsPage.map(mapper::toDto);
 

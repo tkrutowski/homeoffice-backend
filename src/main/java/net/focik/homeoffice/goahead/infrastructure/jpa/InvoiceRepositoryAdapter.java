@@ -5,6 +5,7 @@ import net.focik.homeoffice.goahead.domain.invoice.Invoice;
 import net.focik.homeoffice.goahead.domain.invoice.InvoiceItem;
 import net.focik.homeoffice.goahead.domain.invoice.port.secondary.InvoiceRepository;
 import net.focik.homeoffice.goahead.infrastructure.dto.InvoiceDbDto;
+import net.focik.homeoffice.utils.JpaSpecificationHelper;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -92,11 +93,12 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
         }
 
         if (sellDate != null) {
-            spec = spec.and(getSpecificationByDate(sellDate, sellDateComparisonType));
+            spec = spec.and(JpaSpecificationHelper.byDate(sellDate, sellDateComparisonType, "sellDate"));
         }
 
+        //TODO dodać filtrowanie po kwocie
 //        if (amount != null) {
-//            spec = spec.and(getSpecificationByAmount(amount, amountComparisonType));
+//            spec = spec.and(JpaSpecificationHelper.byAmount(amount, amountComparisonType, "grossAmount"));
 //        }
 
         if (status != null && status != PaymentStatus.ALL) {
@@ -163,24 +165,6 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
         }
 
         return result;
-    }
-
-    private Specification<InvoiceDbDto> getSpecificationByDate(LocalDate date, String dateComparisonType) {
-        return (root, query, cb) -> switch (dateComparisonType) {
-            case "AFTER" -> cb.greaterThan(root.get("sellDate"), date);
-            case "BEFORE" -> cb.lessThan(root.get("sellDate"), date);
-            default -> cb.equal(root.get("sellDate"), date);
-        };
-    }
-
-    private Specification<InvoiceDbDto> getSpecificationByAmount(BigDecimal amount, String amountComparisonType) {
-        return (root, query, cb) -> {
-            return switch (amountComparisonType) {
-                case "GREATER" -> cb.greaterThan(root.get("grossAmount"), amount);
-                case "LESS" -> cb.lessThan(root.get("grossAmount"), amount);
-                default -> cb.equal(root.get("grossAmount"), amount);
-            };
-        };
     }
 
     private Invoice mapToDomain(InvoiceDbDto dbDto) {
