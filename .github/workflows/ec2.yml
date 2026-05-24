@@ -95,6 +95,8 @@ jobs:
           port: ${{ secrets.EC2_PORT }}
           script: |
             set -e
+            sudo docker image prune -a -f --filter "until=72h"
+            sudo docker system prune -f --volumes
             sudo docker load -i /opt/docker/images/homeoffice-${{ steps.get_version.outputs.version }}.tar
             sudo docker rm -f homeoffice || true
             sudo docker run -d \
