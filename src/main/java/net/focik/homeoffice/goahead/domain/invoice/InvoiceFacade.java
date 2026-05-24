@@ -74,6 +74,11 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
     }
 
     @Override
+    public List<Invoice> findBySellDateBetween(LocalDate from, LocalDate to) {
+        return invoiceService.findBySellDateBetween(from, to);
+    }
+
+    @Override
     public String generateAndSendInvoiceToS3(int idInvoice) {
         Invoice invoice = findById(idInvoice);
 

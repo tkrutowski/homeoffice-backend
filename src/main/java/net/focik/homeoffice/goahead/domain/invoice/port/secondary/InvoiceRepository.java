@@ -31,6 +31,8 @@ public interface InvoiceRepository {
 
     List<Invoice> findLastInvoiceNumberByYear(Integer year);
 
+    List<Invoice> findBySellDateBetween(LocalDate from, LocalDate to);
+
     Map<Integer, List<BigDecimal>> getStatistic();
 
     Map<Integer, List<BigDecimal>> getMonthlyStatisticsByYearAndCustomer(Integer year);

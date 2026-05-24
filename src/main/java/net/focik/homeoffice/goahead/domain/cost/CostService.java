@@ -44,6 +44,10 @@ class CostService {
         return costRepository.findByDate(date);
     }
 
+    public List<Cost> findBySellDateBetween(LocalDate from, LocalDate to) {
+        return costRepository.findBySellDateBetween(from, to);
+    }
+
     public Page<Cost> findCostsPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, Integer idSupplier, LocalDate sellDate, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
         Sort sort = sortDirection.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
         PageRequest pageable = PageRequest.of(page, size, sort);

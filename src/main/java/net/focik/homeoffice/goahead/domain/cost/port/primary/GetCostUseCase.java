@@ -12,7 +12,8 @@ import java.util.List;
 public interface GetCostUseCase {
     Cost getCost(int id);
     List<Cost> getAllCosts();
-    List<Cost> getCostsByDate(LocalDate date);
+
+    List<Cost> findBySellDateBetween(LocalDate from, LocalDate to);
     Page<Cost> findCostsPageableWithFilters(int page, int size, String sortField, String sortDirection,
                                             String globalFilter, Integer idSupplier, LocalDate sellDate,
                                             String dateComparisonType, BigDecimal amount, String amountComparisonType,

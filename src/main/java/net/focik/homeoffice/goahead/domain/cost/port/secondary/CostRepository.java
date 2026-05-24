@@ -26,6 +26,8 @@ public interface CostRepository {
 
     List<Cost> findByDate(LocalDate date);
 
+    List<Cost> findBySellDateBetween(LocalDate from, LocalDate to);
+
     Page<Cost> findAll(Pageable pageable, String globalFilter, Integer idSupplier, LocalDate sellDate,
                        String dateComparisonType, BigDecimal amount, String amountComparisonType,
                        PaymentStatus status);

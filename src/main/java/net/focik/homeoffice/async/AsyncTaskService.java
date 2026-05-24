@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -43,5 +44,10 @@ public class AsyncTaskService {
             task.setStatus(status);
             updateTask(task);
         }
+    }
+
+    public boolean hasSucceededJobSince(String jobType, LocalDateTime since) {
+        return asyncTaskRepository.existsByJobTypeAndStatusAndCreatedAtGreaterThanEqual(
+                jobType, AsyncTaskStatus.SUCCEEDED, since);
     }
 }

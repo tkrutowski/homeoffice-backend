@@ -21,6 +21,8 @@ public interface GetInvoiceUseCase {
                                                   String amountComparisonType, PaymentStatus status);
     String generateAndSendInvoiceToS3(int invoice);
 
+    List<Invoice> findBySellDateBetween(LocalDate from, LocalDate to);
+
     Map<Integer, List<BigDecimal>> getStatistic();
     Map<Integer, List<BigDecimal>> getStatisticByCustomer(Integer year);
 

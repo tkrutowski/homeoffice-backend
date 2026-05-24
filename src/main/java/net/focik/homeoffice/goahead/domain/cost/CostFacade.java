@@ -57,8 +57,8 @@ public class CostFacade implements AddCostUseCase, GetCostUseCase, UpdateCostUse
     }
 
     @Override
-    public List<Cost> getCostsByDate(LocalDate date) {
-        return costService.getCostsByDate(date);
+    public List<Cost> findBySellDateBetween(LocalDate from, LocalDate to) {
+        return costService.findBySellDateBetween(from, to);
     }
 
     @Override

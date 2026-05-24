@@ -108,6 +108,12 @@ class InvoiceService {
         log.debug("Deleted invoice with id {}", idInvoice);
     }
 
+    @Transactional
+    public List<Invoice> findBySellDateBetween(LocalDate from, LocalDate to) {
+        log.debug("Trying to find invoices between {} and {}", from, to);
+        return invoiceRepository.findBySellDateBetween(from, to);
+    }
+
     public Map<Integer, List<BigDecimal>> getStatistic() {
         return invoiceRepository.getStatistic();
     }

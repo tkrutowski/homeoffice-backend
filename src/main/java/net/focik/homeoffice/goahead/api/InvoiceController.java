@@ -3,14 +3,19 @@ package net.focik.homeoffice.goahead.api;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.async.AsyncTask;
+import net.focik.homeoffice.async.AsyncTaskService;
 import net.focik.homeoffice.async.AsyncTaskStartResponse;
 import net.focik.homeoffice.goahead.api.dto.BasicDto;
 import net.focik.homeoffice.goahead.api.dto.InvoiceDto;
+import net.focik.homeoffice.goahead.api.dto.SettlementDateRequest;
+import net.focik.homeoffice.goahead.api.dto.ZusDraDataDto;
 import net.focik.homeoffice.goahead.api.mapper.ApiInvoiceMapper;
+import net.focik.homeoffice.goahead.domain.cost.port.primary.GetCostUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.Invoice;
 import net.focik.homeoffice.goahead.domain.invoice.InvoiceFacade;
 import net.focik.homeoffice.goahead.domain.invoice.KsefJobService;
 import net.focik.homeoffice.goahead.domain.invoice.PdfJobService;
+import net.focik.homeoffice.goahead.domain.invoice.ZusDraJobService;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.FindKsefInvoiceRequest;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.InvoiceKsefDto;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.AddInvoiceUseCase;
@@ -47,10 +52,14 @@ public class InvoiceController extends ExceptionHandling {
     private final AddInvoiceUseCase addInvoiceUseCase;
     private final UpdateInvoiceUseCase updateInvoiceUseCase;
     private final DeleteInvoiceUseCase deleteInvoiceUseCase;
+    private final GetCostUseCase getCostUseCase;
     private final KsefJobService ksefJobService;
     private final PdfJobService pdfJobService;
+    private final ZusDraJobService zusDraJobService;
+    private final AsyncTaskService asyncTaskService;
     private final ApiInvoiceMapper mapper;
     private final InvoiceFacade invoiceFacade;
+    private final ObjectMapper objectMapper;
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
@@ -243,6 +252,57 @@ public class InvoiceController extends ExceptionHandling {
         List<InvoiceKsefDto> ksefInvoices = getInvoiceUseCase.findKsefInvoices(request.fromDate(), request.toDate());
         return new ResponseEntity<>(ksefInvoices, HttpStatus.OK);
      }
+
+    @PostMapping("/zus-dra")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    public ResponseEntity<AsyncTaskStartResponse> prepareZusDraData(
+            @RequestBody SettlementDateRequest request) {
+        log.info("Request to prepare ZUS DRA data for settlement date: {}", request.getSettlementDate());
+
+        String jobId = zusDraJobService.startJob(request.getSettlementDate());
+
+        return new ResponseEntity<>(new AsyncTaskStartResponse(jobId), HttpStatus.ACCEPTED);
+    }
+
+    @GetMapping("/zus-dra/jobs/{jobId}")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    public ResponseEntity<AsyncTask> getZusDraJobStatus(@PathVariable String jobId) {
+        log.info("Request to get ZUS DRA job status for jobId: {}", jobId);
+
+        AsyncTask jobStatus = zusDraJobService.getJobStatus(jobId);
+
+        if (jobStatus == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(jobStatus, HttpStatus.OK);
+    }
+
+    @GetMapping("/zus-dra/jobs/{jobId}/result")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    public ResponseEntity<ZusDraDataDto> getZusDraJobResult(@PathVariable String jobId) {
+        log.info("Request to get ZUS DRA job result for jobId: {}", jobId);
+
+        AsyncTask jobStatus = zusDraJobService.getJobStatus(jobId);
+
+        if (jobStatus == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        if (jobStatus.getTextractResultJson() == null || jobStatus.getTextractResultJson().isEmpty()) {
+            log.warn("No result available for jobId {}", jobId);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+
+        try {
+            ZusDraDataDto result = objectMapper.readValue(jobStatus.getTextractResultJson(), ZusDraDataDto.class);
+            log.info("Returning ZUS DRA result for jobId {}", jobId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("Error deserializing ZUS DRA result for jobId {}: {}", jobId, e.getMessage(), e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     private ResponseEntity<HttpResponse> response(HttpStatus status, String message) {
         HttpResponse body = new HttpResponse(status.value(), status, status.getReasonPhrase(), message);

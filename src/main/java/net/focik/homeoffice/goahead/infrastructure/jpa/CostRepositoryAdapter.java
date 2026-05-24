@@ -77,6 +77,13 @@ public class CostRepositoryAdapter implements CostRepository {
     }
 
     @Override
+    public List<Cost> findBySellDateBetween(LocalDate from, LocalDate to) {
+        return costDtoRepository.findBySellDateBetween(from, to).stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public Page<Cost> findAll(Pageable pageable, String globalFilter, Integer idSupplier, LocalDate sellDate, String dateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
         Specification<CostDbDto> spec = Specification.where(null);
 

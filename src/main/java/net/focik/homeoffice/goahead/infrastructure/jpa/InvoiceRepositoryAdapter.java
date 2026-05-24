@@ -115,6 +115,13 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
     }
 
     @Override
+    public List<Invoice> findBySellDateBetween(LocalDate from, LocalDate to) {
+        return invoiceDtoRepository.findBySellDateBetween(from, to).stream()
+                .map(this::mapToDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public Map<Integer, List<BigDecimal>> getStatistic() {
         Map<Integer, List<BigDecimal>> result = new HashMap<>();
 

@@ -103,6 +103,16 @@ public class InMemoryInvoiceRepositoryAdapter implements InvoiceRepository {
     }
 
     @Override
+    public List<Invoice> findBySellDateBetween(LocalDate from, LocalDate to) {
+        return DataBaseInvoice.getInvoiceDbDtoHashMap()
+                .values()
+                .stream()
+                .filter(dto -> !dto.getSellDate().isBefore(from) && !dto.getSellDate().isAfter(to))
+                .map(invoiceDbDto -> mapper.map(invoiceDbDto, Invoice.class))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public Map<Integer, List<BigDecimal>> getStatistic() {
         return Map.of();
     }
