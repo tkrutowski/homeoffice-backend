@@ -3,6 +3,7 @@ package net.focik.homeoffice.finance.infrastructure.dto;
 import jakarta.persistence.*;
 import lombok.*;
 import net.focik.homeoffice.addresses.infrastructure.dto.AddressDbDto;
+import net.focik.homeoffice.audit.AuditableEntity;
 
 
 @Builder
@@ -13,7 +14,7 @@ import net.focik.homeoffice.addresses.infrastructure.dto.AddressDbDto;
 @Entity
 @ToString
 @Table(name = "finance_bank")
-public class BankDbDto {
+public class BankDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

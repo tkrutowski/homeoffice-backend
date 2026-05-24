@@ -1,6 +1,8 @@
 package net.focik.homeoffice.finance.domain.loan;
 
 import lombok.AllArgsConstructor;
+import net.focik.homeoffice.audit.AuditAction;
+import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.finance.domain.loan.port.primary.AddLoanUseCase;
 import net.focik.homeoffice.finance.domain.loan.port.primary.DeleteLoanUseCase;
 import net.focik.homeoffice.finance.domain.loan.port.primary.GetLoanUseCase;
@@ -27,11 +29,13 @@ public class LoanFacade implements AddLoanUseCase, GetLoanUseCase, UpdateLoanUse
     private final UserFacade userFacade;
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "Loan")
     public Loan addLoan(Loan loan) {
         return loanService.saveLoan(loan);
     }
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "LoanInstallment")
     public LoanInstallment addLoanInstallment(LoanInstallment loanInstallment) {
         return loanService.addLoanInstallment(loanInstallment);
     }
@@ -82,17 +86,20 @@ public class LoanFacade implements AddLoanUseCase, GetLoanUseCase, UpdateLoanUse
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Loan")
     public Loan updateLoan(Loan loan) {
         loanService.updateLoan(loan);
         return loanService.findLoanById(loan.getId(), true);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "LoanInstallment")
     public LoanInstallment updateLoanInstallment(LoanInstallment loanInstallment) {
         return loanService.updateLoanInstallment(loanInstallment);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Loan")
     public Loan updateLoanStatus(int idLoan, PaymentStatus loanStatus) {
         Loan loan = loanService.findLoanById(idLoan, false);
         loan.changeLoanStatus(loanStatus);
@@ -102,11 +109,13 @@ public class LoanFacade implements AddLoanUseCase, GetLoanUseCase, UpdateLoanUse
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "Loan")
     public void deleteLoanById(int idLoan) {
         loanService.deleteLoan(idLoan);
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "LoanInstallment")
     public void deleteLoanInstallmentById(int id) {
         loanService.deleteLoanInstallment(id);
     }

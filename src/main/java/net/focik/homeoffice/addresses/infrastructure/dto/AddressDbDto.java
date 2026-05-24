@@ -7,6 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import jakarta.persistence.*;
+import net.focik.homeoffice.audit.AuditableEntity;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,7 +16,7 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "addresses")
 @ToString
-public class AddressDbDto {
+public class AddressDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")

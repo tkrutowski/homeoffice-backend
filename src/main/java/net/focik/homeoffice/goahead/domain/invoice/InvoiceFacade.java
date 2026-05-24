@@ -1,6 +1,8 @@
 package net.focik.homeoffice.goahead.domain.invoice;
 
 import lombok.AllArgsConstructor;
+import net.focik.homeoffice.audit.AuditAction;
+import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.fileService.domain.port.secondary.FileRepository;
 import net.focik.homeoffice.goahead.domain.company.Company;
 import net.focik.homeoffice.goahead.domain.company.CompanyFacade;
@@ -35,6 +37,7 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
     private final KsefService ksefService;
     private final CompanyFacade companyFacade;
 
+    @AuditLog(action = AuditAction.CREATE, entityType = "Invoice")
     public Invoice addInvoice(Invoice invoice) {
         return invoiceService.saveInvoice(invoice);
     }
@@ -53,16 +56,19 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Invoice")
     public Invoice updateInvoice(Invoice invoice) {
         return invoiceService.updateInvoice(invoice);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Invoice")
     public void updatePaymentStatus(Integer id, PaymentStatus paymentStatus) {
         invoiceService.updatePaymentStatus(id, paymentStatus);
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "Invoice")
     public void deleteInvoice(Integer idInvoice) {
         invoiceService.deleteInvoice(idInvoice);
     }

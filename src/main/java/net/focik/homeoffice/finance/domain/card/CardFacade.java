@@ -1,6 +1,8 @@
 package net.focik.homeoffice.finance.domain.card;
 
 import lombok.AllArgsConstructor;
+import net.focik.homeoffice.audit.AuditAction;
+import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.finance.domain.card.port.primary.AddCardUseCase;
 import net.focik.homeoffice.finance.domain.card.port.primary.DeleteCardUseCase;
 import net.focik.homeoffice.finance.domain.card.port.primary.GetCardUseCase;
@@ -21,11 +23,13 @@ public class CardFacade implements AddCardUseCase, UpdateCardUseCase, GetCardUse
     private final UserFacade userFacade;
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "Card")
     public Card addCard(Card card) {
         return cardService.addCard(card);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Card")
     public void updateCardStatus(int idCard, ActiveStatus activeStatus) {
         Card card = cardService.findCardById(idCard);
         card.changeActiveStatus(activeStatus);
@@ -34,11 +38,13 @@ public class CardFacade implements AddCardUseCase, UpdateCardUseCase, GetCardUse
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Card")
     public Card updateCard(Card card) {
         return cardService.updateCard(card);
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "Card")
     public void deleteCard(int id) {
         cardService.deleteCard(id);
     }

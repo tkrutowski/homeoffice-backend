@@ -1,6 +1,7 @@
 package net.focik.homeoffice.library.infrastructure.dto;
 
 import lombok.*;
+import net.focik.homeoffice.audit.AuditableEntity;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -17,7 +18,7 @@ import java.util.Set;
 @ToString
 @Table(name = "library_books")
 public
-class BookDbDto {
+class BookDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")

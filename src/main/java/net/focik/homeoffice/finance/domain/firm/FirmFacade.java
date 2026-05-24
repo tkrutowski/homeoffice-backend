@@ -1,6 +1,8 @@
 package net.focik.homeoffice.finance.domain.firm;
 
 import lombok.AllArgsConstructor;
+import net.focik.homeoffice.audit.AuditAction;
+import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.finance.domain.firm.port.primary.AddFirmUseCase;
 import net.focik.homeoffice.finance.domain.firm.port.primary.DeleteFirmUseCase;
 import net.focik.homeoffice.finance.domain.firm.port.primary.GetFirmUseCase;
@@ -16,16 +18,19 @@ public class FirmFacade implements AddFirmUseCase, UpdateFirmUseCase, GetFirmUse
     private final FirmService firmService;
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "Firm")
     public Firm addFirm(Firm firm) {
         return firmService.addFirm(firm);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Firm")
     public Firm updateFirm(Firm firm) {
         return firmService.updateFirm(firm);
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "Firm")
     public void deleteFirm(Integer id) {
         firmService.deleteFirm(id);
     }

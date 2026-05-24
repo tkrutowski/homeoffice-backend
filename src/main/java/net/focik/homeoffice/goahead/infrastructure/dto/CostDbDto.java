@@ -1,6 +1,7 @@
 package net.focik.homeoffice.goahead.infrastructure.dto;
 
 import lombok.*;
+import net.focik.homeoffice.audit.AuditableEntity;
 import net.focik.homeoffice.utils.share.PaymentMethod;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -17,7 +18,7 @@ import java.util.List;
 @Entity
 @ToString
 @Table(name = "goahead_cost")
-public class CostDbDto {
+public class CostDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")

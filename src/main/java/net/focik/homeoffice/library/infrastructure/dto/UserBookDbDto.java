@@ -1,6 +1,7 @@
 package net.focik.homeoffice.library.infrastructure.dto;
 
 import lombok.*;
+import net.focik.homeoffice.audit.AuditableEntity;
 import net.focik.homeoffice.library.domain.model.EditionType;
 import net.focik.homeoffice.library.domain.model.OwnershipStatus;
 import net.focik.homeoffice.library.domain.model.ReadingStatus;
@@ -19,7 +20,7 @@ import java.time.LocalDate;
 @ToString
 @Table(name = "library_userbooks")
 public
-class UserBookDbDto {
+class UserBookDbDto extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -3,6 +3,7 @@ package net.focik.homeoffice.goahead.infrastructure.dto;
 import jakarta.persistence.*;
 import lombok.*;
 import net.focik.homeoffice.addresses.infrastructure.dto.AddressDbDto;
+import net.focik.homeoffice.audit.AuditableEntity;
 
 @Builder
 @NoArgsConstructor
@@ -11,7 +12,7 @@ import net.focik.homeoffice.addresses.infrastructure.dto.AddressDbDto;
 @Setter
 @Entity
 @Table(name = "goahead_company")
-public class CompanyDbDto {
+public class CompanyDbDto extends AuditableEntity {
     @Id
     private String name;
     private String fullName;

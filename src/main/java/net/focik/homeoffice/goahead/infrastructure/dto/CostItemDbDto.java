@@ -1,6 +1,7 @@
 package net.focik.homeoffice.goahead.infrastructure.dto;
 
 import lombok.*;
+import net.focik.homeoffice.audit.AuditableEntity;
 import net.focik.homeoffice.utils.share.Vat;
 
 import jakarta.persistence.*;
@@ -14,7 +15,7 @@ import java.math.BigDecimal;
 @Entity
 @ToString
 @Table(name = "goahead_cost_item")
-public class CostItemDbDto {
+public class CostItemDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")

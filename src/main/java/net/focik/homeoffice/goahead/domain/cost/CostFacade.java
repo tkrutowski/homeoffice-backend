@@ -2,6 +2,8 @@ package net.focik.homeoffice.goahead.domain.cost;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.audit.AuditAction;
+import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.fileService.domain.port.secondary.FileRepository;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.AddCostUseCase;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.DeleteCostUseCase;
@@ -39,6 +41,7 @@ public class CostFacade implements AddCostUseCase, GetCostUseCase, UpdateCostUse
     private final SupplierFacade supplierFacade;
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "Cost")
     public Cost addCost(Cost cost) {
         return costService.addCost(cost);
     }
@@ -139,16 +142,19 @@ public class CostFacade implements AddCostUseCase, GetCostUseCase, UpdateCostUse
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Cost")
     public Cost updateCost(Cost cost) {
         return costService.updateCost(cost);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Cost")
     public void updatePaymentStatus(Integer id, PaymentStatus paymentStatus) {
         costService.updatePaymentStatus(id, paymentStatus);
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "Cost")
     public void deleteCost(int id) {
         costService.deleteCost(id);
     }

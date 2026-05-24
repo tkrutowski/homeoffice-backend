@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
 import lombok.ToString;
+import net.focik.homeoffice.audit.AuditableEntity;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,7 +15,7 @@ import lombok.ToString;
 @ToString
 @Table(name = "library_authors")
 public
-class AuthorDbDto {
+class AuthorDbDto extends AuditableEntity {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)

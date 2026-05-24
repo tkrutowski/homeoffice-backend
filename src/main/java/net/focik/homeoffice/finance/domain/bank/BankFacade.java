@@ -1,6 +1,8 @@
 package net.focik.homeoffice.finance.domain.bank;
 
 import lombok.AllArgsConstructor;
+import net.focik.homeoffice.audit.AuditAction;
+import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.finance.domain.bank.port.primary.AddBankUseCase;
 import net.focik.homeoffice.finance.domain.bank.port.primary.DeleteBankUseCase;
 import net.focik.homeoffice.finance.domain.bank.port.primary.GetBankUseCase;
@@ -16,16 +18,19 @@ public class BankFacade implements AddBankUseCase, UpdateBankUseCase, GetBankUse
     private final BankService bankService;
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "Bank")
     public Bank addBank(Bank bank) {
         return bankService.addBank(bank);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Bank")
     public Bank updateBank(Bank bank) {
         return bankService.updateBank(bank);
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "Bank")
     public void deleteBank(Integer id) {
         bankService.deleteBank(id);
     }

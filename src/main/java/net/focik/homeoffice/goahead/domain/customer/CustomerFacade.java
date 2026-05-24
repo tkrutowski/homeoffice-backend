@@ -1,6 +1,8 @@
 package net.focik.homeoffice.goahead.domain.customer;
 
 import lombok.AllArgsConstructor;
+import net.focik.homeoffice.audit.AuditAction;
+import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.goahead.domain.customer.port.primary.AddCustomerUseCase;
 import net.focik.homeoffice.goahead.domain.customer.port.primary.DeleteCustomerUseCase;
 import net.focik.homeoffice.goahead.domain.customer.port.primary.GetCustomerUseCase;
@@ -15,20 +17,24 @@ public class CustomerFacade implements AddCustomerUseCase, UpdateCustomerUseCase
 
     private final ICustomerService customerService;
 
+    @AuditLog(action = AuditAction.CREATE, entityType = "Customer")
     public Customer addCustomer(Customer customer) {
          return customerService.addCustomer(customer);
     }
 
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Customer")
     public Customer updateCustomer(Customer customer) {
         return customerService.updateCustomer(customer);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Customer")
     public void updateCustomerStatus(Integer id, ActiveStatus status) {
         customerService.updateCustomerStatus(id, status);
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "Customer")
     public void deleteCustomer(Integer id) {
         customerService.deleteCustomer(id);
     }

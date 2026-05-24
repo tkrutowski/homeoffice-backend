@@ -2,6 +2,7 @@ package net.focik.homeoffice.finance.infrastructure.dto;
 
 import jakarta.persistence.*;
 import lombok.*;
+import net.focik.homeoffice.audit.AuditableEntity;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -11,11 +12,11 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "Finance_Purchase")
+@Table(name = "finance_purchase")
 @Getter
 @ToString
 @Builder
-public class PurchaseDbDto {
+public class PurchaseDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 //    @Column(name = "id_zakupu")

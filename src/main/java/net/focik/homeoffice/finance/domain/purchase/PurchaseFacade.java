@@ -1,6 +1,8 @@
 package net.focik.homeoffice.finance.domain.purchase;
 
 import lombok.AllArgsConstructor;
+import net.focik.homeoffice.audit.AuditAction;
+import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.AddPurchaseUseCase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.DeletePurchaseUseCase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.GetPurchaseUseCase;
@@ -23,11 +25,13 @@ public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase
     private final UserFacade userFacade;
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "Purchase")
     public Purchase addPurchase(Purchase purchase) {
         return purchaseService.addPurchase(purchase);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Purchase")
     public Purchase updatePurchaseStatus(int idPurchase, PaymentStatus paymentStatus) {
         Purchase purchase = purchaseService.findPurchaseById(idPurchase);
         purchase.changePaymentStatus(paymentStatus);
@@ -36,11 +40,13 @@ public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Purchase")
     public Purchase updatePurchase(Purchase purchase) {
         return purchaseService.updatePurchase(purchase);
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "Purchase")
     public void deletePurchase(int id) {
         purchaseService.deletePurchase(id);
     }

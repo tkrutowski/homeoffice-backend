@@ -1,6 +1,7 @@
 package net.focik.homeoffice.goahead.infrastructure.dto;
 
 import lombok.*;
+import net.focik.homeoffice.audit.AuditableEntity;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import net.focik.homeoffice.utils.share.PaymentMethod;
 
@@ -18,7 +19,7 @@ import java.util.List;
 @Entity
 @ToString
 @Table(name = "goahead_invoice")
-public class InvoiceDbDto {
+public class InvoiceDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")

@@ -2,6 +2,7 @@ package net.focik.homeoffice.devices.infrastructure.dto;
 
 import jakarta.persistence.*;
 import lombok.*;
+import net.focik.homeoffice.audit.AuditableEntity;
 import net.focik.homeoffice.devices.domain.model.ComputerType;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 
@@ -15,7 +16,7 @@ import net.focik.homeoffice.utils.share.ActiveStatus;
 @Table(name = "devices_computer")
 public
 class
-ComputerDbDto {
+ComputerDbDto extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

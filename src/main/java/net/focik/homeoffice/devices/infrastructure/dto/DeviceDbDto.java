@@ -2,6 +2,7 @@ package net.focik.homeoffice.devices.infrastructure.dto;
 
 import jakarta.persistence.*;
 import lombok.*;
+import net.focik.homeoffice.audit.AuditableEntity;
 import net.focik.homeoffice.fileService.infrastructure.dto.FileInfoDbDto;
 import net.focik.homeoffice.finance.infrastructure.dto.FirmDbDto;
 import net.focik.homeoffice.utils.share.ActiveStatus;
@@ -22,7 +23,7 @@ import java.util.Set;
 @ToString
 @Table(name = "devices")
 public
-class DeviceDbDto {
+class DeviceDbDto extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

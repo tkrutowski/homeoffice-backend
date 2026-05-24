@@ -2,6 +2,7 @@ package net.focik.homeoffice.goahead.infrastructure.dto;
 
 import lombok.*;
 import net.focik.homeoffice.addresses.infrastructure.dto.AddressDbDto;
+import net.focik.homeoffice.audit.AuditableEntity;
 import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 import net.focik.homeoffice.goahead.domain.customer.CustomerType;
 
@@ -15,7 +16,7 @@ import jakarta.persistence.*;
 @Entity
 @ToString
 @Table(name = "goahead_customer")
-public class CustomerDbDto {
+public class CustomerDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")

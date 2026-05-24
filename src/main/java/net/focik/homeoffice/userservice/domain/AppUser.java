@@ -2,6 +2,7 @@ package net.focik.homeoffice.userservice.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import net.focik.homeoffice.audit.AuditableEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,7 +15,7 @@ import java.util.*;
 @Getter
 @Setter
 @Table(name = "users")
-public class AppUser implements UserDetails {
+public class AppUser extends AuditableEntity implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -2,6 +2,8 @@ package net.focik.homeoffice.library.domain;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.audit.AuditAction;
+import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.library.domain.exception.BookAlreadyExistException;
 import net.focik.homeoffice.library.domain.exception.BookstoreNotFoundException;
 import net.focik.homeoffice.library.domain.exception.SeriesNotFoundException;
@@ -93,6 +95,7 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "Book")
     public Book addBook(Book book) {
         book.setCategories(categoryService.validCategories(book.getCategories()));
         book.setSeries(seriesService.validSeries(book.getSeries()));
@@ -100,11 +103,13 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "Book")
     public void deleteBook(Integer idBook) {
         bookService.deleteBook(idBook);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Book")
     public Book updateBook(Book book) {
         return bookService.updateBook(book);
     }
@@ -183,16 +188,19 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "Bookstore")
     public Bookstore addBookstore(Bookstore bookstore) {
         return bookstoreService.addBookstore(bookstore);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Bookstore")
     public Bookstore updateBookstore(Bookstore bookstore) {
         return bookstoreService.updateBookstore(bookstore);
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "Bookstore")
     public void deleteBookstore(Integer idBookstore) {
         Bookstore bookstore = Optional.ofNullable(bookstoreService.findBookstore(idBookstore)).orElseThrow(() -> new BookstoreNotFoundException(Long.valueOf(idBookstore)));
         List<UserBook> booksInSeries = userBookService.findUserBooksByBookstore(idBookstore);
@@ -205,6 +213,7 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "UserBook")
     public UserBook addUserBook(UserBook userBook, String userName) {
         AppUser user = userFacade.findUserByUsername(userName);
         userBook.setUser(user);
@@ -212,6 +221,7 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "UserBook")
     public UserBook updateUserBook(UserBook userBook) {
         UserBook updatedUserBook = userBookService.updateUserBook(userBook);
         if (updatedUserBook.getReadingStatus().equals(ReadingStatus.READ) && Objects.nonNull(updatedUserBook.getBook().getSeries())) {
@@ -221,6 +231,7 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "UserBook")
     public void deleteUserBook(Integer idUseBook) {
         userBookService.deleteUserBook(idUseBook);
     }
@@ -272,16 +283,19 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "Author")
     public Author add(Author author) {
         return authorService.addAuthor(author);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Author")
     public Author updateAuthor(Author author) {
         return authorService.updateAuthor(author);
     }
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "Category")
     public Category add(Category category) {
         return categoryService.addCategory(category);
     }
@@ -320,16 +334,19 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "Series")
     public Series addSeries(Series series) {
         return seriesService.addSeries(series);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Series")
     public Series updateSeries(Series series) {
         return seriesService.updateSeries(series);
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "Author")
     public void deleteAuthor(Integer idAuthor) {
         List<Book> allBooksByAuthor = bookService.findAllBooksByAuthor(idAuthor);
         if (allBooksByAuthor.isEmpty()) {
@@ -339,6 +356,7 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "Series")
     public void deleteSeries(Integer idSeries) {
         Series series = Optional.ofNullable(seriesService.findSeries(idSeries)).orElseThrow(() -> new SeriesNotFoundException(idSeries));
         List<Book> booksInSeries = bookService.findAllBooksInSeries(series);

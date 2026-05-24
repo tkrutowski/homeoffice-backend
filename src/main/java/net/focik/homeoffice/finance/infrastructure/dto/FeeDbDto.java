@@ -1,6 +1,7 @@
 package net.focik.homeoffice.finance.infrastructure.dto;
 
 import lombok.*;
+import net.focik.homeoffice.audit.AuditableEntity;
 import net.focik.homeoffice.finance.domain.fee.FeeFrequencyEnum;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 
@@ -13,11 +14,11 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "Finance_Fee")
+@Table(name = "finance_fee")
 @Getter
 @ToString
 @Builder
-public class FeeDbDto {
+public class FeeDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

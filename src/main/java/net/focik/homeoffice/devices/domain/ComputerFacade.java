@@ -1,6 +1,8 @@
 package net.focik.homeoffice.devices.domain;
 
 import lombok.AllArgsConstructor;
+import net.focik.homeoffice.audit.AuditAction;
+import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.devices.domain.model.Computer;
 import net.focik.homeoffice.devices.domain.port.primary.*;
 import net.focik.homeoffice.utils.share.ActiveStatus;
@@ -29,21 +31,25 @@ public class ComputerFacade implements FindComputerUseCase, SaveComputerUseCase,
     }
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "Computer")
     public Computer add(Computer computer) {
         return computerService.add(computer);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Computer")
     public Computer update(Computer computer) {
         return computerService.update(computer);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Computer")
     public Computer updateStatus(Integer idDevice, ActiveStatus status) {
         return computerService.updateStatus(idDevice, status);
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "Computer")
     public void deleteComputer(Integer idComputer) {
         computerService.deleteComputer(idComputer);
     }

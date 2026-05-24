@@ -21,11 +21,17 @@ class CostService {
     private final CostRepository costRepository;
 
     public Cost addCost(Cost cost) {
-        return costRepository.addCost(cost);
+        return costRepository.saveCost(cost);
     }
 
     @Transactional
     public Cost getCost(int id) {
+        return costRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Cost not found with id: " + id));
+    }
+
+    @Transactional
+    public Cost getCostForUpdate(int id) {
         return costRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Cost not found with id: " + id));
     }
@@ -44,8 +50,26 @@ class CostService {
         return costRepository.findAll(pageable, globalFilter, idSupplier, sellDate, dateComparisonType, amount, amountComparisonType, status);
     }
 
+    @Transactional
     public Cost updateCost(Cost cost) {
-        return costRepository.updateCost(cost);
+        Cost existing = getCostForUpdate(cost.getId());
+        return costRepository.updateCost(mergeChanges(existing, cost));
+    }
+
+    private Cost mergeChanges(Cost existing, Cost updates) {
+        if (updates.getNumber() != null) existing.setNumber(updates.getNumber());
+        if (updates.getSupplier() != null) existing.setSupplier(updates.getSupplier());
+        if (updates.getInvoiceDate() != null) existing.setInvoiceDate(updates.getInvoiceDate());
+        if (updates.getSellDate() != null) existing.setSellDate(updates.getSellDate());
+        if (updates.getPaymentDate() != null) existing.setPaymentDate(updates.getPaymentDate());
+        if (updates.getOtherInfo() != null) existing.setOtherInfo(updates.getOtherInfo());
+        if (updates.getPaymentMethod() != null) existing.setPaymentMethod(updates.getPaymentMethod());
+        if (updates.getPaymentStatus() != null) existing.setPaymentStatus(updates.getPaymentStatus());
+        if (updates.getPdfUrl() != null) existing.setPdfUrl(updates.getPdfUrl());
+        if (updates.getKsefNumber() != null) existing.setKsefNumber(updates.getKsefNumber());
+        if (updates.getInvoiceHash() != null) existing.setInvoiceHash(updates.getInvoiceHash());
+        if (updates.getCostItems() != null) existing.setCostItems(updates.getCostItems());
+        return existing;
     }
 
     @Transactional

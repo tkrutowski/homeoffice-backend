@@ -14,7 +14,7 @@ import java.util.Optional;
 @Component
 public interface CostRepository {
 
-    Cost addCost(Cost cost);
+    Cost saveCost(Cost cost);
 
     Cost updateCost(Cost cost);
 

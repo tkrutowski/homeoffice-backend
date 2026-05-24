@@ -2,6 +2,7 @@ package net.focik.homeoffice.devices.infrastructure.dto;
 
 import jakarta.persistence.*;
 import lombok.*;
+import net.focik.homeoffice.audit.AuditableEntity;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -11,7 +12,7 @@ import lombok.*;
 @ToString
 @Table(name = "devices_type")
 public
-class DeviceTypeDbDto {
+class DeviceTypeDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")

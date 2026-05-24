@@ -1,6 +1,8 @@
 package net.focik.homeoffice.finance.domain.fee;
 
 import lombok.RequiredArgsConstructor;
+import net.focik.homeoffice.audit.AuditAction;
+import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.finance.domain.fee.port.primary.AddFeeUseCase;
 import net.focik.homeoffice.finance.domain.fee.port.primary.DeleteFeeUseCase;
 import net.focik.homeoffice.finance.domain.fee.port.primary.GetFeeUseCase;
@@ -27,11 +29,13 @@ public class FeeFacade implements AddFeeUseCase, GetFeeUseCase, UpdateFeeUseCase
     private final UserFacade userFacade;
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "Fee")
     public Fee addFee(Fee fee) {
         return feeService.saveFee(fee);
     }
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "FeeInstallment")
     public FeeInstallment addFeeInstallment(FeeInstallment feeInstallment) {
         return feeService.addFeeInstallment(feeInstallment);
     }
@@ -93,17 +97,20 @@ public class FeeFacade implements AddFeeUseCase, GetFeeUseCase, UpdateFeeUseCase
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Fee")
     public Fee updateFee(Fee fee) {
         feeService.updateFee(fee);
         return feeService.findFeeById(fee.getId(), true);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "FeeInstallment")
     public FeeInstallment updateFeeInstallment(FeeInstallment feeInstallment) {
         return feeService.updateFeeInstallment(feeInstallment);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Fee")
     public Fee updateFeeStatus(int idFee, PaymentStatus paymentStatus) {
         Fee fee = feeService.findFeeById(idFee, false);
         fee.changeFeeStatus(paymentStatus);
@@ -113,11 +120,13 @@ public class FeeFacade implements AddFeeUseCase, GetFeeUseCase, UpdateFeeUseCase
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "Fee")
     public void deleteFeeById(int idFee) {
         feeService.deleteFee(idFee);
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "FeeInstallment")
     public void deleteFeeInstallmentById(int id) {
         feeService.deleteFeeInstallment(id);
     }

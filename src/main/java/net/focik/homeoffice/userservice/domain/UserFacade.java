@@ -1,6 +1,8 @@
 package net.focik.homeoffice.userservice.domain;
 
 import lombok.RequiredArgsConstructor;
+import net.focik.homeoffice.audit.AuditAction;
+import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.userservice.domain.port.primary.IUserService;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +17,7 @@ public class UserFacade {
     private final IUserService userService;
     private final RoleService roleService;
 
+    @AuditLog(action = AuditAction.CREATE, entityType = "User")
     public AppUser registerUser(String firstName, String lastName, String username, String password,
                                 String email, boolean enabled, boolean isNotLocked) {
         return userService.addNewUser(firstName, lastName, username, password, email, enabled, isNotLocked);
@@ -24,10 +27,12 @@ public class UserFacade {
         return userService.findUserByUsername(username);
     }
 
+    @AuditLog(action = AuditAction.UPDATE, entityType = "User")
     public AppUser updateUser(Long id, String firstName, String lastName, String username, String email) {
         return userService.updateUser(id, firstName, lastName, username, email);
     }
 
+    @AuditLog(action = AuditAction.DELETE, entityType = "User")
     public void deleteUser(Long id) {
         userService.deleteUser(id);
     }

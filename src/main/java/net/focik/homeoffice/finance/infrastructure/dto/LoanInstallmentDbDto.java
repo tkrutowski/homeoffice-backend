@@ -1,6 +1,7 @@
 package net.focik.homeoffice.finance.infrastructure.dto;
 
 import lombok.*;
+import net.focik.homeoffice.audit.AuditableEntity;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 
 import jakarta.persistence.*;
@@ -12,12 +13,12 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "Finance_Loan_Installment")
+@Table(name = "finance_loan_installment")
 @Getter
 @Setter
 @ToString
 @Builder
-public class LoanInstallmentDbDto {
+public class LoanInstallmentDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

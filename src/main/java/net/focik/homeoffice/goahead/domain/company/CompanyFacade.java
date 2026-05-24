@@ -1,6 +1,8 @@
 package net.focik.homeoffice.goahead.domain.company;
 
 import lombok.AllArgsConstructor;
+import net.focik.homeoffice.audit.AuditAction;
+import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.goahead.domain.company.port.primary.GetCompanyUseCase;
 import net.focik.homeoffice.goahead.domain.company.port.primary.LookupCompanyUseCase;
 import net.focik.homeoffice.goahead.domain.company.port.primary.UpdateCompanyUseCase;
@@ -24,6 +26,7 @@ public class CompanyFacade implements GetCompanyUseCase, UpdateCompanyUseCase, L
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Company")
     public Company updateCompany(Company company) {
         return companyRepository.save(company);
     }

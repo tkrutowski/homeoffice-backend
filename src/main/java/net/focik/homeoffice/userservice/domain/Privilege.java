@@ -4,6 +4,7 @@ package net.focik.homeoffice.userservice.domain;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.focik.homeoffice.audit.AuditableEntity;
 import net.focik.homeoffice.utils.share.PrivilegeType;
 
 import jakarta.persistence.*;
@@ -13,7 +14,7 @@ import jakarta.persistence.*;
 @AllArgsConstructor
 @Data
 @Table(name = "privileges")
-public class Privilege {
+public class Privilege extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

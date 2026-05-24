@@ -25,7 +25,7 @@ public class CostRepositoryAdapter implements CostRepository {
     private final JpaCostMapper mapper;
 
     @Override
-    public Cost addCost(Cost cost) {
+    public Cost saveCost(Cost cost) {
         CostDbDto dbDto = mapper.toDto(cost);
         if (dbDto.getIdCost() != null && dbDto.getIdCost() == 0) {
             dbDto.setIdCost(null);

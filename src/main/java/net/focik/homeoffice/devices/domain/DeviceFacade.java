@@ -1,6 +1,8 @@
 package net.focik.homeoffice.devices.domain;
 
 import lombok.AllArgsConstructor;
+import net.focik.homeoffice.audit.AuditAction;
+import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.devices.domain.model.Device;
 import net.focik.homeoffice.devices.domain.model.DeviceFile;
 import net.focik.homeoffice.devices.domain.model.DeviceType;
@@ -45,21 +47,25 @@ public class DeviceFacade implements FindDeviceUseCase, SaveDeviceUseCase, Delet
     }
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "DeviceType")
     public DeviceType add(DeviceType deviceType) {
         return deviceTypeService.add(deviceType);
     }
 
     @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "Device")
     public Device add(Device device) {
         return deviceService.add(device);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Device")
     public Device update(Device device) {
         return deviceService.update(device);
     }
 
     @Override
+    @AuditLog(action = AuditAction.UPDATE, entityType = "Device")
     public Device updateStatus(Integer idDevice, ActiveStatus status) {
         return deviceService.updateStatus(idDevice, status);
     }
@@ -75,6 +81,7 @@ public class DeviceFacade implements FindDeviceUseCase, SaveDeviceUseCase, Delet
     }
 
     @Override
+    @AuditLog(action = AuditAction.DELETE, entityType = "Device")
     public void deleteDevice(Integer idDevice) {
         deviceService.deleteDevice(idDevice);
     }

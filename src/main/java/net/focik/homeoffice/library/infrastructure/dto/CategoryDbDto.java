@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
  import lombok.ToString;
+import net.focik.homeoffice.audit.AuditableEntity;
 
 
 @NoArgsConstructor
@@ -16,7 +17,7 @@ import jakarta.persistence.*;
  @ToString
 @Table(name = "library_categories")
 public
-class CategoryDbDto {
+class CategoryDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
