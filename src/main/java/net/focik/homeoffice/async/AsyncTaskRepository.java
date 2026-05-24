@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository;
 public interface AsyncTaskRepository extends JpaRepository<AsyncTask, String> {
     boolean existsByJobTypeAndStatusAndCreatedAtGreaterThanEqual(
             String jobType, AsyncTaskStatus status, java.time.LocalDateTime createdAt);
+
+    AsyncTask findFirstByJobTypeOrderByUpdatedAtDesc(String jobType);
 }

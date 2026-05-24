@@ -50,4 +50,12 @@ public class AsyncTaskService {
         return asyncTaskRepository.existsByJobTypeAndStatusAndCreatedAtGreaterThanEqual(
                 jobType, AsyncTaskStatus.SUCCEEDED, since);
     }
+
+    public AsyncTaskStatusResponse getLatestTaskStatus(String jobType) {
+        AsyncTask task = asyncTaskRepository.findFirstByJobTypeOrderByUpdatedAtDesc(jobType);
+        if (task == null) {
+            return null;
+        }
+        return new AsyncTaskStatusResponse(task.getStatus(), task.getUpdatedAt());
+    }
 }
