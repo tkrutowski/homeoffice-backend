@@ -22,7 +22,7 @@ public class CostDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Integer idCost;
+    private Integer id;
     
     @ManyToOne
     @JoinColumn(name = "id_supplier")

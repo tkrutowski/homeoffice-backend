@@ -16,7 +16,7 @@ import java.util.List;
 @Setter
 @ToString
 public class Cost {
-    private int idCost;
+    private int id;
     private String number;
     private PaymentMethod paymentMethod;
     private LocalDate sellDate;

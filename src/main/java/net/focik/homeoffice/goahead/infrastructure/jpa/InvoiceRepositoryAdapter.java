@@ -28,8 +28,8 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
     public Invoice save(Invoice invoice) {
         InvoiceDbDto dbDto = mapper.map(invoice, InvoiceDbDto.class);
         
-        if (dbDto.getIdInvoice() != null && dbDto.getIdInvoice() == 0) {
-            dbDto.setIdInvoice(null);
+        if (dbDto.getId() != null && dbDto.getId() == 0) {
+            dbDto.setId(null);
         }
         
         if (dbDto.getKsefNumber() != null && dbDto.getKsefNumber().trim().isEmpty()) {
@@ -38,8 +38,8 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
         
         if (dbDto.getInvoiceItems() != null) {
             dbDto.getInvoiceItems().forEach(invoiceItemDto -> {
-                if (invoiceItemDto.getIdInvoiceItem() != null && invoiceItemDto.getIdInvoiceItem() == 0) {
-                    invoiceItemDto.setIdInvoiceItem(null);
+                if (invoiceItemDto.getId() != null && invoiceItemDto.getId() == 0) {
+                    invoiceItemDto.setId(null);
                 }
                 invoiceItemDto.setInvoice(dbDto);
             });

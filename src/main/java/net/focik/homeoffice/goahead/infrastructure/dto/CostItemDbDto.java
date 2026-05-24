@@ -19,7 +19,7 @@ public class CostItemDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long idCostItem;
+    private Long id;
     
     private String name;
     private String unit;

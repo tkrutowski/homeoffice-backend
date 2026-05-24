@@ -19,7 +19,7 @@ import java.util.Optional;
 @Setter
 @ToString
 public class Invoice {
-    private int idInvoice;
+    private int id;
     private String number;
     private PaymentMethod paymentMethod;
     private LocalDate sellDate;//data sprzedaży

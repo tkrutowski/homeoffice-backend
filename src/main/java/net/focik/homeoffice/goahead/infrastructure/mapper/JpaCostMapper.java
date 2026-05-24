@@ -16,7 +16,7 @@ public class JpaCostMapper {
     private final ModelMapper modelMapper;
     public CostDbDto toDto(Cost cost) {
         return CostDbDto.builder()
-                .idCost(cost.getIdCost())
+                .id(cost.getId())
                 .number(cost.getNumber())
                 .paymentMethod(cost.getPaymentMethod())
                 .sellDate(cost.getSellDate())
@@ -34,7 +34,7 @@ public class JpaCostMapper {
 
     public Cost toDomain(CostDbDto dto) {
         return Cost.builder()
-                .idCost(dto.getIdCost())
+                .id(dto.getId())
                 .number(dto.getNumber())
                 .paymentMethod(dto.getPaymentMethod())
                 .sellDate(dto.getSellDate())

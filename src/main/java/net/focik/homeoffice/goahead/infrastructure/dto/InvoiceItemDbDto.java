@@ -20,7 +20,7 @@ public class InvoiceItemDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long idInvoiceItem;
+    private Long id;
     private String name;
     private String pkwiu;
     private String unit;

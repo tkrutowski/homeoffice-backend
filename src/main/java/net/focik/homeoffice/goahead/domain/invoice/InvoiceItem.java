@@ -11,8 +11,8 @@ import org.javamoney.moneta.Money;
 @Setter
 @ToString
 public class InvoiceItem {
-    private int idInvoice;
-    private long idInvoiceItem;
+    private long id;
+    private int invoiceId;
     private String name;
     private String pkwiu;
     private String unit;

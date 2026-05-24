@@ -11,8 +11,8 @@ import org.javamoney.moneta.Money;
 @Setter
 @ToString
 public class CostItem {
-    private int idCost;
-    private long idCostItem;
+    private long id;
+    private int costId;
     private String name;
     private String unit;
     private float quantity;

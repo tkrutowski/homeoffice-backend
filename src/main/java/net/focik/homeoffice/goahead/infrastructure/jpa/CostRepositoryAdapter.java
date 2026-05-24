@@ -27,14 +27,14 @@ public class CostRepositoryAdapter implements CostRepository {
     @Override
     public Cost saveCost(Cost cost) {
         CostDbDto dbDto = mapper.toDto(cost);
-        if (dbDto.getIdCost() != null && dbDto.getIdCost() == 0) {
-            dbDto.setIdCost(null);
+        if (dbDto.getId() != null && dbDto.getId() == 0) {
+            dbDto.setId(null);
         }
         if (dbDto.getCostItems() != null) {
             dbDto.getCostItems().forEach(item -> {
                 item.setCost(dbDto);
-                if (item.getIdCostItem() != null && item.getIdCostItem() == 0) {
-                    item.setIdCostItem(null);
+                if (item.getId() != null && item.getId() == 0) {
+                    item.setId(null);
                 }
             });
         }
@@ -48,7 +48,7 @@ public class CostRepositoryAdapter implements CostRepository {
 
     @Override
     public Cost updateCost(Cost cost) {
-        return addCost(cost);
+        return saveCost(cost);
     }
 
     @Override

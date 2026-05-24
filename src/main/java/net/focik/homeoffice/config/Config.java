@@ -45,8 +45,8 @@ class Config {
             
             if (source != null && destination != null) {
                 // Ręczne przypisanie właściwego ID faktury z powiązanej encji
-                if (source.getInvoice() != null && source.getInvoice().getIdInvoice() != null) {
-                    destination.setIdInvoice(source.getInvoice().getIdInvoice());
+                if (source.getInvoice() != null && source.getInvoice().getId() != null) {
+                    destination.setId(source.getInvoice().getId());
                 }
             }
             return destination;

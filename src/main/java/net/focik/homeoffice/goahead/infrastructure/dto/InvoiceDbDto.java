@@ -23,7 +23,7 @@ public class InvoiceDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Integer idInvoice;
+    private Integer id;
     @ManyToOne
     @JoinColumn(name = "id_customer")
     private CustomerDbDto customer;

@@ -37,8 +37,8 @@ public class InMemoryInvoiceRepositoryAdapter implements InvoiceRepository {
                 .reduce(Integer::max)
                 .orElse(Integer.valueOf("0")) + 1;
 
-        if (invoiceDbDto.getIdInvoice() == 0) {
-            invoiceDbDto.setIdInvoice(idInvoice);
+        if (invoiceDbDto.getId() == 0) {
+            invoiceDbDto.setId(idInvoice);
         }
         DataBaseInvoice.getInvoiceDbDtoHashMap().put(idInvoice, invoiceDbDto);
 
@@ -49,7 +49,7 @@ public class InMemoryInvoiceRepositoryAdapter implements InvoiceRepository {
                 .orElse(Long.valueOf("0")) + 1;
 
         invoice.getInvoiceItems()
-                .forEach(invoiceItem -> invoiceItem.setIdInvoice(idInvoice));
+                .forEach(invoiceItem -> invoiceItem.setInvoiceId(idInvoice));
 
 
         log.info("Succssec idInvoice = " + idInvoice);

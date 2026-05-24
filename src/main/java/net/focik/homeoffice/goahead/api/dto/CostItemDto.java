@@ -10,8 +10,8 @@ import net.focik.homeoffice.utils.share.Vat;
 @Setter
 @ToString
 public class CostItemDto {
-    private long idCostItem;
-    private int idCost;
+    private long id;
+    private int costId;
     private String name;
     private String unit;
     private float quantity;
