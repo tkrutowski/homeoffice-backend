@@ -29,7 +29,6 @@ public class ZusDraAsyncWorker {
     private final GetCostUseCase getCostUseCase;
     private final AsyncTaskService asyncTaskService;
     private final ObjectMapper objectMapper;
-    private final net.focik.homeoffice.goahead.domain.cost.KsefCostJobService ksefCostJobService;
 
     @Async
     public void processJobAsync(String jobId, LocalDate settlementDate) {

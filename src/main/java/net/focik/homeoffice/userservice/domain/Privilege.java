@@ -3,12 +3,14 @@ package net.focik.homeoffice.userservice.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import net.focik.homeoffice.audit.AuditableEntity;
 import net.focik.homeoffice.utils.share.PrivilegeType;
 
 import jakarta.persistence.*;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor

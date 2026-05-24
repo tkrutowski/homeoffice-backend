@@ -43,7 +43,6 @@ public class AppUser extends AuditableEntity implements UserDetails {
     @JoinColumn(name = "user_id")
     private List<Privilege> privileges;
 
-
     public void addPrivilege(Privilege privilege){
         this.privileges.add(privilege);
     }
@@ -58,20 +57,9 @@ public class AppUser extends AuditableEntity implements UserDetails {
     }
 
     @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
     public boolean isAccountNonLocked() {
         return notLocked;
     }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
 
     public boolean isAdmin(){
         Optional<Privilege> isAdmin = getPrivileges().stream()

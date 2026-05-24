@@ -6,7 +6,6 @@ import lombok.*;
 import jakarta.persistence.*;
 import net.focik.homeoffice.audit.AuditableEntity;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor

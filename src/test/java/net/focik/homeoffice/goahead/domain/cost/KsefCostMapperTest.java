@@ -1,12 +1,7 @@
 package net.focik.homeoffice.goahead.domain.cost;
 
-import net.focik.homeoffice.addresses.domain.Address;
-import net.focik.homeoffice.goahead.domain.supplier.Supplier;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.*;
 import net.focik.homeoffice.utils.share.PaymentMethod;
-import net.focik.homeoffice.utils.share.PaymentStatus;
-import net.focik.homeoffice.utils.share.Vat;
-import org.javamoney.moneta.Money;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

@@ -1,13 +1,11 @@
 package net.focik.homeoffice.library.infrastructure.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import jakarta.persistence.*;
-import lombok.ToString;
 import net.focik.homeoffice.audit.AuditableEntity;
 
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

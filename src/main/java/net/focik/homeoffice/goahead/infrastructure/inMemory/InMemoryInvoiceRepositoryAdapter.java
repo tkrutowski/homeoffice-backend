@@ -29,8 +29,6 @@ public class InMemoryInvoiceRepositoryAdapter implements InvoiceRepository {
     public Invoice save(Invoice invoice) {
         InvoiceDbDto invoiceDbDto = mapper.map(invoice, InvoiceDbDto.class);
         log.info("Try add into inMemoryDb invoice: " + invoiceDbDto.toString());
-        if (invoiceDbDto == null)
-            throw new NullPointerException("Advance cannot be null");
         Integer idInvoice = DataBaseInvoice.getInvoiceDbDtoHashMap()
                 .keySet()
                 .stream()
@@ -76,10 +74,8 @@ public class InMemoryInvoiceRepositoryAdapter implements InvoiceRepository {
 
     @Override
     public Optional<Invoice> findById(Integer id) {
-        Optional<Invoice> invoiceOptional = Optional.ofNullable(DataBaseInvoice.getInvoiceDbDtoHashMap().get(id))
+        return Optional.ofNullable(DataBaseInvoice.getInvoiceDbDtoHashMap().get(id))
                 .map(dbDto -> mapper.map(dbDto, Invoice.class));
-
-        return invoiceOptional;
     }
 
     @Override

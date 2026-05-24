@@ -175,14 +175,11 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
 
     private Specification<InvoiceDbDto> getSpecificationByAmount(BigDecimal amount, String amountComparisonType) {
         return (root, query, cb) -> {
-            switch (amountComparisonType) {
-                case "GREATER":
-                    return cb.greaterThan(root.get("grossAmount"), amount);
-                case "LESS":
-                    return cb.lessThan(root.get("grossAmount"), amount);
-                default:
-                    return cb.equal(root.get("grossAmount"), amount);
-            }
+            return switch (amountComparisonType) {
+                case "GREATER" -> cb.greaterThan(root.get("grossAmount"), amount);
+                case "LESS" -> cb.lessThan(root.get("grossAmount"), amount);
+                default -> cb.equal(root.get("grossAmount"), amount);
+            };
         };
     }
 

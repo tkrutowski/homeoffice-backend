@@ -40,10 +40,6 @@ class CostService {
         return costRepository.findAll();
     }
 
-    public List<Cost> getCostsByDate(LocalDate date) {
-        return costRepository.findByDate(date);
-    }
-
     public List<Cost> findBySellDateBetween(LocalDate from, LocalDate to) {
         return costRepository.findBySellDateBetween(from, to);
     }
