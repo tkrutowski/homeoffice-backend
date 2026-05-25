@@ -4,6 +4,7 @@ import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public interface ISupplierService {
@@ -22,5 +23,5 @@ public interface ISupplierService {
 
     void updateSupplierStatus(Integer id, ActiveStatus status);
 
-    java.util.Optional<Supplier> findByNip(String nip);
+    Optional<Supplier> findByNip(String nip);
 }

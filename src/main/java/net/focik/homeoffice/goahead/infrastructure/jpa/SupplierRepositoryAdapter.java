@@ -52,7 +52,7 @@ public class SupplierRepositoryAdapter implements SupplierRepository {
 
     @Override
     public Optional<Supplier> findByNip(String nip) {
-        return Optional.empty(); // To be implemented based on actual query if required
+        return supplierDtoRepository.findByNip(nip).map(mapper::toDomain);
     }
 
     @Override

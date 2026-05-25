@@ -177,7 +177,7 @@ public class InvoiceController extends ExceptionHandling {
         log.info("Request to edit a computer received with data: {}", invoiceDto);
 
         // Pobieramy aktualny stan faktury z bazy, aby sprawdzić czy ma numer KSeF
-        Invoice existingInvoice = getInvoiceUseCase.findById(invoiceDto.getIdInvoice());
+        Invoice existingInvoice = getInvoiceUseCase.findById(invoiceDto.getId());
         if (existingInvoice != null && existingInvoice.getKsefNumber() != null) {
             log.warn("Attempt to update invoice with KSeF number: {}", existingInvoice.getKsefNumber());
             return response(HttpStatus.BAD_REQUEST, "Faktura została już wysłana do KSeF. Aby dokonać zmian, należy wystawić fakturę korygującą.");

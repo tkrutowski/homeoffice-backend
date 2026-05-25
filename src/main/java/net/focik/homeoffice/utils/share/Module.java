@@ -8,7 +8,8 @@ public enum Module {
     DEVICE_IMAGES("/homeoffice/devices/images/"),
     DEVICE_FILES("/homeoffice/devices/files/"),
     BOOK("/homeoffice/images/books/"),
-    GO_AHEAD("/goahead/");
+    GO_AHEAD("/goahead/"),
+    GO_AHEAD_COST("/goahead/cost/");
 
     private final String directory;
 

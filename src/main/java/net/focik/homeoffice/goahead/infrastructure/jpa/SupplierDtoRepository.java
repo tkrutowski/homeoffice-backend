@@ -5,8 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-interface SupplierDtoRepository extends JpaRepository<SupplierDbDto, Integer> {
+public interface SupplierDtoRepository extends JpaRepository<SupplierDbDto, Integer> {
 
     List<SupplierDbDto> findAllByName(String name);
+
+    java.util.Optional<SupplierDbDto> findByNip(String nip);
 
 }
