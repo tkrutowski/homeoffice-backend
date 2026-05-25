@@ -34,12 +34,19 @@ public class FileFacade implements SaveFileUseCase, DeleteFileUseCase, GetFilesU
 
     @Override
     public void deleteFile(Module module, String fileName) {
-        fileStorageService.delete(module, fileName);
+        String s3Key = buildS3Key(module, fileName);
+        fileStorageService.delete(s3Key);
     }
 
     @Override
     public Resource downloadFile(Module module, String fileName) {
-        return fileStorageService.getFile(module, fileName);
+        String s3Key = buildS3Key(module, fileName);
+        return fileStorageService.getFile(s3Key);
+    }
+
+    private String buildS3Key(Module module, String fileName) {
+        String directory = module.getDirectory().replaceFirst("^/+", "");
+        return directory + fileName;
     }
 
     @Override

@@ -101,25 +101,25 @@ public class FileStorageAdapter implements FileRepository {
     }
 
     @Override
-    public void deleteFile(Module module, String filename) {
-        log.debug("Attempting to delete file: {} from module: {}", filename, module);
+    public void deleteFile(String s3Key) {
+        log.debug("Attempting to delete file: {}", s3Key);
         try {
-            Path file = Paths.get(localCatalog).resolve(module.getDirectory()).resolve(filename);
+            Path file = Paths.get(localCatalog).resolve(s3Key);
             log.debug("Resolved file path: {}", file);
 
             boolean deleted = Files.deleteIfExists(file);
             log.debug("File deletion result - file existed and was deleted: {}", deleted);
         } catch (IOException e) {
-            log.error("Error while deleting file: {}, error: {}", filename, e.getMessage());
-            throw new RuntimeException("Cannot delete file: " + filename);
+            log.error("Error while deleting file: {}, error: {}", s3Key, e.getMessage());
+            throw new RuntimeException("Cannot delete file: " + s3Key);
         }
     }
 
     @Override
-    public Resource getFile(Module module, String filename) {
-        log.debug("Attempting to get file: {} from module: {}", filename, module);
+    public Resource getFile(String s3Key) {
+        log.debug("Attempting to get file: {}", s3Key);
         try {
-            Path filePath = Paths.get(localCatalog).resolve(module.getDirectory()).resolve(filename);
+            Path filePath = Paths.get(localCatalog).resolve(s3Key);
             log.debug("Resolved file path: {}", filePath);
 
             if (!Files.exists(filePath)) {
@@ -134,12 +134,12 @@ public class FileStorageAdapter implements FileRepository {
                 log.debug("Resource exists and is readable");
                 return resource;
             } else {
-                log.error("Resource exists but is not readable: {}", filename);
-                throw new RuntimeException("Cannot read file: " + filename);
+                log.error("Resource exists but is not readable: {}", s3Key);
+                throw new RuntimeException("Cannot read file: " + s3Key);
             }
         } catch (IOException e) {
-            log.error("IO error while reading file: {}, error: {}", filename, e.getMessage());
-            throw new RuntimeException("Cannot read file: " + filename);
+            log.error("IO error while reading file: {}, error: {}", s3Key, e.getMessage());
+            throw new RuntimeException("Cannot read file: " + s3Key);
         }
     }
 

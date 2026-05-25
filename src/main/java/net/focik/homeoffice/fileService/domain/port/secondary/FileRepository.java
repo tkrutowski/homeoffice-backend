@@ -10,9 +10,9 @@ public interface FileRepository {
     String downloadAndSaveImage(String imageUrl, String name, Module module);
     String saveMultipartFile(MultipartFile file, Module module);
 
-    void deleteFile(Module module, String fileName);
+    void deleteFile(String s3Key);
 
-    Resource getFile(Module module, String fileName);
+    Resource getFile(String s3Key);
 
     String saveInBucket(File file, Module module);
 }

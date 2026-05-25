@@ -9,12 +9,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import org.springframework.core.io.InputStreamResource;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -127,13 +129,36 @@ public class FileStorageS3Adapter implements FileRepository {
     }
 
     @Override
-    public void deleteFile(Module module, String fileName) {
-
+    public void deleteFile(String s3Key) {
+        try {
+            log.info("Deleting file from S3: {}", bucketName + "/" + s3Key);
+            s3Client.deleteObject(DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(s3Key)
+                    .build());
+            log.info("File successfully deleted from S3: {}", s3Key);
+        } catch (S3Exception e) {
+            log.error("S3 Error Code: {}", e.awsErrorDetails().errorCode());
+            log.error("S3 Error Message: {}", e.awsErrorDetails().errorMessage());
+            log.error("HTTP Status Code: {}", e.statusCode());
+            throw e;
+        }
     }
 
     @Override
-    public Resource getFile(Module module, String fileName) {
-        return null;
+    public Resource getFile(String s3Key) {
+        try {
+            log.info("Downloading file from S3: {}", bucketName + "/" + s3Key);
+            return new InputStreamResource(s3Client.getObject(GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(s3Key)
+                    .build()));
+        } catch (S3Exception e) {
+            log.error("S3 Error Code: {}", e.awsErrorDetails().errorCode());
+            log.error("S3 Error Message: {}", e.awsErrorDetails().errorMessage());
+            log.error("HTTP Status Code: {}", e.statusCode());
+            throw e;
+        }
     }
 
     private String uploadToBucket(InputStream inputStream, long contentLength, String fileName, String contentType, Module module) {

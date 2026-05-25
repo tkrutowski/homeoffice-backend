@@ -34,11 +34,12 @@ public class FileStoreController {
     final private GetFilesUseCase getFilesUseCase;
     final private ExtractFromFileUseCase extractFromFileUseCase;
 
-    @GetMapping("/{module}/{fileName}")
-    public ResponseEntity<?> downloadFile(@PathVariable Module module, @PathVariable String fileName) throws IOException {
-        log.info("Attempting to download file: {} from module: {}", fileName, module);
+    @GetMapping("/{module}/{fileName:.+}")
+    public ResponseEntity<?> downloadFile(@PathVariable String module, @PathVariable String fileName) throws IOException {
+        log.info("Attempting to download file: module={}, fileName={}", module, fileName);
 
-        Resource resource = getFilesUseCase.downloadFile(module, fileName);
+        Module moduleEnum = parseModule(module);
+        Resource resource = getFilesUseCase.downloadFile(moduleEnum, fileName);
         MediaType mediaType;
 
         try {
@@ -93,11 +94,27 @@ public class FileStoreController {
         return new ResponseEntity<>(new AsyncTaskStartResponse(jobId), HttpStatus.ACCEPTED);
     }
 
-    @DeleteMapping("/{module}/{fileName}")
-    public ResponseEntity<Void> deleteFile(@PathVariable Module module, @PathVariable String fileName) {
-        log.info("Deleting file: {} from module: {}", fileName, module);
-        deleteFileUseCase.deleteFile(module, fileName);
-        log.info("File successfully deleted: {} from module: {}", fileName, module);
+    @DeleteMapping("/{module}/{fileName:.+}")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    public ResponseEntity<Void> deleteFile(@PathVariable String module, @PathVariable String fileName) {
+        log.info("Attempting to delete file: module={}, fileName={}", module, fileName);
+        if (fileName == null || fileName.isBlank()) {
+            log.error("Error: fileName is empty in delete request");
+            return ResponseEntity.badRequest().build();
+        }
+        Module moduleEnum = parseModule(module);
+        deleteFileUseCase.deleteFile(moduleEnum, fileName);
+        log.info("File successfully deleted: module={}, fileName={}", module, fileName);
         return ResponseEntity.noContent().build();
+    }
+
+    private Module parseModule(String moduleName) {
+        try {
+            String enumValue = moduleName.toUpperCase().replace("-", "_");
+            return Module.valueOf(enumValue);
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid module name: {}", moduleName);
+            throw new IllegalArgumentException("Invalid module: " + moduleName);
+        }
     }
 }

@@ -44,12 +44,12 @@ public class FileStorageService {
         );
     }
 
-    public void delete(Module module, String filename) {
-        fileRepository.deleteFile(module, filename);
+    public void delete(String s3Key) {
+        fileRepository.deleteFile(s3Key);
     }
 
-    public Resource getFile(Module module, String fileName) {
-        return fileRepository.getFile(module, fileName);
+    public Resource getFile(String s3Key) {
+        return fileRepository.getFile(s3Key);
     }
 
     public UploadUrlResponse uploadUrl(UploadUrlRequest request) {
