@@ -57,18 +57,18 @@ class CostService {
     }
 
     private Cost mergeChanges(Cost existing, Cost updates) {
-        if (updates.getNumber() != null) existing.setNumber(updates.getNumber());
-        if (updates.getSupplier() != null) existing.setSupplier(updates.getSupplier());
-        if (updates.getInvoiceDate() != null) existing.setInvoiceDate(updates.getInvoiceDate());
-        if (updates.getSellDate() != null) existing.setSellDate(updates.getSellDate());
-        if (updates.getPaymentDate() != null) existing.setPaymentDate(updates.getPaymentDate());
-        if (updates.getOtherInfo() != null) existing.setOtherInfo(updates.getOtherInfo());
-        if (updates.getPaymentMethod() != null) existing.setPaymentMethod(updates.getPaymentMethod());
-        if (updates.getPaymentStatus() != null) existing.setPaymentStatus(updates.getPaymentStatus());
-        if (updates.getPdfUrl() != null) existing.setPdfUrl(updates.getPdfUrl());
-        if (updates.getKsefNumber() != null) existing.setKsefNumber(updates.getKsefNumber());
-        if (updates.getInvoiceHash() != null) existing.setInvoiceHash(updates.getInvoiceHash());
-        if (updates.getCostItems() != null) existing.setCostItems(updates.getCostItems());
+        existing.setNumber(updates.getNumber());
+        existing.setSupplier(updates.getSupplier());
+        existing.setInvoiceDate(updates.getInvoiceDate());
+        existing.setSellDate(updates.getSellDate());
+        existing.setPaymentDate(updates.getPaymentDate());
+        existing.setOtherInfo(updates.getOtherInfo());
+        existing.setPaymentMethod(updates.getPaymentMethod());
+        existing.setPaymentStatus(updates.getPaymentStatus());
+        existing.setPdfUrl(updates.getPdfUrl());
+        existing.setKsefNumber(updates.getKsefNumber());
+        existing.setInvoiceHash(updates.getInvoiceHash());
+        existing.setCostItems(updates.getCostItems());
         return existing;
     }
 

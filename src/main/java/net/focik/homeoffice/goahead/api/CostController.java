@@ -10,6 +10,7 @@ import net.focik.homeoffice.goahead.domain.cost.KsefCostJobService;
 import net.focik.homeoffice.goahead.domain.cost.PdfCostJobService;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.AddCostUseCase;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.DeleteCostUseCase;
+import net.focik.homeoffice.goahead.domain.cost.port.primary.DeleteCostDocumentUseCase;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.GetCostUseCase;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.UpdateCostUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.FindKsefInvoiceRequest;
@@ -42,6 +43,7 @@ public class CostController extends ExceptionHandling {
     private final GetCostUseCase getCostUseCase;
     private final UpdateCostUseCase updateCostUseCase;
     private final DeleteCostUseCase deleteCostUseCase;
+    private final DeleteCostDocumentUseCase deleteCostDocumentUseCase;
     private final ApiCostMapper mapper;
     private final KsefCostJobService ksefCostJobService;
     private final PdfCostJobService pdfCostJobService;
@@ -156,6 +158,14 @@ public class CostController extends ExceptionHandling {
         log.info("Request to delete cost by id: {}", id);
         deleteCostUseCase.deleteCost(id);
         return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}/document")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    public ResponseEntity<Void> deleteCostDocument(@PathVariable int id) {
+        log.info("Request to delete document for cost id: {}", id);
+        deleteCostDocumentUseCase.deleteCostDocument(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/ksef")

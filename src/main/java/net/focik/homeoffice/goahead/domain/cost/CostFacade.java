@@ -4,9 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.audit.AuditAction;
 import net.focik.homeoffice.audit.AuditLog;
+import net.focik.homeoffice.config.AwsProperties;
 import net.focik.homeoffice.fileService.domain.port.secondary.FileRepository;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.AddCostUseCase;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.DeleteCostUseCase;
+import net.focik.homeoffice.goahead.domain.cost.port.primary.DeleteCostDocumentUseCase;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.GetCostUseCase;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.UpdateCostUseCase;
 import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
@@ -32,13 +34,14 @@ import java.util.Optional;
 @Slf4j
 @Component
 @AllArgsConstructor
-public class CostFacade implements AddCostUseCase, GetCostUseCase, UpdateCostUseCase, DeleteCostUseCase {
+public class CostFacade implements AddCostUseCase, GetCostUseCase, UpdateCostUseCase, DeleteCostUseCase, DeleteCostDocumentUseCase {
 
     private final CostService costService;
     private final KsefService ksefService;
     private final KsefCostMapper ksefCostMapper;
     private final FileRepository fileRepository;
     private final SupplierFacade supplierFacade;
+    private final AwsProperties awsProperties;
 
     @Override
     @AuditLog(action = AuditAction.CREATE, entityType = "Cost")
@@ -156,6 +159,33 @@ public class CostFacade implements AddCostUseCase, GetCostUseCase, UpdateCostUse
     @Override
     @AuditLog(action = AuditAction.DELETE, entityType = "Cost")
     public void deleteCost(int id) {
+        Cost cost = costService.getCost(id);
+        deleteS3File(cost);
         costService.deleteCost(id);
+    }
+
+    @Override
+    public void deleteCostDocument(int costId) {
+        Cost cost = costService.getCost(costId);
+        deleteS3File(cost);
+        cost.setPdfUrl(null);
+        costService.updateCost(cost);
+        log.info("Document deleted successfully for cost id: {}", costId);
+    }
+
+    private void deleteS3File(Cost cost) {
+        if (cost.getPdfUrl() == null || cost.getPdfUrl().isBlank()) {
+            return;
+        }
+        String s3BaseUrl = buildS3BaseUrl();
+        String s3Key = cost.getPdfUrl().substring(s3BaseUrl.length()).replaceFirst("^/+", "");
+        log.info("Deleting document from S3: {}", s3Key);
+        fileRepository.deleteFile(s3Key);
+    }
+
+    private String buildS3BaseUrl() {
+        return String.format("https://%s.s3.%s.amazonaws.com",
+                awsProperties.getBucketName(),
+                awsProperties.getRegion());
     }
 }
