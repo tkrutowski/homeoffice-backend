@@ -3,6 +3,8 @@ package net.focik.homeoffice.audit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class AuditService {
@@ -27,5 +29,9 @@ public class AuditService {
         } catch (Exception e) {
             // Audit failure should not break business logic
         }
+    }
+
+    public List<AuditEntry> getLatestEntries(String entityType, int limit) {
+        return auditEntryRepository.findLatestByEntityType(entityType, limit);
     }
 }

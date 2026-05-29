@@ -21,10 +21,13 @@ class ComputerService {
     public List<Computer> getComputers(ActiveStatus activeStatus) {
         List<Computer> allComputers = computerRepository.findAllComputers();
         if(activeStatus == ActiveStatus.ALL) {
-            return allComputers;
+            return allComputers.stream()
+                    .map(computer -> getComputerById(computer.getId()))
+                    .toList();
         }
         return allComputers.stream()
                 .filter(device -> device.getStatus().equals(activeStatus))
+                .map(computer -> getComputerById(computer.getId()))
                 .toList();
     }
 
@@ -36,6 +39,12 @@ class ComputerService {
         }
         Computer computer = computerById.get();
 
+        getComputerFullData(computer);
+
+        return computer;
+    }
+
+    private void getComputerFullData(Computer computer) {
         if (computer.getProcessor() != null) {
             computer.setProcessor(deviceService.getDeviceById(computer.getProcessor().getId()));
         }
@@ -87,19 +96,20 @@ class ComputerService {
                     .map(device -> deviceService.getDeviceById(device.getId()))
                     .toList());
         }
-
-        return computer;
     }
 
     public Computer add(Computer computer) {
         log.debug("Adding computer {}", computer);
-        return computerRepository.saveComputer(computer);
+        Computer savedComputer = computerRepository.saveComputer(computer);
+        getComputerFullData(savedComputer);
+        return savedComputer;
     }
 
     public Computer update(Computer device) {
         log.debug("Updating device {}", device);
 
         Computer savedDevice = computerRepository.saveComputer(device);
+        getComputerFullData(savedDevice);
         log.debug("Updated device {}", savedDevice);
         return savedDevice;
     }
@@ -108,7 +118,9 @@ class ComputerService {
         Optional<Computer> computerById = computerRepository.findComputerById(id);
         if(computerById.isPresent()) {
             computerById.get().setStatus(status);
-            return computerRepository.saveComputer(computerById.get());
+            Computer updatedComputer = computerRepository.saveComputer(computerById.get());
+            getComputerFullData(updatedComputer);
+            return updatedComputer;
         }
         throw new DeviceNotFoundException(id);
     }
