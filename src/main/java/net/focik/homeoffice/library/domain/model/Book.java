@@ -23,8 +23,7 @@ public class Book {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Book)) return false;
-        Book book = (Book) o;
+        if (!(o instanceof Book book)) return false;
         return Objects.equals(getBookInSeriesNo(), book.getBookInSeriesNo()) &&
                 Objects.equals(getSeries(), book.getSeries()) &&
                 getAuthors().equals(book.getAuthors()) &&

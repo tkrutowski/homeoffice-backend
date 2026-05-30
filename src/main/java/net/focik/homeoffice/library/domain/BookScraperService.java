@@ -3,6 +3,10 @@ package net.focik.homeoffice.library.domain;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.model.*;
+import net.focik.homeoffice.library.domain.port.secondary.AiScraperPort;
+import net.focik.homeoffice.library.domain.port.secondary.AuthorRepository;
+import net.focik.homeoffice.library.domain.port.secondary.CategoryRepository;
+import net.focik.homeoffice.library.domain.port.secondary.SeriesRepository;
 import net.focik.homeoffice.library.domain.scraper.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -17,6 +21,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 class BookScraperService {
+
+    private final AiScraperPort aiScraperPort;
+    private final SeriesRepository seriesRepository;
+    private final AuthorRepository authorRepository;
+    private final CategoryRepository categoryRepository;
 
     public Book findBookByUrl(String url) {
         log.debug("Trying to find book by url {}", url);
@@ -38,7 +47,7 @@ class BookScraperService {
             return new UpolujebookaScrapper();
         else  if(url.contains(WebSite.LEGIMI.getUrl()))
             return  new LegimiScrapper();
-        else return new AiScrapper();
+        else return new AiScrapper(aiScraperPort);
     }
 
     public List<Book> findBooksInSeries(String url, String existingTitles) {
@@ -70,33 +79,48 @@ class BookScraperService {
         log.debug("Trying to get series from series url {}", seriesURL);
         if (StringUtils.isEmpty(series))
             return null;
-        Series s = new Series();
-        s.setTitle(series);
-        s.setUrl(seriesURL);
-        log.debug("Got series from series url {}", s);
-        return s;
+        return seriesRepository.findByTitle(series).orElseGet(() -> {
+            Series s = new Series();
+            s.setTitle(series);
+            s.setUrl(seriesURL);
+            log.debug("Series not found in DB, creating new: {}", s);
+            return s;
+        });
     }
 
 
     private Set<Author> getAuthorsFromString(String authors) {
-        log.debug("Trying to get authors from authors url {}", authors);
+        log.debug("Trying to get authors from string: {}", authors);
         Set<Author> authorDtos = new HashSet<>();
         String[] authorsList = authors.trim().split(",");
-        for (String author : authorsList) {
-            authorDtos.add(validAuthor(author));
+        for (String authorStr : authorsList) {
+            Author parsed = validAuthor(authorStr);
+            Author resolved = authorRepository
+                    .findByFirstNameAndLastName(parsed.getFirstName(), parsed.getLastName())
+                    .orElseGet(() -> {
+                        log.debug("Author not found in DB, creating new: {} {}", parsed.getFirstName(), parsed.getLastName());
+                        return parsed;
+                    });
+            authorDtos.add(resolved);
         }
-        log.debug("Got authors from authors url {}", authorDtos);
+        log.debug("Resolved authors: {}", authorDtos);
         return authorDtos;
     }
 
     private Set<Category> getCategoriesFromString(String categories) {
-        log.debug("Trying to get categories from categories url {}", categories);
+        log.debug("Trying to get categories from string: {}", categories);
         Set<Category> categoryDtos = new HashSet<>();
         String[] categoriesList = categories.trim().split(",");
-        for (String category : categoriesList) {
-            categoryDtos.add(new Category(0, category.trim()));
+        for (String categoryStr : categoriesList) {
+            String name = categoryStr.trim();
+            Category resolved = categoryRepository.findByName(name)
+                    .orElseGet(() -> {
+                        log.debug("Category not found in DB, creating new: {}", name);
+                        return new Category(0, name);
+                    });
+            categoryDtos.add(resolved);
         }
-        log.debug("Got categories from categories url {}", categoryDtos);
+        log.debug("Resolved categories: {}", categoryDtos);
         return categoryDtos;
     }
 

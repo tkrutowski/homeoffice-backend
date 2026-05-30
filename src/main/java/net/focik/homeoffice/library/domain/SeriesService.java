@@ -73,19 +73,8 @@ public class SeriesService {
     }
 
     public Series validSeries(Series series) {
-        if (Objects.isNull(series)) {
-            return null;
-        }
-        List<Series> all = seriesRepository.findAll();
-        String title = series.getTitle().trim();
-        Optional<Series> first = all.stream()
-                .filter(serie -> StringUtils.containsIgnoreCase(serie.getTitle(), title))
-                .findFirst();
-        if (first.isPresent() && !first.get().getUrl().equals(series.getUrl())) {
-            String tempUrl = first.get().getUrl() + ";;" + series.getUrl();
-            first.get().setUrl(tempUrl);
-        }
-        return first.orElse(series);
+        return seriesRepository.findById(series.getId())
+                .orElseThrow(() -> new SeriesNotFoundException(series.getId()));
     }
 
     public Series updateSeries(Series series) {

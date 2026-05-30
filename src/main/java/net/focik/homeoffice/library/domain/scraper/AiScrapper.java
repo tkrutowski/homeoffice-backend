@@ -1,21 +1,24 @@
 package net.focik.homeoffice.library.domain.scraper;
 
+import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.library.domain.model.BookDto;
+import net.focik.homeoffice.library.domain.port.secondary.AiScraperPort;
 import org.apache.commons.lang3.NotImplementedException;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
-public class AiScrapper implements Scraper{
+@RequiredArgsConstructor
+public class AiScrapper implements Scraper {
 
-    private static final String PAGE_URL = "https://legimi.pl";
+    private final AiScraperPort aiScraperPort;
 
+    @Override
     public List<String> findBooksFromUrl(String url) {
-       throw new NotImplementedException();
+        throw new NotImplementedException();
     }
 
+    @Override
     public BookDto findBookFromUrl(String url) {
-        throw new NotImplementedException();
+        return aiScraperPort.findBookByUrl(url);
     }
 }

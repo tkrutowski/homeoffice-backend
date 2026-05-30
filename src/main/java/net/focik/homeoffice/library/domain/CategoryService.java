@@ -54,18 +54,11 @@ class CategoryService {
     }
 
     public Set<Category> validCategories(Set<Category> categories) {
-        Set<Category> categorySet = new HashSet<>();
-        List<Category> all = categoryRepository.findAll();
-        for (Category category : categories) {
-            String name = category.getName().trim();
-            Optional<Category> first = all.stream()
-                    .filter(cat -> StringUtils.containsIgnoreCase(cat.getName(), name))
-                    .findFirst();
-
-            categorySet.add(first.orElse(category));
-        }
-        return categorySet;
-    }
+    return categories.stream()
+            .map(category -> categoryRepository.findById(category.getId())
+                    .orElseThrow(() -> new CategoryNotFoundException(category.getId())))
+            .collect(Collectors.toSet());
+}
 
     public Category findCategoryByName(String name) {
         return categoryRepository.findByName(name).orElse(null);

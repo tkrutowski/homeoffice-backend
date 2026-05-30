@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -69,5 +71,12 @@ class AuthorService {
             pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
         }
         return authorRepository.findAuthorsWithFilters(globalFilter, pageable);
+    }
+
+    public Set<Author> validAuthors(Set<Author> authors) {
+        return authors.stream()
+                .map(author -> authorRepository.findById(author.getId())
+                        .orElseThrow(() -> new AuthorNotFoundException(author.getId())))
+                .collect(Collectors.toSet());
     }
 }
