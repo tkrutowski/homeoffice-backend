@@ -11,7 +11,15 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AuthorDtoRepository extends JpaRepository<AuthorDbDto, Integer> {
-    Optional<AuthorDbDto> findAuthorDtoByFirstNameAndLastNameIgnoreCase(String firstName, String lastName);
+    @Query("""
+            SELECT a FROM AuthorDbDto a
+            WHERE LOWER(REPLACE(REPLACE(a.firstName, ' ', ''), '.', ''))
+                = LOWER(REPLACE(REPLACE(:firstName, ' ', ''), '.', ''))
+            AND LOWER(a.lastName) = LOWER(:lastName)
+            """)
+    Optional<AuthorDbDto> findAuthorDtoByFirstNameAndLastNameIgnoreCase(
+            @Param("firstName") String firstName,
+            @Param("lastName") String lastName);
 
     List<AuthorDbDto> findAllByOrderByLastNameAsc();
 

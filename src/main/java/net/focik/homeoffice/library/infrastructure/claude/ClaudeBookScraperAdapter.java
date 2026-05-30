@@ -43,7 +43,7 @@ public class ClaudeBookScraperAdapter implements AiScraperPort {
               "bookInSeriesNo": "numer książki w serii lub null",
               "categories": "kategoria1, kategoria2 lub null",
               "description": "opis książki lub null",
-              "cover": "bezpośredni URL obrazka okładki lub null"
+              "cover": "bezpośredni URL obrazka okładki — wybierz z dostępnych URL obrazów podanych poniżej"
             }
 
             Treść strony:
@@ -73,10 +73,25 @@ public class ClaudeBookScraperAdapter implements AiScraperPort {
                 .get();
 
         Element body = document.body();
+
+        List<String> imageUrls = body.select("img[src]")
+                .stream()
+                .map(img -> img.attr("src"))
+                .filter(src -> !src.isBlank())
+                .distinct()
+                .limit(20)
+                .toList();
+
         for (String tag : List.of("nav", "script", "footer", "header", "style", "iframe", "noscript", "aside")) {
             body.select(tag).remove();
         }
-        return body.text();
+
+        String text = body.text();
+        String imageList = !imageUrls.isEmpty()
+                ? "\n\nDostępne URL obrazów na stronie (wybierz najlepszy jako cover):\n" + String.join("\n", imageUrls)
+                : "";
+
+        return text + imageList;
     }
 
     private String callClaude(String pageContent) {

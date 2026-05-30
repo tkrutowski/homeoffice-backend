@@ -5,13 +5,11 @@ import net.focik.homeoffice.library.domain.model.BookDto;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -27,9 +25,7 @@ public class UpolujebookaScrapper implements Scraper{
         try {
             if (!url.isEmpty()) {
                 Document documentURL = Jsoup.connect(url).get();
-                Element content = documentURL.getElementById("content");
-                Elements links = content.getElementsByTag("a");
-                return links.stream()
+                return documentURL.select("a[href*=/oferta]").stream()
                         .map(element -> element.attr("href"))
                         .filter(s -> s.startsWith("/oferta"))
                         .distinct()
@@ -49,35 +45,38 @@ public class UpolujebookaScrapper implements Scraper{
         try {
             if (!url.isEmpty()) {
                 Document documentURL = Jsoup.connect(url).get();
-                if (documentURL.select(DIV_PUBLISHER).text().startsWith("Cykl: ")) {
-                    book.setSeries(documentURL
-                            .select(DIV_PUBLISHER)
-                            .text()
-                            .substring(documentURL
-                                            .select(DIV_PUBLISHER)
-                                            .text()
-                                            .indexOf(": ") + 2,
-                                    documentURL
-                                            .select(DIV_PUBLISHER)
-                                            .text()
-                                            .indexOf(" (")
-                            )
-                    );
-                    book.setSeriesURL(PAGE_URL + documentURL.select("div.publisher > span > a")
-                            .attr("href"));
-                    book.setBookInSeriesNo(Optional.of(documentURL.select("div.publisher > span > a > b").text()).orElse(""));
+                Element seriesSection = documentURL.selectFirst("div.mt-4:has(div:containsOwn(Cykl:))");
+                if (seriesSection != null) {
+                    Element seriesLink = seriesSection.selectFirst("a");
+                    if (seriesLink != null) {
+                        Elements spans = seriesLink.select("span");
+                        book.setSeries(spans.get(0).text());
+                        book.setSeriesURL(PAGE_URL + seriesLink.attr("href"));
+                        book.setBookInSeriesNo(spans.size() > 1 ? spans.get(1).text() : "");
+                    }
                 } else {
                     book.setSeries("");
                 }
-                book.setAuthors((documentURL.select("div.authors > h2 >a").textNodes().stream()
-                        .map(TextNode::toString)
-                        .collect(Collectors.joining(", "))));
-                book.setCategories(documentURL.select("div.container > ol > li > span > a").eachText().stream()
-                        .map(Object::toString)
-                        .collect(Collectors.joining(",")));
-                book.setTitle(documentURL.select("div.col-lg-6.col-md-8.col-sm-8 > h1").first().childNode(0).toString().trim());
-                book.setDescription(documentURL.select("div.description > p").text());
-                book.setCover(PAGE_URL + "/" + documentURL.select(" Div.DetailImage > img ").first().attr("src"));
+                book.setAuthors(String.join(", ", documentURL.select("h1 a[itemprop=author]").eachText()));
+                book.setCategories(String.join(",", documentURL.select("div.mt-2 a[href*=kategoria]").eachText()));
+                Element h1 = documentURL.selectFirst("h1");
+                if (h1 != null) {
+                    String fullTitle = h1.text();
+                    String title = fullTitle.split("\\s*-\\s*")[0];
+                    book.setTitle(title);
+                }
+                Element descriptionDiv = documentURL.selectFirst("div.line-clamp-5");
+                if (descriptionDiv != null) {
+                    book.setDescription(descriptionDiv.text());
+                }
+                Element coverImg = documentURL.selectFirst("button#open-modal img");
+                if (coverImg != null) {
+                    String src = coverImg.attr("src");
+                    if (!src.startsWith("http")) {
+                        src = PAGE_URL + "/" + src;
+                    }
+                    book.setCover(src);
+                }
 
             }
         } catch (Exception exception) {
