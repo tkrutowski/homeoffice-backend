@@ -32,8 +32,10 @@ public class CustomerDbDto extends AuditableEntity {
     private String mail;
     private String otherInfo;
     @Enumerated(EnumType.STRING)
-    private ActiveStatus status;
+    @Column(name = "status")
+    private ActiveStatus activeStatus;
     @Enumerated(EnumType.STRING)
-    private CustomerType type;
+    @Column(name = "type")
+    private CustomerType customerType;
 
 }

@@ -81,7 +81,7 @@ public class InMemoryCustomerRepositoryAdapter implements CustomerRepository {
         return DataBaseCustomer.getCustomerHashMap()
                 .values()
                 .stream()
-                .filter(customerDbDto -> customerDbDto.getStatus().equals(status))
+                .filter(customerDbDto -> customerDbDto.getActiveStatus().equals(status))
                 .map(customerDbDto -> mapper.toDomain(customerDbDto))
                 .collect(Collectors.toList());
     }
