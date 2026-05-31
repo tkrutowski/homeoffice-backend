@@ -11,6 +11,7 @@ import net.focik.homeoffice.library.domain.scraper.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -57,7 +58,15 @@ class BookScraperService {
         return booksFromUrl.stream()
                 .map(this::findBookByUrl)
                 .filter(Objects::nonNull)
-                .filter(book -> !existingTitles.toLowerCase().contains(book.getTitle().toLowerCase()))
+                .filter(book -> {
+                    String normalizedExisting = normalizeForComparison(existingTitles);
+                    String normalizedTitle = normalizeForComparison(book.getTitle());
+                    boolean isNew = !normalizedExisting.contains(normalizedTitle);
+                    if (!isNew) {
+                        log.debug("Filtered out duplicate title: '{}' | existing: '{}'", book.getTitle(), existingTitles);
+                    }
+                    return isNew;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -159,5 +168,26 @@ class BookScraperService {
         authorDto.setLastName(authorDto.getLastName() + "-" + author.substring(i + 1).trim());
         log.debug("Got author {}", authorDto);
         return authorDto;
+    }
+
+    private String normalizeForComparison(String text) {
+        if (text == null || text.isEmpty()) {
+            return "";
+        }
+        String normalized = Normalizer.normalize(text.toLowerCase(), Normalizer.Form.NFC);
+        normalized = normalized.replace("’", "'")
+                .replace("‘", "'")
+                .replace("´", "'")
+                .replace("`", "'")
+                .replace("”", "\"")
+                .replace("“", "\"")
+                .replace("„", "\"")
+                .replace("‟", "\"")
+                .replace("–", "-")
+                .replace("—", "-")
+                .replace("−", "-")
+                .replaceAll("\\s+", " ")
+                .trim();
+        return normalized;
     }
 }

@@ -43,30 +43,83 @@ public class LubimyczytacScrapper implements Scraper{
     public BookDto findBookFromUrl(String url) {
         BookScraperDto book = new BookScraperDto();
         book.setId(0);
-        try {
-            if (!url.isEmpty()) {
-                Document documentURL = Jsoup.connect(url).get();
 
+        if (url.isEmpty()) {
+            return book;
+        }
+
+        try {
+            Document documentURL = Jsoup.connect(url).get();
+
+            try {
                 Elements select = documentURL.select("span.d-none.d-sm-block.mt-1");
                 if (!select.isEmpty() && select.getFirst().text().startsWith("Cykl:")) {
                     book.setSeries(StringHelper.extractTextBetweenColonAndParenthesis(select.getFirst().text()));
                     book.setSeriesURL(PAGE_URL + select.getFirst().children().getFirst().attr("href"));
                     book.setBookInSeriesNo(StringHelper.extractNumberFromParentheses(select.getFirst().text()));
                 }
+            } catch (Exception e) {
+                log.warn("Failed to parse series", e);
+            }
 
-                book.setAuthors(documentURL.select("span.author.pb-2").getFirst().children().stream()
-                        .map(Element::text)
-                        .collect(Collectors.joining(", ")));
+            try {
+                Element authorsElement = documentURL.selectFirst("span.author.pb-2");
+                if (authorsElement != null) {
+                    String authors = authorsElement.children().stream()
+                            .map(Element::text)
+                            .collect(Collectors.joining(", "));
+                    book.setAuthors(authors);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to parse authors", e);
+            }
 
-                book.setCategories(documentURL.select("a.book__category.d-sm-block.d-none").getFirst().text());
-                book.setTitle(documentURL.select("h1.book__title").getFirst().text());
-                book.setDescription(documentURL.select("div.collapse-content > p").getFirst().text());
-                book.setCover(documentURL.select("#js-lightboxCover").getFirst().attr("href"));
+            try {
+                Element categoryElement = documentURL.selectFirst("a.book__category.d-sm-block.d-none");
+                if (categoryElement != null) {
+                    book.setCategories(categoryElement.text());
+                }
+            } catch (Exception e) {
+                log.warn("Failed to parse categories", e);
+            }
+
+            try {
+                Element titleElement = documentURL.selectFirst("h1.book__title");
+                if (titleElement != null) {
+                    book.setTitle(titleElement.text());
+                }
+            } catch (Exception e) {
+                log.warn("Failed to parse title", e);
+            }
+
+            try {
+                Element descDiv = documentURL.selectFirst("div#book-description");
+                if (descDiv != null) {
+                    book.setDescription(descDiv.text());
+                }
+            } catch (Exception e) {
+                log.warn("Failed to parse description", e);
+            }
+
+            try {
+                Element coverLink = documentURL.selectFirst("#js-lightboxCover");
+                if (coverLink != null) {
+                    String coverUrl = coverLink.attr("href");
+                    if (coverUrl.isEmpty()) {
+                        coverUrl = coverLink.attr("data-cover");
+                    }
+                    if (!coverUrl.isEmpty()) {
+                        book.setCover(coverUrl);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to parse cover", e);
             }
 
         } catch (Exception exception) {
-            log.error(exception.getMessage());
+            log.error("Failed to fetch document from URL: {}", url, exception);
         }
+
         return book;
     }
 }

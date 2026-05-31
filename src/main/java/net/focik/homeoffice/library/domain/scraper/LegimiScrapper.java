@@ -41,30 +41,76 @@ public class LegimiScrapper implements Scraper{
     public BookDto findBookFromUrl(String url) {
         BookScraperDto book = new BookScraperDto();
         book.setId(0);
-        try {
-            if (!url.isEmpty()) {
-                Document documentURL = Jsoup.connect(url).get();
 
+        if (url.isEmpty()) {
+            return book;
+        }
+
+        try {
+            Document documentURL = Jsoup.connect(url).get();
+
+            try {
                 Elements select = documentURL.select("ul.list-unstyled > li > a.category-link");
                 if (!select.isEmpty() && select.getLast().parent().text().startsWith("Cykl:")) {
                     book.setSeries(select.getLast().text());
                     book.setSeriesURL(PAGE_URL + select.getLast().attr("href"));
                     book.setBookInSeriesNo("");
                 }
+            } catch (Exception e) {
+                log.warn("Failed to parse series", e);
+            }
 
-                book.setAuthors(documentURL.select("a.author-link.author-noseparator").getFirst().text());
+            try {
+                Element authorElement = documentURL.selectFirst("a.author-link.author-noseparator");
+                if (authorElement != null) {
+                    book.setAuthors(authorElement.text());
+                }
+            } catch (Exception e) {
+                log.warn("Failed to parse authors", e);
+            }
 
-                book.setCategories(documentURL.select("ul.list-unstyled > li > a.category-link").stream()
+            try {
+                String categories = documentURL.select("ul.list-unstyled > li > a.category-link").stream()
                         .filter(element -> element.parent().text().startsWith("Kategoria"))
                         .map(Element::text)
-                        .collect(Collectors.joining(",")));
-                book.setTitle(documentURL.select("h1.title-text").text());
-                book.setDescription(documentURL.select("#description_section").text());
-                book.setCover(documentURL.select("img.img-responsive.center-block").attr("data-src"));
+                        .collect(Collectors.joining(","));
+                book.setCategories(categories);
+            } catch (Exception e) {
+                log.warn("Failed to parse categories", e);
+            }
+
+            try {
+                Element titleElement = documentURL.selectFirst("h1.title-text");
+                if (titleElement != null) {
+                    book.setTitle(titleElement.text());
+                }
+            } catch (Exception e) {
+                log.warn("Failed to parse title", e);
+            }
+
+            try {
+                Element descElement = documentURL.selectFirst("#description_section");
+                if (descElement != null) {
+                    book.setDescription(descElement.text());
+                }
+            } catch (Exception e) {
+                log.warn("Failed to parse description", e);
+            }
+
+            try {
+                Element coverElement = documentURL.selectFirst("img.img-responsive.center-block");
+                if (coverElement != null) {
+                    String coverUrl = coverElement.attr("data-src");
+                    if (!coverUrl.isEmpty()) {
+                        book.setCover(coverUrl);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to parse cover", e);
             }
 
         } catch (Exception exception) {
-            log.error(exception.getMessage());
+            log.error("Failed to fetch document from URL: {}", url, exception);
         }
         return book;
     }
