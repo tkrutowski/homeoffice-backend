@@ -1,7 +1,7 @@
 FROM karluto/jdk21-apline3.18:latest
 
-# Install tzdata for timezone management
-RUN apk add --no-cache tzdata
+# Install tzdata for timezone management and fonts for PDF generation
+RUN apk add --no-cache tzdata fontconfig fonts-dejavu fonts-liberation
 # Set the timezone to your desired one, e.g., Europe/Warsaw
 ENV TZ=Europe/Warsaw
 
