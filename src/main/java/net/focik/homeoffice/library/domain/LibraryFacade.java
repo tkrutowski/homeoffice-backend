@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.audit.AuditAction;
 import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.library.domain.exception.BookAlreadyExistException;
+import net.focik.homeoffice.library.domain.exception.BookNotFoundException;
 import net.focik.homeoffice.library.domain.exception.BookstoreNotFoundException;
 import net.focik.homeoffice.library.domain.exception.SeriesNotFoundException;
 import net.focik.homeoffice.library.domain.model.*;
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBookUseCase, SaveUserBookUseCase,
         FindSeriesUseCase, FindUserBookUseCase, FindBookstoreUseCase, SaveBookstoreUseCase, DeleteBookstoreUseCase,
-        DeleteUserBookUseCase, FindAuthorUseCase, FindCategoryUseCase, SaveAuthorUseCase, SaveCategoryUseCase, SaveSeriesUseCase, DeleteAuthorUseCase, DeleteSeriesUseCase {
+        DeleteUserBookUseCase, FindAuthorUseCase, FindCategoryUseCase, SaveAuthorUseCase, SaveCategoryUseCase, SaveSeriesUseCase, DeleteAuthorUseCase, DeleteSeriesUseCase,FindAudiobookAvailabilityUseCase {
 
     private final UserFacade userFacade;
     private final BookService bookService;
@@ -40,6 +41,7 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     private final BookstoreService bookstoreService;
     private final AuthorService authorService;
     private final CategoryService categoryService;
+    private final AudiobookAvailabilityService audiobookAvailabilityService;
 
     @Override
     public Book findBook(Integer idBook) {
@@ -367,5 +369,15 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
                     "Najpierw usuń lub przenieś książki z tej serii.");
         }
         seriesService.deleteSeries(idSeries);
+    }
+
+    @Override
+    public AudiobookAvailability checkAvailability(Integer bookId) {
+        Book book = findBook(bookId);
+        if (Objects.isNull(book)) {
+            throw new BookNotFoundException(bookId);
+        }
+        List<Bookstore> allBookstores = findAllBookstores();
+        return audiobookAvailabilityService.checkAvailability(book, allBookstores);
     }
 }

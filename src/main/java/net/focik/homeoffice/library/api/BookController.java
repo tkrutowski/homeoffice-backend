@@ -2,10 +2,13 @@ package net.focik.homeoffice.library.api;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.library.api.dto.AudiobookAvailabilityResponseDto;
 import net.focik.homeoffice.library.api.dto.BookApiDto;
 import net.focik.homeoffice.library.api.mapper.ApiBookMapper;
+import net.focik.homeoffice.library.api.mapper.AudiobookAvailabilityMapper;
 import net.focik.homeoffice.library.domain.model.Book;
 import net.focik.homeoffice.library.domain.port.primary.DeleteBookUseCase;
+import net.focik.homeoffice.library.domain.port.primary.FindAudiobookAvailabilityUseCase;
 import net.focik.homeoffice.library.domain.port.primary.FindBookUseCase;
 import net.focik.homeoffice.library.domain.port.primary.SaveBookUseCase;
 import org.modelmapper.ModelMapper;
@@ -30,6 +33,8 @@ public class BookController {
     private final DeleteBookUseCase deleteBookUseCase;
     private final ModelMapper mapper;
     private final ApiBookMapper bookMapper;
+    private final FindAudiobookAvailabilityUseCase findAudiobookAvailabilityUseCase;
+    private final AudiobookAvailabilityMapper audiobookAvailabilityMapper;
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
@@ -141,6 +146,12 @@ public class BookController {
         return new ResponseEntity<>(newBooks.stream()
                 .sorted(Comparator.comparing(BookApiDto::getBookInSeriesNo))
                 .collect(Collectors.toList()), HttpStatus.OK);
+    }
+
+    @GetMapping("/{bookId}/audiobook-availability")
+    public ResponseEntity<AudiobookAvailabilityResponseDto> getAudiobookAvailability(@PathVariable Integer bookId) {
+        var availability = findAudiobookAvailabilityUseCase.checkAvailability(bookId);
+        return ResponseEntity.ok(audiobookAvailabilityMapper.toResponseDto(availability));
     }
 
     @PostMapping
