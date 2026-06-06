@@ -1,12 +1,15 @@
 package net.focik.homeoffice.finance.domain.loan;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import net.focik.homeoffice.audit.AuditAction;
 import net.focik.homeoffice.audit.AuditLog;
+import net.focik.homeoffice.finance.api.mapper.ApiLoanMapper;
 import net.focik.homeoffice.finance.domain.loan.port.primary.AddLoanUseCase;
 import net.focik.homeoffice.finance.domain.loan.port.primary.DeleteLoanUseCase;
 import net.focik.homeoffice.finance.domain.loan.port.primary.GetLoanUseCase;
 import net.focik.homeoffice.finance.domain.loan.port.primary.UpdateLoanUseCase;
+import net.focik.homeoffice.finance.infrastructure.jpa.BankTransactionDtoRepository;
 import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.UserFacade;
 import net.focik.homeoffice.utils.UserHelper;
@@ -18,15 +21,22 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static net.focik.homeoffice.utils.PrivilegeHelper.*;
 
+@Log4j2
 @AllArgsConstructor
 @Component
 public class LoanFacade implements AddLoanUseCase, GetLoanUseCase, UpdateLoanUseCase, DeleteLoanUseCase {
 
+    private static final int TRANSACTION_CATEGORY_ID_LOAN = 7;
+    private static final int FIRM_ID_LOAN_PAYMENT = 38;
+
     private final LoanService loanService;
     private final UserFacade userFacade;
+    private final BankTransactionDtoRepository bankTransactionRepository;
+    private final ApiLoanMapper apiLoanMapper;
 
     @Override
     @AuditLog(action = AuditAction.CREATE, entityType = "Loan")
@@ -95,7 +105,29 @@ public class LoanFacade implements AddLoanUseCase, GetLoanUseCase, UpdateLoanUse
     @Override
     @AuditLog(action = AuditAction.UPDATE, entityType = "LoanInstallment")
     public LoanInstallment updateLoanInstallment(LoanInstallment loanInstallment) {
-        return loanService.updateLoanInstallment(loanInstallment);
+        Optional<LoanInstallment> previousInstallment = loanService.getLoanInstallment(loanInstallment.getIdLoanInstallment()) != null ?
+                Optional.of(loanService.getLoanInstallment(loanInstallment.getIdLoanInstallment())) : Optional.empty();
+
+        LoanInstallment result = loanService.updateLoanInstallment(loanInstallment);
+
+        if (previousInstallment.isPresent() &&
+            previousInstallment.get().getPaymentStatus() != PaymentStatus.PAID &&
+            loanInstallment.getPaymentStatus() == PaymentStatus.PAID &&
+            loanInstallment.getPaymentDate() != null) {
+
+            Loan loan = this.getLoanById(loanInstallment.getIdLoan(), false);
+            var bankTransaction = apiLoanMapper.toBankTransaction(loanInstallment, loan, TRANSACTION_CATEGORY_ID_LOAN, FIRM_ID_LOAN_PAYMENT);
+            bankTransactionRepository.save(bankTransaction);
+
+            log.info("Loan installment paid: loanId={}, installmentId={}, amount={}, date={}, transactionId={}",
+                    loan.getId(),
+                    loanInstallment.getIdLoanInstallment(),
+                    loanInstallment.getInstallmentAmountPaid().getNumber().doubleValue(),
+                    loanInstallment.getPaymentDate(),
+                    bankTransaction.getId());
+        }
+
+        return result;
     }
 
     @Override

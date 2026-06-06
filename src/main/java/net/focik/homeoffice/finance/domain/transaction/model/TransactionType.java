@@ -8,7 +8,9 @@ public enum TransactionType {
     TRANSFER_IN("Przelew przychodzący"),
     WITHDRAWAL("Wypłata"),
     DEPOSIT("Wpłata"),
-    CARD_PAYMENT("Spłata karty kredytowj");
+    CARD_PAYMENT("Spłata karty kredytowj"),
+    LOAN_PAYMENT("Spłata raty kredytu");
+
     private final String translate;
 
     TransactionType(String translate) {

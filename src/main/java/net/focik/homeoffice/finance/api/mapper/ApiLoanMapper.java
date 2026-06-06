@@ -6,6 +6,9 @@ import net.focik.homeoffice.finance.api.dto.LoanInstallmentDto;
 import net.focik.homeoffice.finance.domain.exception.LoanNotValidException;
 import net.focik.homeoffice.finance.domain.loan.Loan;
 import net.focik.homeoffice.finance.domain.loan.LoanInstallment;
+import net.focik.homeoffice.finance.domain.transaction.model.TransactionType;
+import net.focik.homeoffice.finance.infrastructure.dto.BankTransactionDbDto;
+import net.focik.homeoffice.utils.UserHelper;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.javamoney.moneta.Money;
 import org.springframework.stereotype.Component;
@@ -117,5 +120,19 @@ public class ApiLoanMapper {
     private void valid(LoanInstallmentDto dto) {
         if (dto.getIdLoan() == 0)
             throw new LoanNotValidException("IdLoan can't be null.");
+    }
+
+    public BankTransactionDbDto toBankTransaction(LoanInstallment installment, Loan loan, int transactionCategoryId, int firmId) {
+        return BankTransactionDbDto.builder()
+                .idFirm(firmId)
+                .idUser(UserHelper.getCurrentUserId())
+                .description(String.format("%s: rata nr %d", loan.getName(), installment.getInstallmentNumber()))
+                .transactionDate(installment.getPaymentDate())
+                .amount(installment.getInstallmentAmountPaid().getNumberStripped())
+                .transactionType(TransactionType.LOAN_PAYMENT)
+                .transactionCategoryId(transactionCategoryId)
+                .purchaseIds(null)
+                .boughtOnCredit(false)
+                .build();
     }
 }
