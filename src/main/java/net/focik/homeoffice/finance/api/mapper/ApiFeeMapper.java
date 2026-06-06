@@ -8,6 +8,9 @@ import net.focik.homeoffice.finance.domain.exception.FeeNotValidException;
 import net.focik.homeoffice.finance.domain.fee.Fee;
 import net.focik.homeoffice.finance.domain.fee.FeeFrequencyEnum;
 import net.focik.homeoffice.finance.domain.fee.FeeInstallment;
+import net.focik.homeoffice.finance.domain.transaction.model.TransactionType;
+import net.focik.homeoffice.finance.infrastructure.dto.BankTransactionDbDto;
+import net.focik.homeoffice.utils.UserHelper;
 import org.javamoney.moneta.Money;
 import org.springframework.stereotype.Component;
 
@@ -94,5 +97,19 @@ public class ApiFeeMapper {
     private void valid(FeeInstallmentDto dto) {
         if (dto.getIdFee() == 0)
             throw new FeeNotValidException("IdFee can't be null.");
+    }
+
+    public BankTransactionDbDto toBankTransaction(FeeInstallment installment, Fee fee, int transactionCategoryId) {
+        return BankTransactionDbDto.builder()
+                .idFirm(fee.getFirm().getId())
+                .idUser(UserHelper.getCurrentUserId())
+                .description(String.format("Opłata za %s", fee.getName()))
+                .transactionDate(installment.getPaymentDate())
+                .amount(installment.getInstallmentAmountPaid().getNumberStripped())
+                .transactionType(TransactionType.TRANSFER_OUT)
+                .transactionCategoryId(transactionCategoryId)
+                .purchaseIds(null)
+                .boughtOnCredit(false)
+                .build();
     }
 }

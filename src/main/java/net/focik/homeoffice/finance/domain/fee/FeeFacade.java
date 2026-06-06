@@ -1,12 +1,15 @@
 package net.focik.homeoffice.finance.domain.fee;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import net.focik.homeoffice.audit.AuditAction;
 import net.focik.homeoffice.audit.AuditLog;
+import net.focik.homeoffice.finance.api.mapper.ApiFeeMapper;
 import net.focik.homeoffice.finance.domain.fee.port.primary.AddFeeUseCase;
 import net.focik.homeoffice.finance.domain.fee.port.primary.DeleteFeeUseCase;
 import net.focik.homeoffice.finance.domain.fee.port.primary.GetFeeUseCase;
 import net.focik.homeoffice.finance.domain.fee.port.primary.UpdateFeeUseCase;
+import net.focik.homeoffice.finance.infrastructure.jpa.BankTransactionDtoRepository;
 import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.UserFacade;
 import net.focik.homeoffice.utils.UserHelper;
@@ -18,15 +21,21 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static net.focik.homeoffice.utils.PrivilegeHelper.*;
 
+@Log4j2
 @RequiredArgsConstructor
 @Component
 public class FeeFacade implements AddFeeUseCase, GetFeeUseCase, UpdateFeeUseCase, DeleteFeeUseCase {
 
+    private static final int TRANSACTION_CATEGORY_ID_FEE = 3;
+
     private final FeeService feeService;
     private final UserFacade userFacade;
+    private final BankTransactionDtoRepository bankTransactionRepository;
+    private final ApiFeeMapper apiFeeMapper;
 
     @Override
     @AuditLog(action = AuditAction.CREATE, entityType = "Fee")
@@ -106,7 +115,29 @@ public class FeeFacade implements AddFeeUseCase, GetFeeUseCase, UpdateFeeUseCase
     @Override
     @AuditLog(action = AuditAction.UPDATE, entityType = "FeeInstallment")
     public FeeInstallment updateFeeInstallment(FeeInstallment feeInstallment) {
-        return feeService.updateFeeInstallment(feeInstallment);
+        Optional<FeeInstallment> previousInstallment = feeService.getFeeInstallment(feeInstallment.getIdFeeInstallment()) != null ?
+                Optional.of(feeService.getFeeInstallment(feeInstallment.getIdFeeInstallment())) : Optional.empty();
+
+        FeeInstallment result = feeService.updateFeeInstallment(feeInstallment);
+
+        if (previousInstallment.isPresent() &&
+            previousInstallment.get().getPaymentStatus() != PaymentStatus.PAID &&
+            feeInstallment.getPaymentStatus() == PaymentStatus.PAID &&
+            feeInstallment.getPaymentDate() != null) {
+
+            Fee fee = this.getFeeById(feeInstallment.getIdFee(), false);
+            var bankTransaction = apiFeeMapper.toBankTransaction(feeInstallment, fee, TRANSACTION_CATEGORY_ID_FEE);
+            bankTransactionRepository.save(bankTransaction);
+
+            log.info("Fee installment paid: feeId={}, installmentId={}, amount={}, date={}, transactionId={}",
+                    fee.getId(),
+                    feeInstallment.getIdFeeInstallment(),
+                    feeInstallment.getInstallmentAmountPaid().getNumber().doubleValue(),
+                    feeInstallment.getPaymentDate(),
+                    bankTransaction.getId());
+        }
+
+        return result;
     }
 
     @Override
