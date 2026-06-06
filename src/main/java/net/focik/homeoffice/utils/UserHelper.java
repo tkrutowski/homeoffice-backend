@@ -21,4 +21,8 @@ public class UserHelper {
                 .map(AppUser.class::cast)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
+
+    public static int getCurrentUserId() {
+        return getUser().getId().intValue();
+    }
 }
