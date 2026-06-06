@@ -1,9 +1,10 @@
-package net.focik.homeoffice.finance.infrastructure.jpa;
+package net.focik.homeoffice.finance.infrastructure.adapter;
 
 import lombok.AllArgsConstructor;
 import net.focik.homeoffice.finance.domain.purchase.Purchase;
 import net.focik.homeoffice.finance.domain.purchase.port.secondary.PurchaseRepository;
 import net.focik.homeoffice.finance.infrastructure.dto.PurchaseDbDto;
+import net.focik.homeoffice.finance.infrastructure.jpa.PurchaseDtoRepository;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaPurchaseMapper;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.context.annotation.Primary;

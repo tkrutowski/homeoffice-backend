@@ -1,4 +1,4 @@
-package net.focik.homeoffice.finance.infrastructure.jpa;
+package net.focik.homeoffice.finance.infrastructure.adapter;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +7,8 @@ import net.focik.homeoffice.finance.domain.fee.FeeInstallment;
 import net.focik.homeoffice.finance.domain.fee.port.secondary.FeeRepository;
 import net.focik.homeoffice.finance.infrastructure.dto.FeeDbDto;
 import net.focik.homeoffice.finance.infrastructure.dto.FeeInstallmentDbDto;
+import net.focik.homeoffice.finance.infrastructure.jpa.FeeDtoRepository;
+import net.focik.homeoffice.finance.infrastructure.jpa.FeeInstallmentDtoRepository;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaFeeMapper;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.context.annotation.Primary;

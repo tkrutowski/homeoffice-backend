@@ -304,4 +304,11 @@ public class InvoiceController extends ExceptionHandling {
         HttpResponse body = new HttpResponse(status.value(), status, status.getReasonPhrase(), message);
         return new ResponseEntity<>(body, status);
     }
+
+    @GetMapping("/ksef/test")
+    public ResponseEntity<HttpResponse> test()  {
+        log.info("Test");
+        invoiceFacade.test();
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

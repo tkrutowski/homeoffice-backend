@@ -140,4 +140,10 @@ public class InvoiceFacade implements UpdateInvoiceUseCase, DeleteInvoiceUseCase
         System.out.println();
         return invoices.keySet().stream().toList();
     }
+
+    public void test()
+    {
+        System.out.println("Test");
+        //ksefService.getPdf("9720495827-20260406-511553800000-B8");
+    }
 }
