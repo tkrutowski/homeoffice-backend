@@ -3,6 +3,9 @@ package net.focik.homeoffice.finance.api.mapper;
 import net.focik.homeoffice.finance.api.dto.PurchaseDto;
 import net.focik.homeoffice.finance.domain.exception.PurchaseNotValidException;
 import net.focik.homeoffice.finance.domain.purchase.Purchase;
+import net.focik.homeoffice.finance.domain.transaction.model.TransactionType;
+import net.focik.homeoffice.finance.infrastructure.dto.BankTransactionDbDto;
+import net.focik.homeoffice.utils.UserHelper;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -71,5 +74,19 @@ public class ApiPurchaseMapper {
             throw new PurchaseNotValidException("Date can't be empty.");
         if (dto.getAmount().isEmpty())
             throw new PurchaseNotValidException("Amount can't be empty.");
+    }
+
+    public BankTransactionDbDto toBankTransaction(Purchase purchase, int transactionCategoryId) {
+        return BankTransactionDbDto.builder()
+                .idFirm(purchase.getIdFirm())
+                .idUser(UserHelper.getCurrentUserId())
+                .description(String.format("Zakup: %s", purchase.getName()))
+                .transactionDate(purchase.getPaymentDate())
+                .amount(purchase.getAmount())
+                .transactionType(TransactionType.CARD_PAYMENT)
+                .transactionCategoryId(transactionCategoryId)
+                .purchaseIds(List.of(purchase.getId()))
+                .boughtOnCredit(false)
+                .build();
     }
 }
