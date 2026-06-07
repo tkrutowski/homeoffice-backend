@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 class CardService {
 
     private final CardRepository cardRepository;
-    private final PurchaseFacade purchaseFacade;
     private final FileRepository fileRepository;
 
 
@@ -86,11 +85,6 @@ class CardService {
     @Transactional
     public void deleteCard(Integer idCard) {
         log.debug("Deleting card {}", idCard);
-        List<Purchase> byCard = purchaseFacade.findByCard(idCard);
-        if (!byCard.isEmpty()) {
-            log.debug("Card can not be deleted because there are purchases linked to it.");
-            throw new CardCanNotBeDeletedException("zakupy. (" + byCard.size() + ")");
-        }
         cardRepository.deleteCardById(idCard);
         log.debug("Card with id {} deleted", idCard);
     }

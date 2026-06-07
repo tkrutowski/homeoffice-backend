@@ -10,8 +10,10 @@ import net.focik.homeoffice.finance.domain.card.port.primary.AddCardUseCase;
 import net.focik.homeoffice.finance.domain.card.port.primary.DeleteCardUseCase;
 import net.focik.homeoffice.finance.domain.card.port.primary.GetCardUseCase;
 import net.focik.homeoffice.finance.domain.card.port.primary.UpdateCardUseCase;
+import net.focik.homeoffice.finance.domain.exception.CardCanNotBeDeletedException;
+import net.focik.homeoffice.finance.domain.purchase.Purchase;
+import net.focik.homeoffice.finance.domain.purchase.PurchaseFacade;
 import net.focik.homeoffice.utils.exceptions.ExceptionHandling;
-import net.focik.homeoffice.utils.exceptions.HttpResponse;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +37,7 @@ public class CardController extends ExceptionHandling {
     private final UpdateCardUseCase updateCardUseCase;
     private final GetCardUseCase getCardUseCase;
     private final DeleteCardUseCase deleteCardUseCase;
+    private final PurchaseFacade purchaseFacade;
 
 
     @GetMapping("/{id}")
@@ -115,6 +118,12 @@ public class CardController extends ExceptionHandling {
     @PreAuthorize("hasAnyAuthority('FINANCE_DELETE_ALL', 'FINANCE_DELETE') or hasRole('ROLE_ADMIN')")
     public void deleteCard(@PathVariable int idCard) {
         log.info("Request to delete card with id: {}", idCard);
+
+        List<Purchase> byCard = purchaseFacade.findByCard(idCard);
+        if (!byCard.isEmpty()) {
+            log.debug("Card can not be deleted because there are purchases linked to it.");
+            throw new CardCanNotBeDeletedException("zakupy. (" + byCard.size() + ")");
+        }
 
         deleteCardUseCase.deleteCard(idCard);
         log.info("Card with id: {} deleted successfully", idCard);

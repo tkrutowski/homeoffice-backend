@@ -19,7 +19,7 @@ public class BankTransaction {
     private Integer id;
     private int idFirm;
     private int idUser;
-    private List<Integer> purchaseIds;
+    private Integer purchaseId;
     private String description;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate transactionDate;

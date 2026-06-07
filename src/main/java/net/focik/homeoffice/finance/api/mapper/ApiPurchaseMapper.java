@@ -85,7 +85,7 @@ public class ApiPurchaseMapper {
                 .amount(purchase.getAmount())
                 .transactionType(TransactionType.CARD_PAYMENT)
                 .transactionCategoryId(transactionCategoryId)
-                .purchaseIds(List.of(purchase.getId()))
+                .purchaseId(purchase.getId())
                 .boughtOnCredit(false)
                 .build();
     }

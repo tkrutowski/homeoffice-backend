@@ -18,7 +18,7 @@ public class BankTransactionDto {
     private int id;
     private int idFirm;
     private int idUser;
-    private List<Integer> purchaseIds;
+    private Integer purchaseId;
     private String description;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Europe/Warsaw")
     private LocalDate transactionDate;

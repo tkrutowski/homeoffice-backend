@@ -131,7 +131,7 @@ public class ApiLoanMapper {
                 .amount(installment.getInstallmentAmountPaid().getNumberStripped())
                 .transactionType(TransactionType.LOAN_PAYMENT)
                 .transactionCategoryId(transactionCategoryId)
-                .purchaseIds(null)
+                .purchaseId(null)
                 .boughtOnCredit(false)
                 .build();
     }

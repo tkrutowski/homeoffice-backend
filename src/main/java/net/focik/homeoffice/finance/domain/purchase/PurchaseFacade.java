@@ -5,6 +5,8 @@ import lombok.extern.log4j.Log4j2;
 import net.focik.homeoffice.audit.AuditAction;
 import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.finance.api.mapper.ApiPurchaseMapper;
+import net.focik.homeoffice.finance.domain.card.Card;
+import net.focik.homeoffice.finance.domain.card.CardFacade;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.AddPurchaseUseCase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.DeletePurchaseUseCase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.GetPurchaseUseCase;
@@ -26,12 +28,12 @@ import java.util.Optional;
 @Component
 public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase, GetPurchaseUseCase, DeletePurchaseUseCase {
 
-    private static final int TRANSACTION_CATEGORY_ID_PURCHASE = 4;
 
     private final PurchaseService purchaseService;
     private final UserFacade userFacade;
     private final BankTransactionDtoRepository bankTransactionRepository;
     private final ApiPurchaseMapper apiPurchaseMapper;
+    private final CardFacade cardFacade;
 
     @Override
     @AuditLog(action = AuditAction.CREATE, entityType = "Purchase")
@@ -43,18 +45,19 @@ public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase
     @AuditLog(action = AuditAction.UPDATE, entityType = "Purchase")
     public Purchase updatePurchaseStatus(int idPurchase, PaymentStatus paymentStatus) {
         Optional<Purchase> previousPurchase = Optional.ofNullable(purchaseService.findPurchaseById(idPurchase));
+        PaymentStatus previousStatus = previousPurchase.orElseThrow().getPaymentStatus();
 
         Purchase purchase = previousPurchase.orElseThrow();
         purchase.changePaymentStatus(paymentStatus);
+        if (paymentStatus == PaymentStatus.TO_PAY) {
+            purchase.setPaymentDate(null);
+        }
 
         Purchase result = purchaseService.updatePurchase(purchase);
 
-        if (previousPurchase.isPresent() &&
-            previousPurchase.get().getPaymentStatus() != PaymentStatus.PAID &&
-            paymentStatus == PaymentStatus.PAID &&
-            purchase.getPaymentDate() != null) {
+        if (previousStatus != PaymentStatus.PAID && paymentStatus == PaymentStatus.PAID && purchase.getPaymentDate() != null) {
 
-            var bankTransaction = apiPurchaseMapper.toBankTransaction(purchase, TRANSACTION_CATEGORY_ID_PURCHASE);
+            var bankTransaction = apiPurchaseMapper.toBankTransaction(purchase, findCategoryByCard(purchase.getIdCard()));
             bankTransactionRepository.save(bankTransaction);
 
             log.info("Purchase paid: purchaseId={}, amount={}, date={}, transactionId={}",
@@ -65,6 +68,16 @@ public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase
         }
 
         return result;
+    }
+
+    private int findCategoryByCard(int idCard) {
+        Card card = cardFacade.findById(idCard);
+        return switch (card.getCardName().toLowerCase()) {
+            case "alfa" -> 8;
+            case "impresja" -> 9;
+            default -> throw new IllegalArgumentException("Unknown card name: " + card.getCardName());
+        };
+
     }
 
     @Override

@@ -108,7 +108,7 @@ public class ApiFeeMapper {
                 .amount(installment.getInstallmentAmountPaid().getNumberStripped())
                 .transactionType(TransactionType.TRANSFER_OUT)
                 .transactionCategoryId(transactionCategoryId)
-                .purchaseIds(null)
+                .purchaseId(null)
                 .boughtOnCredit(false)
                 .build();
     }

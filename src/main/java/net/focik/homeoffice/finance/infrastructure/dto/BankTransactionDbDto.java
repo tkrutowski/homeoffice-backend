@@ -25,10 +25,7 @@ public class BankTransactionDbDto extends AuditableEntity {
     private Integer id;
     private Integer idFirm;
     private Integer idUser;
-    @ElementCollection
-    @CollectionTable(name = "bank_transaction_purchases", joinColumns = @JoinColumn(name = "transaction_id"))
-    @Column(name = "purchase_id")
-    private List<Integer> purchaseIds;
+    private Integer purchaseId;
     private String description;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate transactionDate;
