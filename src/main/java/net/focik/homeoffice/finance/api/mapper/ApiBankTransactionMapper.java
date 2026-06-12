@@ -27,9 +27,9 @@ public class ApiBankTransactionMapper {
                 .build();
     }
 
-    public BankTransactionDto toDto(BankTransaction domain) {
+    public static BankTransactionDto toDto(BankTransaction domain) {
         return BankTransactionDto.builder()
-                .id(domain.getId())
+                .id(domain.getId() != null ? domain.getId() : 0)
                 .idFirm(domain.getIdFirm())
                 .idUser(domain.getIdUser())
                 .purchaseId(domain.getPurchaseId())

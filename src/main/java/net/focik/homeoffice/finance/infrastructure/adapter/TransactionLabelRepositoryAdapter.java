@@ -44,4 +44,10 @@ public class TransactionLabelRepositoryAdapter implements TransactionLabelReposi
         return jpaRepository.findById(id)
                 .map(mapper::toDomain);
     }
+
+    @Override
+    public Optional<TransactionLabel> findLabelByName(String trimmedName) {
+        return jpaRepository.findByName(trimmedName)
+                .map(mapper::toDomain);
+    }
 }

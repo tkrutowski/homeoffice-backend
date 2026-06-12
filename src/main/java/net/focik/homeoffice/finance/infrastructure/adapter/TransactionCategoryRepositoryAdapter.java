@@ -2,6 +2,7 @@ package net.focik.homeoffice.finance.infrastructure.adapter;
 
 import lombok.AllArgsConstructor;
 import net.focik.homeoffice.finance.domain.transaction.model.TransactionCategory;
+import net.focik.homeoffice.finance.domain.transaction.model.TransactionCategoryType;
 import net.focik.homeoffice.finance.domain.transaction.port.secondary.TransactionCategoryRepository;
 import net.focik.homeoffice.finance.infrastructure.jpa.TransactionCategoryDtoRepository;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaTransactionCategoryMapper;
@@ -42,6 +43,18 @@ public class TransactionCategoryRepositoryAdapter implements TransactionCategory
     @Override
     public Optional<TransactionCategory> findTransactionCategoryById(int id) {
         return jpaRepository.findById(id)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public Optional<TransactionCategory> findCategoryByName(String name) {
+        return jpaRepository.findByNameContainingIgnoreCase(name)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public Optional<TransactionCategory> findCategoryByNameAndType(String name, TransactionCategoryType type) {
+        return jpaRepository.findByNameContainingIgnoreCaseAndType(name, type)
                 .map(mapper::toDomain);
     }
 }

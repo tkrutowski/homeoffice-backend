@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.devices.domain.DeviceFacade;
 import net.focik.homeoffice.devices.domain.model.Device;
-import net.focik.homeoffice.finance.domain.exception.BankNotFoundException;
 import net.focik.homeoffice.finance.domain.exception.FirmAlreadyExistException;
 import net.focik.homeoffice.finance.domain.exception.FirmCanNotBeDeletedException;
 import net.focik.homeoffice.finance.domain.exception.FirmNotFoundException;
@@ -86,9 +85,13 @@ class FirmService {
     public Firm findByName(String name) {
         Optional<Firm> byName = firmRepository.findByName(name);
         if (byName.isEmpty()) {
-            throw new BankNotFoundException("nazwa", String.valueOf(name));
+            throw new FirmNotFoundException("nazwa", String.valueOf(name));
         }
         return byName.get();
+    }
+
+    public Optional<Firm> findByNameContaining(String name) {
+        return firmRepository.findByNameContaining(name);
     }
 
     public List<Firm> findByAll() {

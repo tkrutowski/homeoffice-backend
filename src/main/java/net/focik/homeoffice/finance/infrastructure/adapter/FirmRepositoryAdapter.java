@@ -55,4 +55,8 @@ public class FirmRepositoryAdapter implements FirmRepository {
         return firmDtoRepository.findByName(name).map(mapper::toDomain);
     }
 
+    @Override
+    public Optional<Firm> findByNameContaining(String name) {
+        return firmDtoRepository.findByNameContainingIgnoreCase(name).map(mapper::toDomain);
+    }
 }

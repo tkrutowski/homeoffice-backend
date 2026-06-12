@@ -3,13 +3,13 @@ package net.focik.homeoffice.finance.domain.transaction;
 import lombok.AllArgsConstructor;
 import net.focik.homeoffice.audit.AuditAction;
 import net.focik.homeoffice.audit.AuditLog;
-import net.focik.homeoffice.finance.domain.transaction.model.BankTransaction;
-import net.focik.homeoffice.finance.domain.transaction.model.TransactionCategory;
-import net.focik.homeoffice.finance.domain.transaction.model.TransactionLabel;
+import net.focik.homeoffice.finance.domain.transaction.model.*;
 import net.focik.homeoffice.finance.domain.transaction.port.primary.*;
+import net.focik.homeoffice.finance.infrastructure.util.CsvParser;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -17,11 +17,14 @@ import java.util.List;
 public class BankTransactionFacade implements
         AddBankTransactionUseCase, UpdateBankTransactionUseCase, GetBankTransactionUseCase, DeleteBankTransactionUseCase,
         AddTransactionCategoryUseCase, UpdateTransactionCategoryUseCase, GetTransactionCategoryUseCase, DeleteTransactionCategoryUseCase,
-        AddTransactionLabelUseCase, UpdateTransactionLabelUseCase, GetTransactionLabelUseCase, DeleteTransactionLabelUseCase {
+        AddTransactionLabelUseCase, UpdateTransactionLabelUseCase, GetTransactionLabelUseCase, DeleteTransactionLabelUseCase,
+        ImportBankTransactionsUseCase {
 
     private final BankTransactionService bankTransactionService;
     private final TransactionCategoryService transactionCategoryService;
     private final TransactionLabelService transactionLabelService;
+    private final TransactionImportService transactionImportService;
+    private final CsvParser csvParser;
 
     // BankTransaction operations
     @Override
@@ -108,5 +111,33 @@ public class BankTransactionFacade implements
     @Override
     public TransactionLabel getTransactionLabelById(int id) {
         return transactionLabelService.findTransactionLabelById(id);
+    }
+
+    // Import operations
+    @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "BankTransaction")
+    public TransactionImportResult importFromCsv(byte[] fileContent, int idUser, boolean testMode) {
+
+        List<CsvTransactionRow> csvRows;
+        try {
+            csvRows = csvParser.parseCsv(fileContent);
+        } catch (Exception e) {
+            return TransactionImportResult.builder()
+                    .successCount(0)
+                    .failedCount(1)
+                    .totalProcessed(0)
+                    .errors(List.of(TransactionImportError.builder()
+                            .rowNumber(0)
+                            .errorMessage("Błąd parsowania CSV: " + e.getMessage())
+                            .build()))
+                    .importDateTime(LocalDateTime.now())
+                    .build();
+        }
+        TransactionImportResult transactionImportResult = transactionImportService.importFromCsv(csvRows, idUser);
+        if (!testMode) {
+            transactionImportResult.getImportedTransactions()
+                    .forEach(bankTransactionService::addBankTransaction);
+        }
+        return transactionImportResult;
     }
 }

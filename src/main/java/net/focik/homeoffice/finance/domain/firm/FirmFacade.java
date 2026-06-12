@@ -10,6 +10,7 @@ import net.focik.homeoffice.finance.domain.firm.port.primary.UpdateFirmUseCase;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @AllArgsConstructor
@@ -43,6 +44,11 @@ public class FirmFacade implements AddFirmUseCase, UpdateFirmUseCase, GetFirmUse
     @Override
     public Firm findByName(String name) {
         return firmService.findByName(name);
+    }
+
+    @Override
+    public Optional<Firm> findByNameContaining(String name) {
+        return firmService.findByNameContaining(name);
     }
 
     @Override

@@ -9,5 +9,6 @@ import java.util.Optional;
 @Repository
 public interface FirmDtoRepository extends JpaRepository<FirmDbDto, Integer> {
 
+    Optional<FirmDbDto> findByNameContainingIgnoreCase(String name);
     Optional<FirmDbDto> findByName(String name);
 }

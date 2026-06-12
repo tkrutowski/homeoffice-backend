@@ -3,11 +3,15 @@ package net.focik.homeoffice.finance.api;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.focik.homeoffice.finance.api.dto.BankTransactionDto;
+import net.focik.homeoffice.finance.api.dto.BankTransactionImportResponse;
 import net.focik.homeoffice.finance.api.mapper.ApiBankTransactionMapper;
+import net.focik.homeoffice.finance.api.mapper.ApiTransactionImportMapper;
 import net.focik.homeoffice.finance.domain.transaction.model.BankTransaction;
+import net.focik.homeoffice.finance.domain.transaction.model.TransactionImportResult;
 import net.focik.homeoffice.finance.domain.transaction.port.primary.AddBankTransactionUseCase;
 import net.focik.homeoffice.finance.domain.transaction.port.primary.DeleteBankTransactionUseCase;
 import net.focik.homeoffice.finance.domain.transaction.port.primary.GetBankTransactionUseCase;
+import net.focik.homeoffice.finance.domain.transaction.port.primary.ImportBankTransactionsUseCase;
 import net.focik.homeoffice.finance.domain.transaction.port.primary.UpdateBankTransactionUseCase;
 import net.focik.homeoffice.utils.UserHelper;
 import net.focik.homeoffice.utils.exceptions.ExceptionHandling;
@@ -16,7 +20,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -29,10 +35,12 @@ import static org.springframework.http.HttpStatus.OK;
 public class BankTransactionController extends ExceptionHandling {
 
     private final ApiBankTransactionMapper mapper;
+    private final ApiTransactionImportMapper importMapper;
     private final AddBankTransactionUseCase addBankTransactionUseCase;
     private final UpdateBankTransactionUseCase updateBankTransactionUseCase;
     private final GetBankTransactionUseCase getBankTransactionUseCase;
     private final DeleteBankTransactionUseCase deleteBankTransactionUseCase;
+    private final ImportBankTransactionsUseCase importBankTransactionsUseCase;
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
@@ -46,7 +54,7 @@ public class BankTransactionController extends ExceptionHandling {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         log.info("Bank transaction found: {}", bankTransaction);
-        BankTransactionDto dto = mapper.toDto(bankTransaction);
+        BankTransactionDto dto = ApiBankTransactionMapper.toDto(bankTransaction);
         log.info("Mapped to BankTransaction DTO found: {}", dto);
         return new ResponseEntity<>(dto, OK);
     }
@@ -63,7 +71,7 @@ public class BankTransactionController extends ExceptionHandling {
         log.info("Found {} bank transactions.", bankTransactions.size());
 
         List<BankTransactionDto> dtos = bankTransactions.stream()
-                .map(mapper::toDto)
+                .map(ApiBankTransactionMapper::toDto)
                 .toList();
 
         return new ResponseEntity<>(dtos, OK);
@@ -82,7 +90,7 @@ public class BankTransactionController extends ExceptionHandling {
         if (result.getId() <= 0)
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
 
-        return new ResponseEntity<>(mapper.toDto(result), HttpStatus.CREATED);
+        return new ResponseEntity<>(ApiBankTransactionMapper.toDto(result), HttpStatus.CREATED);
     }
 
     @PutMapping
@@ -91,7 +99,7 @@ public class BankTransactionController extends ExceptionHandling {
         log.info("Try update bank transaction with id: {}", bankTransactionDto.getId());
 
         BankTransaction bankTransaction = updateBankTransactionUseCase.updateBankTransaction(mapper.toDomain(bankTransactionDto));
-        return new ResponseEntity<>(mapper.toDto(bankTransaction), OK);
+        return new ResponseEntity<>(ApiBankTransactionMapper.toDto(bankTransaction), OK);
     }
 
     @DeleteMapping("/{id}")
@@ -102,5 +110,26 @@ public class BankTransactionController extends ExceptionHandling {
         deleteBankTransactionUseCase.deleteBankTransaction(id);
 
         log.info("Deleted bank transaction with id = {}", id);
+    }
+
+    @PostMapping("/import")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
+    public ResponseEntity<BankTransactionImportResponse> importTransactions(
+            @RequestBody MultipartFile csvFile,
+            @RequestParam(defaultValue = "true") boolean testMode) {
+        log.info("Request to import bank transactions from CSV file: {}", csvFile.getOriginalFilename());
+
+        try {
+            int idUser = Math.toIntExact(UserHelper.getUser().getId());
+            byte[] fileContent = csvFile.getBytes();
+            TransactionImportResult result = importBankTransactionsUseCase.importFromCsv(fileContent, idUser, testMode);
+            BankTransactionImportResponse response = importMapper.toResponse(result);
+
+            log.info("Import completed: success={}, failed={}", result.getSuccessCount(), result.getFailedCount());
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IOException e) {
+            log.error("Error reading CSV file", e);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 }

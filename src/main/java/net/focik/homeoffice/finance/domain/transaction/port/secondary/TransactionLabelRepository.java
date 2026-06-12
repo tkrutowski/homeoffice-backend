@@ -10,4 +10,5 @@ public interface TransactionLabelRepository {
     void deleteTransactionLabel(int id);
     List<TransactionLabel> findAllTransactionLabels();
     Optional<TransactionLabel> findTransactionLabelById(int id);
+    Optional<TransactionLabel> findLabelByName(String trimmedName);
 }

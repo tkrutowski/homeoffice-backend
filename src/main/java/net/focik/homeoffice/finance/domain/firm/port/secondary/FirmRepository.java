@@ -19,4 +19,6 @@ public interface FirmRepository {
 
     Optional<Firm> findByName(String name);
 
+    Optional<Firm> findByNameContaining(String name);
+
 }

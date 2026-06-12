@@ -6,6 +6,7 @@ import net.focik.homeoffice.finance.domain.transaction.port.secondary.Transactio
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -33,5 +34,9 @@ class TransactionLabelService {
     TransactionLabel findTransactionLabelById(int id) {
         return transactionLabelRepository.findTransactionLabelById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Transaction label not found with id: " + id));
+    }
+
+    public Optional<TransactionLabel> findLabelByName(String trimmedName) {
+        return transactionLabelRepository.findLabelByName(trimmedName);
     }
 }
