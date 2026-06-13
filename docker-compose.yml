@@ -1,0 +1,67 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: homeoffice-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/homeoffice.conf:ro
+      - /dev/null:/etc/nginx/conf.d/default.conf
+    depends_on:
+      backend:
+        condition: service_started
+      frontend:
+        condition: service_started
+    networks:
+      - homeoffice-network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_VERSION: latest
+    container_name: homeoffice-backend
+    expose:
+      - "8077"
+    environment:
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION:-eu-central-1}
+      - BUCKET_NAME=${BUCKET_NAME:-focik-home}
+      - HOME_URL=${HOME_URL}
+      - KSEF_TOKEN=${KSEF_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      - DEBUG=${DEBUG:-false}
+      - SCHEDULER_CRON=${SCHEDULER_CRON:-0 0 9 * * FRI}
+      - TZ=Europe/Warsaw
+    networks:
+      - homeoffice-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8077/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 2
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ../homeoffice-frontend
+      dockerfile: Dockerfile
+    container_name: homeoffice-frontend
+    expose:
+      - "3000"
+    networks:
+      - homeoffice-network
+    restart: unless-stopped
+
+networks:
+  homeoffice-network:
+    driver: bridge
