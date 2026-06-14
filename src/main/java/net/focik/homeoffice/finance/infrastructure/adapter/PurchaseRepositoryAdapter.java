@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -100,6 +101,11 @@ class PurchaseRepositoryAdapter implements PurchaseRepository {
     @Override
     public Number getTotalSumToPay() {
         return purchaseDtoRepository.getTotalSumToPay();
+    }
+
+    @Override
+    public boolean existsByPurchaseDateAndAmountAndIdUser(LocalDate purchaseDate, BigDecimal amount, int idUser) {
+        return purchaseDtoRepository.existsByPurchaseDateAndAmountAndIdUser(purchaseDate, amount, idUser);
     }
 
 }

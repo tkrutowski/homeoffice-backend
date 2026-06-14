@@ -1,0 +1,27 @@
+package net.focik.homeoffice.finance.api.dto;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.*;
+import net.focik.homeoffice.finance.domain.transaction.model.TransactionLabel;
+import net.focik.homeoffice.finance.domain.transaction.model.TransactionType;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Getter
+@ToString
+public class BankTransactionImportDto {
+    private int idFirm;
+    private int idUser;
+    private String description;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Europe/Warsaw")
+    private LocalDate transactionDate;
+    private String amount;
+    private TransactionType transactionType;
+    private List<TransactionLabel> transactionLabel;
+    private boolean exists;
+    private String balance;
+}

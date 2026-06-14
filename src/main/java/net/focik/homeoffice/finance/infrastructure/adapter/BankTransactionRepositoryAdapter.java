@@ -62,4 +62,9 @@ class BankTransactionRepositoryAdapter implements BankTransactionRepository {
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public boolean existsByTransactionDateAndAmountAndIdUser(java.time.LocalDate transactionDate, java.math.BigDecimal amount, int idUser) {
+        return bankTransactionDtoRepository.existsByTransactionDateAndAmountAndIdUser(transactionDate, amount, idUser);
+    }
 }

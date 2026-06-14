@@ -53,4 +53,6 @@ public interface PurchaseDtoRepository extends JpaRepository<PurchaseDbDto, Inte
 
     @Query("SELECT SUM(p.amount) FROM PurchaseDbDto p WHERE p.paymentStatus = net.focik.homeoffice.utils.share.PaymentStatus.TO_PAY")
     BigDecimal getTotalSumToPay();
+
+    boolean existsByPurchaseDateAndAmountAndIdUser(LocalDate purchaseDate, BigDecimal amount, Integer idUser);
 }

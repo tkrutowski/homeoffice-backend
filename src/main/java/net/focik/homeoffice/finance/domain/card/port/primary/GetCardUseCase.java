@@ -14,4 +14,6 @@ public interface GetCardUseCase {
     List<Card> findByUserAndStatus(Integer userId, ActiveStatus status);
 
     List<Card> getCardsByBank(Integer idBank);
+
+    List<Card> findAll();
 }

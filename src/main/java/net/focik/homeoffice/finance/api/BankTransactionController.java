@@ -2,10 +2,13 @@ package net.focik.homeoffice.finance.api;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import net.focik.homeoffice.async.AsyncTaskStartResponse;
+import net.focik.homeoffice.finance.api.dto.BankCsvImportResponse;
 import net.focik.homeoffice.finance.api.dto.BankTransactionDto;
 import net.focik.homeoffice.finance.api.dto.BankTransactionImportResponse;
 import net.focik.homeoffice.finance.api.mapper.ApiBankTransactionMapper;
 import net.focik.homeoffice.finance.api.mapper.ApiTransactionImportMapper;
+import net.focik.homeoffice.finance.domain.csvimport.port.primary.ParseBankCsvUseCase;
 import net.focik.homeoffice.finance.domain.transaction.model.BankTransaction;
 import net.focik.homeoffice.finance.domain.transaction.model.TransactionImportResult;
 import net.focik.homeoffice.finance.domain.transaction.port.primary.AddBankTransactionUseCase;
@@ -41,6 +44,7 @@ public class BankTransactionController extends ExceptionHandling {
     private final GetBankTransactionUseCase getBankTransactionUseCase;
     private final DeleteBankTransactionUseCase deleteBankTransactionUseCase;
     private final ImportBankTransactionsUseCase importBankTransactionsUseCase;
+    private final ParseBankCsvUseCase parseBankCsvUseCase;
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
@@ -132,4 +136,45 @@ public class BankTransactionController extends ExceptionHandling {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
+
+    @PostMapping("/import/bank")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
+    public ResponseEntity<AsyncTaskStartResponse> startMBankImport(
+            @RequestParam MultipartFile csvFile) {
+        log.info("Request to start async MilleniumBank CSV import from file: {}", csvFile.getOriginalFilename());
+
+        try {
+            int idUser = Math.toIntExact(UserHelper.getUser().getId());
+            byte[] fileContent = csvFile.getBytes();
+            String jobId = parseBankCsvUseCase.startImportAsync(fileContent, idUser);
+
+            log.info("Started mBank CSV import job: {}", jobId);
+            return new ResponseEntity<>(new AsyncTaskStartResponse(jobId), HttpStatus.ACCEPTED);
+        } catch (IOException e) {
+            log.error("Error reading CSV file", e);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/import/bank/jobs/{jobId}")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
+    public ResponseEntity<?> getMBankImportResult(@PathVariable String jobId) {
+        log.info("Request to get MilleniumBank import result for job: {}", jobId);
+
+        BankCsvImportResponse result = parseBankCsvUseCase.getImportResult(jobId);
+
+        if (result == null) {
+            log.debug("Result not yet available for job: {}", jobId);
+            return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        }
+
+        if (result.getErrors() != null && !result.getErrors().isEmpty()) {
+            log.warn("MilleniumBank import job {} failed with {} errors", jobId, result.getErrors().size());
+            return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+        }
+
+        log.info("MilleniumBank import job {} completed: {} transactions, {} purchases", jobId, result.getTransactionCount(), result.getPurchaseCount());
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
 }

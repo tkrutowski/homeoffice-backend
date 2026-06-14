@@ -21,7 +21,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        APP_VERSION: latest
+        APP_VERSION: 3.17.0
     container_name: homeoffice-backend
     expose:
       - "8077"
@@ -55,6 +55,8 @@ services:
     build:
       context: ../homeoffice-frontend
       dockerfile: Dockerfile
+      args:
+        VITE_BUILD_MODE: docker
     container_name: homeoffice-frontend
     expose:
       - "3000"

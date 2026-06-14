@@ -2,6 +2,7 @@ package net.focik.homeoffice.finance.domain.transaction.port.secondary;
 
 import net.focik.homeoffice.finance.domain.transaction.model.BankTransaction;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -13,4 +14,5 @@ public interface BankTransactionRepository {
     List<BankTransaction> findBankTransactionBetween(Integer idUser, LocalDate dateFrom, LocalDate dateTo);
     void deleteBankTransactionById(int id);
     List<BankTransaction> findAll();
+    boolean existsByTransactionDateAndAmountAndIdUser(LocalDate transactionDate, BigDecimal amount, int idUser);
 }

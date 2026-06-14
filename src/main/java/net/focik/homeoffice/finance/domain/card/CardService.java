@@ -107,4 +107,9 @@ class CardService {
         log.debug("Finding cards by bankId {}", idBank);
         return cardRepository.findCardByBankId(idBank);
     }
+
+    List<Card> findAllCards() {
+        log.debug("Finding all cards");
+        return cardRepository.findAll();
+    }
 }

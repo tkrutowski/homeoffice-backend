@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -14,4 +15,6 @@ public interface BankTransactionDtoRepository extends JpaRepository<BankTransact
 
     @Query("SELECT bt FROM BankTransactionDbDto bt WHERE bt.idUser = :idUser AND bt.transactionDate BETWEEN :dateFrom AND :dateTo ORDER BY bt.transactionDate DESC")
     List<BankTransactionDbDto> findByUserAndDateRange(Integer idUser, LocalDate dateFrom, LocalDate dateTo);
+
+    boolean existsByTransactionDateAndAmountAndIdUser(LocalDate transactionDate, BigDecimal amount, Integer idUser);
 }

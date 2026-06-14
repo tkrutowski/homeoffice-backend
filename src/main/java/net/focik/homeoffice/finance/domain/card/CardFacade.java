@@ -69,4 +69,9 @@ public class CardFacade implements AddCardUseCase, UpdateCardUseCase, GetCardUse
         return cardService.findCardsByBank(idBank);
 
     }
+
+    @Override
+    public List<Card> findAll() {
+        return cardService.findAllCards();
+    }
 }
