@@ -51,7 +51,7 @@ class MilleniumBankCsvParserTest {
         assertThat(result.records).hasSize(1);
         assertThat(result.errors).isEmpty();
 
-        RawBankCsvRecord record = result.records.get(0);
+        RawBankCsvRecord record = result.records.getFirst();
         assertThat(record.getAccountNumber()).isEqualTo("4603 XXXX XXXX 5473");
         assertThat(record.getTransactionDate()).isEqualTo(LocalDate.of(2026, 6, 1));
         assertThat(record.getDebit()).isEqualTo(new BigDecimal("-27.0"));
@@ -67,7 +67,7 @@ class MilleniumBankCsvParserTest {
         MilleniumBankCsvParser.CsvParseResult result = csvParser.parseCsv(csvContent.getBytes(StandardCharsets.UTF_8));
 
         assertThat(result.records).hasSize(1);
-        RawBankCsvRecord record = result.records.get(0);
+        RawBankCsvRecord record = result.records.getFirst();
         assertThat(record.getDebit()).isNull();
         assertThat(record.getCredit()).isEqualTo(new BigDecimal("2.3"));
     }
@@ -80,7 +80,7 @@ class MilleniumBankCsvParserTest {
         MilleniumBankCsvParser.CsvParseResult result = csvParser.parseCsv(csvContent.getBytes(StandardCharsets.UTF_8));
 
         assertThat(result.records).hasSize(1);
-        RawBankCsvRecord record = result.records.get(0);
+        RawBankCsvRecord record = result.records.getFirst();
         assertThat(record.getDebit()).isEqualTo(new BigDecimal("-229.3"));
     }
 
@@ -92,7 +92,7 @@ class MilleniumBankCsvParserTest {
         MilleniumBankCsvParser.CsvParseResult result = csvParser.parseCsv(csvContent.getBytes(StandardCharsets.UTF_8));
 
         assertThat(result.records).hasSize(1);
-        RawBankCsvRecord record = result.records.get(0);
+        RawBankCsvRecord record = result.records.getFirst();
         assertThat(record.getLastFourDigits()).isEqualTo("5473");
     }
 
@@ -105,7 +105,7 @@ class MilleniumBankCsvParserTest {
 
         assertThat(result.records).isEmpty();
         assertThat(result.errors).isNotEmpty();
-        assertThat(result.errors.get(0)).contains("Niepoprawny format daty");
+        assertThat(result.errors.getFirst()).contains("Niepoprawny format daty");
     }
 
     @Test

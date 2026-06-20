@@ -7,9 +7,7 @@ import net.focik.homeoffice.finance.domain.card.port.primary.AddCardUseCase;
 import net.focik.homeoffice.finance.domain.card.port.primary.DeleteCardUseCase;
 import net.focik.homeoffice.finance.domain.card.port.primary.GetCardUseCase;
 import net.focik.homeoffice.finance.domain.card.port.primary.UpdateCardUseCase;
-import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.UserFacade;
-import net.focik.homeoffice.utils.UserHelper;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 import org.springframework.stereotype.Component;
 
