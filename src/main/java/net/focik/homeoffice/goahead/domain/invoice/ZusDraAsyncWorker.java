@@ -9,6 +9,8 @@ import net.focik.homeoffice.async.AsyncTaskService;
 import net.focik.homeoffice.async.AsyncTaskStatus;
 import net.focik.homeoffice.audit.AsyncContext;
 import net.focik.homeoffice.goahead.api.dto.ZusDraDataDto;
+import net.focik.homeoffice.goahead.domain.cost.Cost;
+import net.focik.homeoffice.goahead.domain.cost.KsefCostJobService;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.GetCostUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.GetInvoiceUseCase;
 import org.springframework.scheduling.annotation.Async;
@@ -43,7 +45,7 @@ public class ZusDraAsyncWorker {
             log.info("Starting ZUS DRA data preparation job: {}", jobId);
 
             try {
-                YearMonth previousMonth = YearMonth.from(settlementDate).minusMonths(1);
+                YearMonth previousMonth = YearMonth.from(settlementDate).minusMonths(2);
                 LocalDate from = previousMonth.atDay(1);
                 LocalDate to = previousMonth.atEndOfMonth();
 
@@ -57,8 +59,7 @@ public class ZusDraAsyncWorker {
                 log.debug("Total income for period {}: {}", previousMonth, totalIncome);
 
                 LocalDateTime ksefCheckSince = settlementDate.minusDays(1).atStartOfDay();
-                boolean ksefFetched = asyncTaskService.hasSucceededJobSince(
-                        net.focik.homeoffice.goahead.domain.cost.KsefCostJobService.JOB_TYPE, ksefCheckSince);
+                boolean ksefFetched = asyncTaskService.hasSucceededJobSince(KsefCostJobService.JOB_TYPE, ksefCheckSince);
 
                 log.debug("KSeF costs already fetched: {}", ksefFetched);
 
@@ -67,7 +68,7 @@ public class ZusDraAsyncWorker {
                     getCostUseCase.findKsefCosts(from, to);
                 }
 
-                List<net.focik.homeoffice.goahead.domain.cost.Cost> costs = getCostUseCase.findBySellDateBetween(from, to);
+                List<Cost> costs = getCostUseCase.findBySellDateBetween(from, to);
                 BigDecimal totalCosts = costs.stream()
                         .map(c -> c.getAmountSum().getNumber().numberValue(BigDecimal.class))
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -75,7 +76,7 @@ public class ZusDraAsyncWorker {
                 log.debug("Total costs for period {}: {}", previousMonth, totalCosts);
 
                 ZusDraDataDto result = ZusDraDataDto.builder()
-                        .period(previousMonth.toString())
+                        .period(YearMonth.from(settlementDate).minusMonths(1).toString())
                         .totalIncome(totalIncome)
                         .totalCosts(totalCosts)
                         .build();

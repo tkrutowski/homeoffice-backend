@@ -68,7 +68,8 @@ public class KsefCostMapper {
                     }
                 }
             } else {
-                cost.setPaymentStatus(PaymentStatus.TO_PAY);
+                cost.setPaymentStatus(PaymentStatus.PAID);
+                cost.setPaymentDate(cost.getInvoiceDate());
             }
 
             List<Pozycja> pozycje = fakturaCtrl.getPozycje();

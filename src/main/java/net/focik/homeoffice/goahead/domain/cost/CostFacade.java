@@ -12,6 +12,7 @@ import net.focik.homeoffice.goahead.domain.cost.port.primary.DeleteCostDocumentU
 import net.focik.homeoffice.goahead.domain.cost.port.primary.GetCostUseCase;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.UpdateCostUseCase;
 import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
+import net.focik.homeoffice.goahead.domain.exception.KsefResponseException;
 import net.focik.homeoffice.goahead.domain.invoice.KsefService;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.InvoiceKsefDto;
 import net.focik.homeoffice.goahead.domain.supplier.Supplier;
@@ -106,6 +107,7 @@ public class CostFacade implements AddCostUseCase, GetCostUseCase, UpdateCostUse
             addedCost = costService.addCost(cost);
         } catch (Exception e) {
             log.error("Error saving cost from KSEF: {}", e.getMessage());
+            throw new KsefResponseException("Error saving cost from KSEF");
         }
         return addedCost;
     }

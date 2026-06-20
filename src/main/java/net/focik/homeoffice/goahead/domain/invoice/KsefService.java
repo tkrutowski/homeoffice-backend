@@ -14,6 +14,7 @@ import net.focik.homeoffice.goahead.domain.exception.KsefResponseException;
 import net.focik.homeoffice.goahead.domain.exception.StatusWaitingException;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.CustomKsefClient;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.InvoiceKsefDto;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.model.Pozycja;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.SendKsefInvoiceResponse;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,9 @@ import pl.akmf.ksef.sdk.api.builders.certificate.CertificateBuilders;
 import pl.akmf.ksef.sdk.api.builders.invoices.InvoicesAsyncQueryFiltersBuilder;
 import pl.akmf.ksef.sdk.api.builders.session.OpenOnlineSessionRequestBuilder;
 import pl.akmf.ksef.sdk.api.builders.session.SendInvoiceOnlineSessionRequestBuilder;
-import pl.akmf.ksef.sdk.api.services.*;
+import pl.akmf.ksef.sdk.api.services.DefaultCertificateService;
+import pl.akmf.ksef.sdk.api.services.DefaultCryptographyService;
+import pl.akmf.ksef.sdk.api.services.DefaultSignatureService;
 import pl.akmf.ksef.sdk.client.model.ApiException;
 import pl.akmf.ksef.sdk.client.model.UpoVersion;
 import pl.akmf.ksef.sdk.client.model.auth.*;
@@ -48,6 +51,8 @@ import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Component
 @RequiredArgsConstructor
@@ -75,10 +80,10 @@ public class KsefService {
         log.info("No valid token found. Performing full login to KSeF.");
         Company company = companyFacade.get();
 //        return loginWithCertificate(company);
-        return  loginWithToken(company);
+        return loginWithToken(company);
     }
 
-    String createXml(Invoice invoice, Company goAhead)  {
+    String createXml(Invoice invoice, Company goAhead) {
         String xml;
         try {
             xml = ksefXmlGenerator.generateInvoiceXml(invoice, goAhead);
@@ -208,9 +213,9 @@ public class KsefService {
                     .map(downloadedFiles::get)
                     .map(json -> {
                         try {
-                            com.fasterxml.jackson.databind.JsonNode root = objectMapper.readTree(json);
-                            return java.util.stream.StreamSupport.stream(root.path("invoices").spliterator(), false)
-                                    .collect(java.util.stream.Collectors.toMap(
+                            JsonNode root = objectMapper.readTree(json);
+                            return StreamSupport.stream(root.path("invoices").spliterator(), false)
+                                    .collect(Collectors.toMap(
                                             n -> n.path("ksefNumber").asText(),
                                             JsonNode::toString,
                                             (a, b) -> a
@@ -230,27 +235,32 @@ public class KsefService {
             for (String fileName : invoices) {
                 String xmlContent = downloadedFiles.get(fileName);
                 System.out.println("Nazwa pliku: " + fileName);
-                //System.out.println("Treść XML: " + xmlContent);
 
-                try {
-                    JAXBContext context = JAXBContext.newInstance(InvoiceKsefDto.class);
-                    Unmarshaller unmarshaller = context.createUnmarshaller();
-                    InvoiceKsefDto invoiceDto = (InvoiceKsefDto) unmarshaller.unmarshal(new StringReader(xmlContent));
-                    
-                    String ksefNumber = fileName.replace(".xml", "");
-                    String invoiceJsonString = ksefToInvoiceJson.get(ksefNumber);
-                    
-                    foundInvoices.put(invoiceDto, invoiceJsonString);
-                } catch (JAXBException e) {
-                    log.error("Błąd mapowania XML na InvoiceKsefDto: " + e.getMessage(), e);
+                JAXBContext context = JAXBContext.newInstance(InvoiceKsefDto.class);
+                Unmarshaller unmarshaller = context.createUnmarshaller();
+                InvoiceKsefDto invoiceDto = (InvoiceKsefDto) unmarshaller.unmarshal(new StringReader(xmlContent));
+
+                // Oblicz brakujące kwoty brutto i VAT na podstawie netto i stawki
+                if (invoiceDto.getFakturaCtrl() != null && invoiceDto.getFakturaCtrl().getPozycje() != null) {
+                    for (Pozycja pozycja : invoiceDto.getFakturaCtrl().getPozycje()) {
+                        pozycja.calculateMissingAmounts();
+                    }
                 }
+
+                String ksefNumber = fileName.replace(".xml", "");
+                String invoiceJsonString = ksefToInvoiceJson.get(ksefNumber);
+
+                foundInvoices.put(invoiceDto, invoiceJsonString);
 
                 System.out.println();
             }
+            return foundInvoices;
         } catch (ApiException | IOException | InterruptedException e) {
             throw new KsefResponseException("Failed to login with certificate to KSeF system", e);
+        } catch (JAXBException e) {
+            log.error("Błąd mapowania XML na InvoiceKsefDto: " + e.getMessage(), e);
+            throw new KsefResponseException("Błąd mapowania XML na InvoiceKsefDto: " + e.getMessage(), e);
         }
-        return foundInvoices;
     }
 
     private boolean isFindInvoicesQueryProcessed(String referenceNumber, String accessToken) {
@@ -300,11 +310,11 @@ public class KsefService {
             List<SendKsefInvoiceResponse> sendKsefInvoiceRespons = new ArrayList<>();
             for (SessionInvoiceStatusResponse sessionInvoiceStatus : invoiceStatusResponses) {
                 String upo = null;
-                String invoiceHash  = null;
+                String invoiceHash = null;
                 if (sessionInvoiceStatus.getKsefNumber() != null) {
                     byte[] sessionInvoiceUpoByKsefNumber = ksefClient.getSessionInvoiceUpoByKsefNumber(sessionReferenceNumber, sessionInvoiceStatus.getKsefNumber(), accessToken);
                     upo = new String(sessionInvoiceUpoByKsefNumber);
-                    invoiceHash  = sessionInvoiceStatus.getInvoiceHash();
+                    invoiceHash = sessionInvoiceStatus.getInvoiceHash();
                 }
 
                 int invoiceCount = sessionStatus.getInvoiceCount();
@@ -406,8 +416,6 @@ public class KsefService {
     private void closeOnlineSession(String sessionReferenceNumber, String accessToken) throws ApiException {
         ksefClient.closeOnlineSession(sessionReferenceNumber, accessToken);
     }
-
-
 
     private void waitForAuthProcess(String referenceNumber, String tempToken) throws InterruptedException, ApiException {
         for (int i = 0; i < 15; i++) { // Pętla próbująca przez ok. 15 sekund
@@ -512,13 +520,13 @@ public class KsefService {
         if (invoice == null || invoice.getKsefNumber() == null || invoice.getInvoiceHash() == null) {
             return null;
         }
-        return ksefClient.getQrCode(invoice.getKsefNumber(), invoice.getInvoiceHash(),companyFacade.get().getNipWithoutDashes(),invoice.getInvoiceDate());
+        return ksefClient.getQrCode(invoice.getKsefNumber(), invoice.getInvoiceHash(), companyFacade.get().getNipWithoutDashes(), invoice.getInvoiceDate());
     }
 
     public byte[] getQrCode(Cost cost) {
         if (cost == null || cost.getKsefNumber() == null || cost.getInvoiceHash() == null) {
             return null;
         }
-        return ksefClient.getQrCode(cost.getKsefNumber(), cost.getInvoiceHash(),companyFacade.get().getNipWithoutDashes(),cost.getInvoiceDate());
+        return ksefClient.getQrCode(cost.getKsefNumber(), cost.getInvoiceHash(), companyFacade.get().getNipWithoutDashes(), cost.getInvoiceDate());
     }
 }
