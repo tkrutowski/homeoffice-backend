@@ -97,6 +97,8 @@ jobs:
             set -e
             echo "Disk usage before cleanup:"
             df -h /
+            echo "Removing old TAR files (keeping only last 2)..."
+            cd /opt/docker/images/ && ls -t homeoffice-*.tar 2>/dev/null | tail -n +3 | xargs -r rm -f
             sudo docker system prune -a -f --volumes
             sudo docker builder prune -a -f
             echo "Disk usage after cleanup:"
