@@ -12,10 +12,10 @@ import lombok.*;
 @Setter
 @ToString
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Podmiot2 {
+public class Podmiot3 {
 
     @XmlElement(name = "DaneIdentyfikacyjne")
-    private DaneIdentyfikacyjneNabywcy daneIdentyfikacyjne;
+    private DaneIdentyfikacyjnePodmiotu3 daneIdentyfikacyjne;
 
     @XmlElement(name = "Adres")
     private Adres adres;
@@ -23,17 +23,6 @@ public class Podmiot2 {
     @XmlElement(name = "DaneKontaktowe")
     private DaneKontaktowe daneKontaktowe;
 
-    /**
-     * Znacznik jednostki podrzędnej JST.
-     * Wartość "2" oznacza, że faktura nie dotyczy jednostki podrzędnej JST.
-     */
-    @XmlElement(name = "JST")
-    private Integer jst;
-
-    /**
-     * Znacznik członka grupy VAT.
-     *  Wartość "2" oznacza, że faktura nie dotyczy członka grupy VAT
-     */
-    @XmlElement(name = "GV")
-    private Integer gv;
+    @XmlElement(name = "Rola")
+    private Integer rola;
 }

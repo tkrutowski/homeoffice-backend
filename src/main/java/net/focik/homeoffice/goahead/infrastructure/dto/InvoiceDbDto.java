@@ -45,6 +45,18 @@ public class InvoiceDbDto extends AuditableEntity {
     private String upoUrl;
     private String invoiceHash;
     private String pdfUrl;
+    @Column(name = "vat_group_recipient_nip")
+    private String vatGroupRecipientNip;
+    @Column(name = "vat_group_recipient_name")
+    private String vatGroupRecipientName;
+    @Column(name = "vat_group_recipient_street")
+    private String vatGroupRecipientStreet;
+    @Column(name = "vat_group_recipient_zip")
+    private String vatGroupRecipientZip;
+    @Column(name = "vat_group_recipient_city")
+    private String vatGroupRecipientCity;
+    @Column(name = "buyer_contact_email")
+    private String buyerContactEmail;
 
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InvoiceItemDbDto> invoiceItems;

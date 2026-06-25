@@ -25,6 +25,9 @@ public class InvoiceKsefDto {
     @XmlElement(name = "Podmiot2")
     private Podmiot2 podmiot2; // Nabywca
 
+    @XmlElement(name = "Podmiot3")
+    private Podmiot3 podmiot3;
+
     @XmlElement(name = "Fa")
     private FakturaCtrl fakturaCtrl;
 }

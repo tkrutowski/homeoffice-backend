@@ -32,5 +32,11 @@ public class InvoiceDto {
     private String upoUrl;
     private String pdfUrl;
     private List<InvoiceItemDto> invoiceItems;
+    private String vatGroupRecipientNip;
+    private String vatGroupRecipientName;
+    private String vatGroupRecipientStreet;
+    private String vatGroupRecipientZip;
+    private String vatGroupRecipientCity;
+    private String buyerContactEmail;
 
 }

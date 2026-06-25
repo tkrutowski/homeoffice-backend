@@ -34,6 +34,12 @@ public class Invoice {
     private String upoUrl;
     private String invoiceHash;
     private String pdfUrl;
+    private String vatGroupRecipientNip;
+    private String vatGroupRecipientName;
+    private String vatGroupRecipientStreet;
+    private String vatGroupRecipientZip;
+    private String vatGroupRecipientCity;
+    private String buyerContactEmail;
 
     public void changePaymentStatus(PaymentStatus newPaymentStatus) {
         this.paymentStatus = newPaymentStatus;

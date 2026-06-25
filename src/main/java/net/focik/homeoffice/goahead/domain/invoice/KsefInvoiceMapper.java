@@ -34,12 +34,19 @@ public class KsefInvoiceMapper {
                 .collect(Collectors.toList());
         Platnosc platnosc = buildPlatnosc(invoice);
 
-        return InvoiceKsefDto.builder()
+        boolean isVatGroup = StringUtils.hasText(invoice.getVatGroupRecipientNip());
+
+        InvoiceKsefDto.InvoiceKsefDtoBuilder builder = InvoiceKsefDto.builder()
                 .naglowek(buildNaglowek())
                 .podmiot1(buildPodmiot1(goAhead))
-                .podmiot2(buildPodmiot2(invoice.getCustomer()))
-                .fakturaCtrl(buildFakturaCtrl(invoice, pozycje, platnosc))
-                .build();
+                .podmiot2(buildPodmiot2(invoice.getCustomer(), isVatGroup, invoice.getBuyerContactEmail()))
+                .fakturaCtrl(buildFakturaCtrl(invoice, pozycje, platnosc));
+
+        if (isVatGroup) {
+            builder.podmiot3(buildPodmiot3(invoice));
+        }
+
+        return builder.build();
     }
 
     private Naglowek buildNaglowek() {
@@ -74,7 +81,7 @@ public class KsefInvoiceMapper {
                 .build();
     }
 
-    private Podmiot2 buildPodmiot2(Customer customer) {
+    private Podmiot2 buildPodmiot2(Customer customer, boolean isVatGroup, String buyerContactEmail) {
         DaneIdentyfikacyjneNabywcy.DaneIdentyfikacyjneNabywcyBuilder daneBuilder = DaneIdentyfikacyjneNabywcy.builder()
                 .nazwa(customer.getFullName())
                 .nip(customer.getNipWithoutDashes());
@@ -85,11 +92,16 @@ public class KsefInvoiceMapper {
                 .adresL2(customer.getAddress().getZip() + " " + customer.getAddress().getCity())
                 .build();
 
-        return Podmiot2.builder()
+        Podmiot2.Podmiot2Builder p2 = Podmiot2.builder()
                 .daneIdentyfikacyjne(daneBuilder.build())
-                .adres(adres)
-                .jst(2) // Ustawienie wartości "2" dla pola JST
-                .gv(2) // Ustawienie wartości "2" dla pola GV
+                .adres(adres);
+
+        if (StringUtils.hasText(buyerContactEmail)) {
+            p2.daneKontaktowe(DaneKontaktowe.builder().email(buyerContactEmail).build());
+        }
+
+        return p2.jst(2)
+                .gv(isVatGroup ? 1 : 2)
                 .build();
     }
 
@@ -261,5 +273,34 @@ public class KsefInvoiceMapper {
         }
 
         return builder.build();
+    }
+
+    private Podmiot3 buildPodmiot3(Invoice invoice) {
+        DaneIdentyfikacyjnePodmiotu3 dane = DaneIdentyfikacyjnePodmiotu3.builder()
+                .nip(invoice.getVatGroupRecipientNip())
+                .nazwa(invoice.getVatGroupRecipientName())
+                .build();
+
+        Adres adres = Adres.builder()
+                .kodKraju("PL")
+                .adresL1(invoice.getVatGroupRecipientStreet())
+                .adresL2((invoice.getVatGroupRecipientZip() != null ? invoice.getVatGroupRecipientZip() : "") +
+                         " " +
+                         (invoice.getVatGroupRecipientCity() != null ? invoice.getVatGroupRecipientCity() : ""))
+                .build();
+
+        DaneKontaktowe daneKontaktowe = null;
+        if (StringUtils.hasText(invoice.getBuyerContactEmail())) {
+            daneKontaktowe = DaneKontaktowe.builder()
+                    .email(invoice.getBuyerContactEmail())
+                    .build();
+        }
+
+        return Podmiot3.builder()
+                .daneIdentyfikacyjne(dane)
+                .adres(adres)
+                .daneKontaktowe(daneKontaktowe)
+                .rola(10)
+                .build();
     }
 }
