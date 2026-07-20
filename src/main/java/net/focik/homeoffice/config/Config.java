@@ -42,12 +42,11 @@ class Config {
         Converter<InvoiceItemDbDto, InvoiceItem> invoiceItemDbDtoToDomainConverter = context -> {
             InvoiceItemDbDto source = context.getSource();
             InvoiceItem destination = context.getDestination();
-            
+
             if (source != null && destination != null) {
-                // Ręczne przypisanie właściwego ID faktury z powiązanej encji
-                if (source.getInvoice() != null && source.getInvoice().getId() != null) {
-                    destination.setId(source.getInvoice().getId());
-                }
+                destination.setInvoiceId(source.getInvoice() != null && source.getInvoice().getId() != null
+                    ? source.getInvoice().getId()
+                    : 0);
             }
             return destination;
         };

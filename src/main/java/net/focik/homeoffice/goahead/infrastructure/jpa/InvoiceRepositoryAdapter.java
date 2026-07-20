@@ -32,7 +32,7 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
         if (dbDto.getId() != null && dbDto.getId() == 0) {
             dbDto.setId(null);
         }
-        
+
         if (dbDto.getKsefNumber() != null && dbDto.getKsefNumber().trim().isEmpty()) {
             dbDto.setKsefNumber(null);
         }
@@ -45,7 +45,7 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
                 invoiceItemDto.setInvoice(dbDto);
             });
         }
-        
+
         InvoiceDbDto saved = invoiceDtoRepository.save(dbDto);
         return mapToDomain(saved);
     }

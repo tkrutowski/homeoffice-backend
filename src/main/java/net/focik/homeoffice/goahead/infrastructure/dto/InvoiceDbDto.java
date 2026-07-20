@@ -17,7 +17,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@ToString
+@ToString(exclude = "invoiceItems")
 @Table(name = "goahead_invoice")
 public class InvoiceDbDto extends AuditableEntity {
     @Id

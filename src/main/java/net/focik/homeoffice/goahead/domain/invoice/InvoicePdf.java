@@ -9,7 +9,7 @@ import net.focik.homeoffice.utils.MoneyUtils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.time.Period;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -127,7 +127,7 @@ public class InvoicePdf {
         Phrase pay = new Phrase();
         Chunk pay1 = new Chunk("Forma płatności: ", FONT_10);
         Chunk pay2 = new Chunk(String.format(" %s %d dni", invoice.getPaymentMethod().getTranslate(),
-                Period.between(invoice.getInvoiceDate(), invoice.getPaymentDate()).getDays()), FONT_10_BOLD);
+                ChronoUnit.DAYS.between(invoice.getInvoiceDate(), invoice.getPaymentDate())), FONT_10_BOLD);
         Chunk pay3 = new Chunk("    Termin płatności: ", FONT_10);
         Chunk pay4 = new Chunk(invoice.getPaymentDate().toString(), FONT_10_BOLD);
         pay.add(pay1);

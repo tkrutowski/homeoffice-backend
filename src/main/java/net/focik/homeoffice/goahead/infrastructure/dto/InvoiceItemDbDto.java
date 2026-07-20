@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Entity
-@ToString
+@ToString(exclude = "invoice")
 @Table(name = "goahead_invoice_item")
 public class InvoiceItemDbDto extends AuditableEntity {
     @Id
