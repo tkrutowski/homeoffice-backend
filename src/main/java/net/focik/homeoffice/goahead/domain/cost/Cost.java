@@ -36,19 +36,19 @@ public class Cost {
 
     public Money getAmountSum() {
         return costItems.stream()
-                .map(item -> item.getAmountGross().multiply(item.getQuantity()))
+                .map(CostItem::getAmountGross)
                 .reduce(Money.of(0, "PLN"), Money::add);
     }
 
     public Money getAmountNetSum() {
         return costItems.stream()
-                .map(item -> item.getAmountNet().multiply(item.getQuantity()))
+                .map(CostItem::getAmountNet)
                 .reduce(Money.of(0, "PLN"), Money::add);
     }
 
     public Money getAmountVatSum() {
         return costItems.stream()
-                .map(item -> item.getAmountVat().multiply(item.getQuantity()))
+                .map(CostItem::getAmountVat)
                 .reduce(Money.of(0, "PLN"), Money::add);
     }
 }

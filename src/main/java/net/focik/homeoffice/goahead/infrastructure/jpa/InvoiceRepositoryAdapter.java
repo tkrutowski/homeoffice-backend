@@ -52,7 +52,7 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
 
     @Override
     public void deleteInvoice(Integer id) {
-        invoiceDtoRepository.deleteById(id);
+        invoiceDtoRepository.findById(id).ifPresent(invoiceDtoRepository::delete);
     }
 
     @Override

@@ -36,6 +36,9 @@ public class Pozycja {
     @XmlElement(name = "P_9A")
     private Double cenaJednostkowaNetto;
 
+    @XmlElement(name = "P_9B")
+    private Double cenaJednostkowaBrutto;
+
     @XmlElement(name = "P_11")
     private Double kwotaNetto;
 
@@ -90,6 +93,20 @@ public class Pozycja {
                 Money vat = Money.of(kwotaVat, pln);
                 Money brutto = netto.add(vat);
                 this.kwotaBrutto = brutto.getNumber().doubleValue();
+            }
+
+            // Oblicz brakujące cenaJednostkowaNetto
+            if (cenaJednostkowaNetto == null && kwotaNetto != null && ilosc != null && ilosc > 0) {
+                Money netto = Money.of(kwotaNetto, pln);
+                Money cenaJm = netto.divide(ilosc);
+                this.cenaJednostkowaNetto = cenaJm.getNumber().doubleValue();
+            }
+
+            // Oblicz brakujące cenaJednostkowaBrutto
+            if (cenaJednostkowaBrutto == null && kwotaBrutto != null && ilosc != null && ilosc > 0) {
+                Money brutto = Money.of(kwotaBrutto, pln);
+                Money cenaJm = brutto.divide(ilosc);
+                this.cenaJednostkowaBrutto = cenaJm.getNumber().doubleValue();
             }
         } catch (NumberFormatException e) {
             log.error("Failed to parse VAT rate: {}", e.getMessage());

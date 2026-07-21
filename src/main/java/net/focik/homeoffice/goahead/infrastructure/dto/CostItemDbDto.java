@@ -24,7 +24,10 @@ public class CostItemDbDto extends AuditableEntity {
     private String name;
     private String unit;
     private Float quantity;
-    
+
+    @Column(name = "amount_unit_net")
+    private BigDecimal amountUnitNet; //netto unit
+
     @Column(name = "amount_net")
     private BigDecimal amountNet; //netto
     

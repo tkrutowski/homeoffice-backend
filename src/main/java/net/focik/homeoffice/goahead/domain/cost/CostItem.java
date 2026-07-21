@@ -16,6 +16,7 @@ public class CostItem {
     private String name;
     private String unit;
     private float quantity;
+    private Money amountUnitNet; //netto unit
     private Money amountNet; //netto
     private Money amountVat;
     private Money amountGross; //brutto

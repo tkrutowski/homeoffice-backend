@@ -54,7 +54,8 @@ public class CostRepositoryAdapter implements CostRepository {
 
     @Override
     public void deleteCost(int id) {
-        costDtoRepository.deleteById(id);
+        costDtoRepository.findById(id)
+                .ifPresent(costDtoRepository::delete);
     }
 
     @Override
