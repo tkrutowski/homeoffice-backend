@@ -76,6 +76,24 @@
             margin-bottom: 12px;
             border-radius: 4px;
             border-left: 4px solid #764ba2;
+            display: flex;
+            gap: 15px;
+        }
+
+        .book-cover {
+            flex-shrink: 0;
+        }
+
+        .book-cover img {
+            width: 80px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .book-details {
+            flex-grow: 1;
         }
 
         .book-title {
@@ -89,6 +107,20 @@
             color: #666;
             font-size: 14px;
             font-style: italic;
+            margin-bottom: 8px;
+        }
+
+        .book-series {
+            color: #764ba2;
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .book-series-label {
+            font-weight: bold;
         }
 
         .no-books {
@@ -145,8 +177,21 @@
         <div class="books-list" th:if="${booksCount > 0}">
             <p style="margin-bottom: 15px; font-weight: bold;">Szczegóły:</p>
             <div class="book-item" th:each="book : ${books}">
-                <div class="book-title" th:text="${book.title}"></div>
-                <div class="book-author" th:text="'Autor: ' + ${#strings.arrayJoin(book.authors, ', ')}"></div>
+                <!-- Book Cover -->
+                <div class="book-cover" th:if="${book.book.cover != null}">
+                    <img th:src="${book.book.cover}" th:alt="${book.book.title}" />
+                </div>
+                <!-- Book Details -->
+                <div class="book-details">
+                    <div class="book-title" th:text="${book.book.title}"></div>
+                    <div class="book-author" th:text="'Autor: ' + ${#strings.arrayJoin(book.book.authors, ', ')}"></div>
+                    <!-- Series/Cycle Information -->
+                    <div class="book-series" th:if="${book.book.series != null}">
+                        <span class="book-series-label">Cykl:</span>
+                        <span th:text="${book.book.series.title}"></span>
+                        <span th:if="${book.book.bookInSeriesNo != null}" th:text="' (' + ${book.book.bookInSeriesNo} + ')'"></span>
+                    </div>
+                </div>
             </div>
         </div>
 
