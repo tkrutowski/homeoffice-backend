@@ -10,7 +10,7 @@
     </parent>
     <groupId>net.focik</groupId>
     <artifactId>homeoffice</artifactId>
-    <version>3.17.2</version>
+    <version>3.18.0</version>
     <name>homeoffice</name>
     <description>homeoffice</description>
     <properties>
@@ -213,6 +213,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <!-- Email Support -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <!-- Thymeleaf for email templates -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
         <!-- https://mvnrepository.com/artifact/eu.europa.ec.joinup.sd-dss/dss-enumerations -->
 <!--        <dependency>-->

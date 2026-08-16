@@ -21,7 +21,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        APP_VERSION: 3.17.1
+        APP_VERSION: 3.18.0
     container_name: homeoffice-backend
     expose:
       - "8077"
@@ -34,6 +34,8 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=${AWS_REGION:-eu-central-1}
       - BUCKET_NAME=${BUCKET_NAME:-focik-home}
+      - MAIL_USERNAME=${MAIL_USERNAME:app@homeoffice.focik.net}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
       - HOME_URL=${HOME_URL}
       - KSEF_TOKEN=${KSEF_TOKEN}
       - OPENAI_API_KEY=${OPENAI_API_KEY}

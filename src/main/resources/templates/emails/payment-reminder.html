@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px 20px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .alert-box {
+            background-color: #fff3cd;
+            border: 2px solid #ffc107;
+            border-left: 4px solid #ff9800;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .alert-box h2 {
+            color: #ff6f00;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .payment-details {
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .payment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .payment-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .payment-label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .payment-value {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .amount {
+            font-size: 28px;
+            color: #f5576c;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .due-date {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .due-date-label {
+            color: #999;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .due-date-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6f00;
+            margin-top: 5px;
+        }
+
+        .action-note {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #1976d2;
+        }
+
+        .footer {
+            background-color: #f5f5f5;
+            border-top: 1px solid #e0e0e0;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .footer-link {
+            color: #f5576c;
+            text-decoration: none;
+        }
+
+        .footer-link:hover {
+            text-decoration: underline;
+        }
+
+        .emoji {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <!-- Header -->
+    <div class="header">
+        <h1><span class="emoji">💳</span>Przypomnienie o Płatności</h1>
+        <p>Nie zapomnij o zbliżającej się płatności</p>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <p class="greeting" th:text="'Cześć ' + ${userName} + '!'"></p>
+
+        <p>Przypominamy, że masz zbliżającą się płatność do realizacji. Oto szczegóły:</p>
+
+        <!-- Alert Box -->
+        <div class="alert-box">
+            <h2>⚠️ Płatność do wykonania</h2>
+
+            <div class="payment-details">
+                <div class="payment-item">
+                    <span class="payment-label">Opis:</span>
+                    <span class="payment-value" th:text="${description}"></span>
+                </div>
+
+                <div class="amount" th:text="${amount}"></div>
+
+                <div style="text-align: center; margin: 15px 0; padding: 15px; background-color: #fff9e6; border-radius: 4px;">
+                    <p style="color: #999; font-size: 13px; margin-bottom: 5px;">Termin płatności:</p>
+                    <p style="font-size: 22px; font-weight: bold; color: #ff6f00;" th:text="${#temporals.format(dueDate, 'dd.MM.yyyy')}"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-note">
+            <p><strong>💡 Wskazówka:</strong> Aby uniknąć opóźnień, zrealizuj płatność jak najszybciej.</p>
+        </div>
+
+        <p style="margin-top: 20px; color: #666;">
+            Jeśli płatność została już zrealizowana, zignoruj tę wiadomość.
+        </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>© <span th:text="${currentYear}"></span> HomeOffice App. Wszystkie prawa zastrzeżone.</p>
+        <p style="margin-top: 10px;">
+            <a href="https://homeoffice.pl" class="footer-link">Zarządzaj płatnościami</a>
+        </p>
+    </div>
+</div>
+</body>
+</html>
