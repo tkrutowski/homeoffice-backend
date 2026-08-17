@@ -25,9 +25,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -44,6 +46,22 @@ public class BookService {
     private final EmailNotificationPort emailNotificationPort;
 
     private final UserFacade userFacade;
+
+    // Polish month names in nominative case (for display)
+    private static final Map<Month, String> POLISH_MONTH_NAMES = Map.ofEntries(
+            Map.entry(Month.JANUARY, "styczeń"),
+            Map.entry(Month.FEBRUARY, "luty"),
+            Map.entry(Month.MARCH, "marzec"),
+            Map.entry(Month.APRIL, "kwiecień"),
+            Map.entry(Month.MAY, "maj"),
+            Map.entry(Month.JUNE, "czerwiec"),
+            Map.entry(Month.JULY, "lipiec"),
+            Map.entry(Month.AUGUST, "sierpień"),
+            Map.entry(Month.SEPTEMBER, "wrzesień"),
+            Map.entry(Month.OCTOBER, "październik"),
+            Map.entry(Month.NOVEMBER, "listopad"),
+            Map.entry(Month.DECEMBER, "grudzień")
+    );
 
 
     public Book addBook(Book book) {
@@ -292,14 +310,31 @@ public class BookService {
                     yearEnd
             );
 
-            // Count by month
-            Map<String, Integer> booksByMonth = new HashMap<>();
+            // Count by month (in calendar order)
+            Map<String, Integer> booksByMonth = new LinkedHashMap<>();
+
+            // Initialize months in calendar order (January to December)
+            for (Month month : Month.values()) {
+                booksByMonth.put(POLISH_MONTH_NAMES.get(month), 0);
+            }
+
+            // Count books for each month
             for (UserBook ub : yearlyBooks) {
                 if (ub.getReadTo() != null) {
-                    String month = ub.getReadTo().format(DateTimeFormatter.ofPattern("MMMM", new Locale("pl", "PL")));
-                    booksByMonth.put(month, booksByMonth.getOrDefault(month, 0) + 1);
+                    Month month = ub.getReadTo().getMonth();
+                    String monthName = POLISH_MONTH_NAMES.get(month);
+                    booksByMonth.put(monthName, booksByMonth.getOrDefault(monthName, 0) + 1);
                 }
             }
+
+            // Sort books by readTo date (descending - newest first)
+            List<UserBook> sortedBooks = yearlyBooks.stream()
+                    .sorted((b1, b2) -> {
+                        if (b1.getReadTo() == null) return 1;
+                        if (b2.getReadTo() == null) return -1;
+                        return b2.getReadTo().compareTo(b1.getReadTo());
+                    })
+                    .toList();
 
             // Prepare template variables
             Map<String, Object> templateVariables = new HashMap<>();
@@ -307,9 +342,9 @@ public class BookService {
             templateVariables.put("year", year);
             templateVariables.put("totalBooksRead", yearlyBooks.size());
             templateVariables.put("booksByMonth", booksByMonth);
-            templateVariables.put("books", yearlyBooks);
+            templateVariables.put("books", sortedBooks);
             templateVariables.put("averageBooksPerMonth",
-                    yearlyBooks.size() > 0 ? yearlyBooks.size() / 12 : 0);
+                    !yearlyBooks.isEmpty() ? yearlyBooks.size() / 12 : 0);
             templateVariables.put("currentYear", LocalDate.now().getYear());
 
             // Build email request
