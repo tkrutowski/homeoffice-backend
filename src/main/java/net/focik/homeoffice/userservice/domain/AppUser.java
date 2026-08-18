@@ -14,6 +14,7 @@ import java.util.*;
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
 @Table(name = "users")
 public class AppUser extends AuditableEntity implements UserDetails {
 
