@@ -1,8 +1,11 @@
 package net.focik.homeoffice.config;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.goahead.domain.invoice.InvoiceItem;
@@ -22,7 +25,11 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.io.IOException;
 import java.net.http.HttpClient;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Configuration
 @RequiredArgsConstructor
@@ -58,8 +65,11 @@ class Config {
 
     @Bean
     public ObjectMapper objectMapper() {
+        JavaTimeModule javaTimeModule = new JavaTimeModule();
+        javaTimeModule.addDeserializer(LocalDate.class, new LocalDateDeserializer());
+
         return new ObjectMapper()
-                .registerModule(new JavaTimeModule())
+                .registerModule(javaTimeModule)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     }
@@ -92,5 +102,37 @@ class Config {
         authProvider.setUserDetailsService(userDetailsService());
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
+    }
+
+    /**
+     * Custom deserializer dla LocalDate, obsługuje zarówno format ISO 8601 z czasem
+     * (np. 2026-09-10T00:00:00.000Z) jak i format prostej daty (yyyy-MM-dd).
+     * Dzięki temu frontend może wysyłać obydwa formaty.
+     */
+    private static class LocalDateDeserializer extends StdDeserializer<LocalDate> {
+        public LocalDateDeserializer() {
+            super(LocalDate.class);
+        }
+
+        @Override
+        public LocalDate deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            String value = p.getValueAsString();
+            if (value == null || value.isEmpty()) {
+                return null;
+            }
+
+            try {
+                // Spróbuj parsować format ISO 8601 z czasem (np. 2026-09-10T00:00:00.000Z)
+                LocalDateTime dateTime = LocalDateTime.parse(value, DateTimeFormatter.ISO_DATE_TIME);
+                return dateTime.toLocalDate();
+            } catch (Exception e) {
+                try {
+                    // Spróbuj parsować format prostej daty (yyyy-MM-dd)
+                    return LocalDate.parse(value, DateTimeFormatter.ISO_DATE);
+                } catch (Exception ex) {
+                    throw new IOException("Cannot deserialize LocalDate from: " + value, ex);
+                }
+            }
+        }
     }
 }
