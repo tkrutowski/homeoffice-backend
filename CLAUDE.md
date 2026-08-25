@@ -50,6 +50,57 @@ Controllers depend on `*UseCase` interfaces from `domain/`, never on infrastruct
 - **KSef integration** (`goahead/domain/invoice/`): Polish e-invoicing public API. Config via `ksef.config.*` properties (base-uri, token, qr-uri). Token rotates — when KSef calls 401, update `ksef.config.token`. XSD files at repo root (`schemat.xsd`, `ElementarneTypyDanych_v10-0E.xsd`, etc.) define the invoice XML; JAXB generation is currently commented out in `pom.xml`.
 - **Security**: JWT (24h access, 7d refresh), `@PreAuthorize("hasAnyAuthority('ROLE_X')")` on controllers. Public endpoints listed in `cors.public-url`.
 
+### UseCase Pattern (Ports & Adapters)
+
+Every business operation is exposed through a **UseCase interface** (port) in `domain/*/port/primary/`:
+
+```java
+// Port interface (domain layer)
+public interface GetCardUseCase {
+    Card findById(int id);
+    List<Card> findByStatus(ActiveStatus status);
+}
+
+// Implementation (domain component, not infrastructure)
+@Component
+public class CardFacade implements AddCardUseCase, UpdateCardUseCase, 
+                                   GetCardUseCase, DeleteCardUseCase {
+    private final CardService cardService;
+    // Aggregates multiple UseCase interfaces, delegates to service
+}
+
+// Usage in controller
+@RestController
+public class CardController {
+    private final GetCardUseCase getCardUseCase; // Inject the port, not the impl
+}
+```
+
+**When to use Facade vs. direct Service implementation:**
+- **Use Facade**: Aggregates multiple UseCase interfaces (CRUD operations) or complex orchestration
+- **Use Service implementing UseCase directly**: Single UseCase with domain logic (e.g., `GenerateBankTransactionReportUseCase`)
+
+**Do not use Facade if:**
+- You have a single UseCase interface
+- Service only delegates to other UseCase ports without aggregation logic
+- No orchestration needed between multiple operations
+
+Example of unnecessary Facade:
+```java
+// ❌ Don't do this
+public class BankTransactionFacade implements GenerateBankTransactionReportUseCase {
+    private final BankTransactionReportService service;
+}
+
+// ✅ Do this instead
+public class BankTransactionReportService implements GenerateBankTransactionReportUseCase {
+    private final GetBankTransactionUseCase getBankTransactionUseCase;
+    // Direct implementation without intermediary
+}
+```
+
+Controllers always depend on `*UseCase` port interfaces from `domain/`, never on `*Service` or `*Facade` directly.
+
 ### Conventions to follow
 
 - Always use Moneta `Money` for currency, never `double` or raw `BigDecimal` in domain.
@@ -57,6 +108,7 @@ Controllers depend on `*UseCase` interfaces from `domain/`, never on infrastruct
 - DB schema changes go in `src/main/resources/db/migration/V{next}__{description}.sql` (Flyway). Do **not** rely on Hibernate auto-DDL.
 - Long operations follow the async-task pattern; do not block HTTP threads on KSef calls or PDF generation.
 - Match the hexagonal layering in any new module — put the port interface in `domain/`, the adapter in `infrastructure/`.
+- Inject `*UseCase` port interfaces in controllers, not `*Service` or `*Facade` implementations.
 
 ## Deployment
 

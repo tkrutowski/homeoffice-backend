@@ -176,48 +176,98 @@
     <!-- Header -->
     <div class="header">
         <h1><span class="emoji">💰</span>Raport Wydatków</h1>
-        <p th:text="'za ' + ${month}"></p>
     </div>
 
     <!-- Content -->
     <div class="content">
         <p class="greeting" th:text="'Cześć ' + ${userName} + '!'"></p>
 
-        <p>Oto podsumowanie Twoich wydatków z tego miesiąca:</p>
+        <p th:text="'Oto podsumowanie Twoich transakcji za ' + ${month} + ':'"></p>
 
-        <!-- Summary Box -->
-        <div class="summary-box">
-            <div class="summary-label">Łączne wydatki</div>
+        <!-- Income Summary Box -->
+        <div class="summary-box" style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%);" th:if="${income != null && income.size() > 0}">
+            <div class="summary-label">💰 Łączne przychody</div>
+            <div class="summary-amount" th:text="${totalIncome}"></div>
+        </div>
+
+        <!-- Stats Grid for Income -->
+        <div class="stats-grid" th:if="${income != null && income.size() > 0}">
+            <div class="stat-card">
+                <div class="stat-label">Liczba przychodów</div>
+                <div class="stat-value" th:text="${income.size()}"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Średni przychód</div>
+                <div class="stat-value" th:text="${'~' + averageIncome}"></div>
+            </div>
+        </div>
+
+        <!-- Expense Summary Box -->
+        <div class="summary-box" th:if="${expenses != null && expenses.size() > 0}">
+            <div class="summary-label">💸 Łączne wydatki</div>
             <div class="summary-amount" th:text="${totalAmount}"></div>
         </div>
 
-        <!-- Stats Grid -->
-        <div class="stats-grid" th:if="${expenses.size() > 0}">
+        <!-- Stats Grid for Expenses -->
+        <div class="stats-grid" th:if="${expenses != null && expenses.size() > 0}">
             <div class="stat-card">
                 <div class="stat-label">Liczba wydatków</div>
                 <div class="stat-value" th:text="${expenses.size()}"></div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Średni wydatek</div>
-                <div class="stat-value" th:text="${'~' + (totalAmount / expenses.size())}"></div>
+                <div class="stat-value" th:text="${'~' + averageAmount}"></div>
             </div>
         </div>
 
-        <!-- Expenses List -->
-        <div class="expenses-list" th:if="${expenses.size() > 0}">
-            <p style="margin-bottom: 15px; font-weight: bold;">Szczegóły wydatków:</p>
-            <div class="expense-item" th:each="expense : ${expenses}">
+        <!-- Income List -->
+        <div class="expenses-list" th:if="${income != null && income.size() > 0}">
+            <p style="margin-bottom: 15px; font-weight: bold; color: #27ae60;">💰 Przychody:</p>
+            <div class="expense-item" th:each="item : ${income}" style="border-left-color: #27ae60;">
+                <div class="expense-description">
+                    <div class="expense-name" th:text="${item.description}"></div>
+                    <div class="expense-date" th:text="${#temporals.format(item.entryDate, 'dd.MM.yyyy')}"></div>
+                </div>
+                <div class="expense-amount" style="color: #27ae60;" th:text="${item.amount}"></div>
+            </div>
+        </div>
+
+        <!-- Expenses List Grouped by Card -->
+        <div class="expenses-list" th:if="${purchasesByCard != null && purchasesByCard.size() > 0}">
+            <p style="margin-bottom: 15px; font-weight: bold; color: #e74c3c;">💸 Wydatki:</p>
+
+            <!-- Group by Card -->
+            <div th:each="cardEntry : ${purchasesByCard.entrySet()}" style="margin-bottom: 25px;">
+                <div style="background-color: #f0f0f0; padding: 10px 15px; border-radius: 4px; margin-bottom: 10px; font-weight: bold; color: #333;">
+                    <span th:text="${cardEntry.key}"></span> (<span th:text="${cardEntry.value.size()}"></span> zakupów)
+                </div>
+
+                <!-- Individual Purchases in Card Group -->
+                <div class="expense-item" th:each="expense : ${cardEntry.value}" style="border-left-color: #e74c3c;">
+                    <div class="expense-description">
+                        <div class="expense-name" th:text="${expense.description}"></div>
+                        <div class="expense-date" th:text="${#temporals.format(expense.entryDate, 'dd.MM.yyyy')}"></div>
+                    </div>
+                    <div class="expense-amount" style="color: #e74c3c;" th:text="${expense.amount}"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fallback for old format (expenses list without grouping) -->
+        <div class="expenses-list" th:if="${expenses != null && expenses.size() > 0 && purchasesByCard == null}">
+            <p style="margin-bottom: 15px; font-weight: bold; color: #e74c3c;">💸 Wydatki:</p>
+            <div class="expense-item" th:each="expense : ${expenses}" style="border-left-color: #e74c3c;">
                 <div class="expense-description">
                     <div class="expense-name" th:text="${expense.description}"></div>
                     <div class="expense-date" th:text="${#temporals.format(expense.entryDate, 'dd.MM.yyyy')}"></div>
                 </div>
-                <div class="expense-amount" th:text="${expense.amount}"></div>
+                <div class="expense-amount" style="color: #e74c3c;" th:text="${expense.amount}"></div>
             </div>
         </div>
 
-        <!-- No Expenses Message -->
-        <div class="no-expenses" th:if="${expenses.size() == 0}">
-            <p>Nie ma żadnych wydatków w tym miesiącu. 🎉</p>
+        <!-- No Transactions Message -->
+        <div class="no-expenses" th:if="${(expenses == null || expenses.size() == 0) && (purchasesByCard == null || purchasesByCard.size() == 0) && (income == null || income.size() == 0)}">
+            <p>Nie ma żadnych transakcji w tym miesiącu. 🎉</p>
         </div>
 
         <p style="margin-top: 20px; color: #666;">

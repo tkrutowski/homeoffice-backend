@@ -120,4 +120,7 @@ jobs:
               -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
               -e KSEF_TOKEN="${{ secrets.KSEF_TOKEN }}" \
               -e CLAUDE_API_KEY="${{ secrets.CLAUDE_API_KEY }}" \
+              -e PAYMENT_REMINDER=false \
+              -e TRANSACTION_REMINDER=false \
+              -e PURCHASE_REPORT=false \
               homeoffice:${{ steps.get_version.outputs.version }}

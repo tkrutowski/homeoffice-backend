@@ -6,11 +6,11 @@ import net.focik.homeoffice.emailservice.domain.EmailNotificationPort;
 import net.focik.homeoffice.emailservice.domain.EmailRequest;
 import net.focik.homeoffice.finance.domain.exception.PaymentReminderException;
 import net.focik.homeoffice.finance.domain.fee.Fee;
-import net.focik.homeoffice.finance.domain.fee.FeeFacade;
 import net.focik.homeoffice.finance.domain.fee.FeeInstallment;
+import net.focik.homeoffice.finance.domain.fee.port.primary.GetFeeUseCase;
 import net.focik.homeoffice.finance.domain.loan.Loan;
-import net.focik.homeoffice.finance.domain.loan.LoanFacade;
 import net.focik.homeoffice.finance.domain.loan.LoanInstallment;
+import net.focik.homeoffice.finance.domain.loan.port.primary.GetLoanUseCase;
 import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.UserFacade;
 import net.focik.homeoffice.utils.MoneyUtils;
@@ -37,8 +37,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PaymentReminderService {
 
-    private final FeeFacade feeFacade;
-    private final LoanFacade loanFacade;
+    private final GetFeeUseCase getFeeUseCase;
+    private final GetLoanUseCase getLoanUseCase;
     private final EmailNotificationPort emailNotificationPort;
     private final UserFacade userFacade;
 
@@ -117,7 +117,7 @@ public class PaymentReminderService {
      */
     private void processFeeReminders(LocalDate today) {
         try {
-            List<Fee> allFees = feeFacade.getFeesByStatus(PaymentStatus.TO_PAY, true);
+            List<Fee> allFees = getFeeUseCase.getFeesByStatus(PaymentStatus.TO_PAY, true);
             allFees
                     .forEach(fee -> processFeeInstallments(fee, today));
         } catch (Exception e) {
@@ -130,7 +130,7 @@ public class PaymentReminderService {
      */
     private void processLoanReminders(LocalDate today) {
         try {
-            List<Loan> allLoans = loanFacade.getLoansByStatus(PaymentStatus.TO_PAY, true);
+            List<Loan> allLoans = getLoanUseCase.getLoansByStatus(PaymentStatus.TO_PAY, true);
             allLoans
                     .forEach(loan -> processLoanInstallments(loan, today));
         } catch (Exception e) {
@@ -262,7 +262,7 @@ public class PaymentReminderService {
      * Send reminder email for a specific fee installment
      */
     private void sendFeeReminderById(Integer feeId, Integer installmentId) {
-        var fee = feeFacade.getFeeById(feeId, true);
+        var fee = getFeeUseCase.getFeeById(feeId, true);
 
         var installment = fee.getInstallments().stream()
                 .filter(inst -> inst.getIdFeeInstallment().equals(installmentId))
@@ -280,7 +280,7 @@ public class PaymentReminderService {
      * Send reminder email for a specific loan installment
      */
     private void sendLoanReminderById(Integer loanId, Integer installmentId) {
-        var loan = loanFacade.getLoanById(loanId, true);
+        var loan = getLoanUseCase.getLoanById(loanId, true);
         if (loan == null) {
             log.warn("Loan not found with ID: {}", loanId);
             throw new PaymentReminderException("Loan not found with ID: " + loanId);

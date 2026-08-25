@@ -43,6 +43,9 @@ services:
       - DEBUG=${DEBUG:-false}
       - SCHEDULER_CRON=${SCHEDULER_CRON:-0 0 9 * * FRI}
       - TZ=Europe/Warsaw
+      - PAYMENT_REMINDER=${PAYMENT_REMINDER:-true}
+      - TRANSACTION_REMINDER=${TRANSACTION_REMINDER:-true}
+      - PURCHASE_REPORT=${PURCHASE_REPORT:-true}
     networks:
       - homeoffice-network
     restart: unless-stopped

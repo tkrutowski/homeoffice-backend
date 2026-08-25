@@ -109,4 +109,7 @@ jobs:
               -e DB_USERNAME="${{ secrets.DB_USERNAME }}" \
               -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
               -e KSEF_TOKEN="${{ secrets.KSEF_TOKEN }}" \
+              -e PAYMENT_REMINDER=false \
+              -e TRANSACTION_REMINDER=false \
+              -e PURCHASE_REPORT=false \
               homeoffice:${{ steps.get_version.outputs.version }}
