@@ -187,23 +187,17 @@ public class PaymentReminderService {
     /**
      * Determine if a reminder should be sent based on the deadline date
      * Sends reminders:
-     * - 7, 3, or 1 days before deadline (if deadline is in the future)
-     * - Every day after deadline (if deadline has passed)
+     * - 1 or 7 days after deadline (overdue payments)
      *
      * @param deadlineDate the payment deadline
      * @param today today's date
      * @return true if reminder should be sent
      */
     private boolean shouldSendReminder(LocalDate deadlineDate, LocalDate today) {
-        long daysUntilDeadline = ChronoUnit.DAYS.between(today, deadlineDate);
+        long daysAfterDeadline = ChronoUnit.DAYS.between(deadlineDate, today);
 
-        // If deadline is in the past, send daily reminders
-        if (daysUntilDeadline < 0) {
-            return true;
-        }
-
-        // If deadline is 7, 3, or 1 days away, send reminder
-        return daysUntilDeadline == 7L || daysUntilDeadline == 3L || daysUntilDeadline == 1L;
+        // Send reminders only 1 and 7 days after deadline
+        return daysAfterDeadline == 1L || daysAfterDeadline == 7L;
     }
 
     /**
@@ -216,11 +210,15 @@ public class PaymentReminderService {
             return;
         }
 
+        LocalDate today = LocalDate.now();
+        long daysUntilDeadline = ChronoUnit.DAYS.between(today, installment.getPaymentDeadline());
+
         Map<String, Object> templateVariables = new HashMap<>();
         templateVariables.put("userName", user.getFirstName() != null ? user.getFirstName() : user.getUsername());
         templateVariables.put("description", fee.getName());
         templateVariables.put("amount", MoneyUtils.mapMoneyToString(installment.getInstallmentAmountToPay()));
         templateVariables.put("dueDate", installment.getPaymentDeadline());
+        templateVariables.put("daysUntilDeadline", daysUntilDeadline);
         templateVariables.put("currentYear", Year.now().getValue());
 
         EmailRequest emailRequest = new EmailRequest();
@@ -242,11 +240,15 @@ public class PaymentReminderService {
             return;
         }
 
+        LocalDate today = LocalDate.now();
+        long daysUntilDeadline = ChronoUnit.DAYS.between(today, installment.getPaymentDeadline());
+
         Map<String, Object> templateVariables = new HashMap<>();
         templateVariables.put("userName", user.getFirstName() != null ? user.getFirstName() : user.getUsername());
         templateVariables.put("description", loan.getName());
         templateVariables.put("amount", MoneyUtils.mapMoneyToString(installment.getInstallmentAmountToPay()));
         templateVariables.put("dueDate", installment.getPaymentDeadline());
+        templateVariables.put("daysUntilDeadline", daysUntilDeadline);
         templateVariables.put("currentYear", Year.now().getValue());
 
         EmailRequest emailRequest = new EmailRequest();

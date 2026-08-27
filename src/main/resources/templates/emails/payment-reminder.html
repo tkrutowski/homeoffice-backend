@@ -66,6 +66,39 @@
             font-size: 20px;
         }
 
+        /* Zielone tło dla 7 i 3 dni przed terminem */
+        .alert-box.status-early {
+            background-color: #d4edda;
+            border: 2px solid #28a745;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-box.status-early h2 {
+            color: #155724;
+        }
+
+        /* Żółte tło dla 1-0 dni przed terminem */
+        .alert-box.status-warning {
+            background-color: #fff3cd;
+            border: 2px solid #ffc107;
+            border-left: 4px solid #ff9800;
+        }
+
+        .alert-box.status-warning h2 {
+            color: #ff6f00;
+        }
+
+        /* Czerwone tło dla 1-7 dni po terminie */
+        .alert-box.status-overdue {
+            background-color: #f8d7da;
+            border: 2px solid #dc3545;
+            border-left: 4px solid #dc3545;
+        }
+
+        .alert-box.status-overdue h2 {
+            color: #721c24;
+        }
+
         .payment-details {
             background-color: #f9f9f9;
             border: 1px solid #e0e0e0;
@@ -175,7 +208,10 @@
         <p>Przypominamy, że masz zbliżającą się płatność do realizacji. Oto szczegóły:</p>
 
         <!-- Alert Box -->
-        <div class="alert-box">
+        <div class="alert-box"
+             th:classappend="${daysUntilDeadline >= 3 && daysUntilDeadline <= 7} ? 'status-early' :
+                             ${daysUntilDeadline >= 0 && daysUntilDeadline <= 1} ? 'status-warning' :
+                             ${daysUntilDeadline < 0} ? 'status-overdue' : ''">
             <h2>⚠️ Płatność do wykonania</h2>
 
             <div class="payment-details">
