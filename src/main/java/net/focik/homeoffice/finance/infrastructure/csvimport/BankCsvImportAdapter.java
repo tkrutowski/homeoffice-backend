@@ -51,14 +51,17 @@ public class BankCsvImportAdapter implements ParseBankCsvUseCase {
 
         if (asyncTask.getStatus() == AsyncTaskStatus.FAILED || asyncTask.getStatus() == AsyncTaskStatus.PARTIAL) {
             log.warn("Import job {} failed with status {}", jobId, asyncTask.getStatus());
+            List<String> errors = asyncTask.getErrors() != null
+                    ? asyncTask.getErrors().stream()
+                    .map(AsyncTaskError::getMessage)
+                    .toList()
+                    : List.of(asyncTask.getMessage() != null ? asyncTask.getMessage() : "Import failed");
             return BankCsvImportResponse.builder()
                     .totalProcessed(asyncTask.getProcessed())
                     .transactionCount(0)
                     .purchaseCount(0)
                     .duplicateCount(asyncTask.getDuplicates())
-                    .errors(asyncTask.getErrors().stream()
-                            .map(AsyncTaskError::getMessage)
-                            .toList())
+                    .errors(errors)
                     .build();
         }
 

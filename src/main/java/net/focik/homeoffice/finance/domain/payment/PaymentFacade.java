@@ -35,11 +35,14 @@ public class PaymentFacade {
     public Map<Integer, List<Payment>> getPaymentsByDate(LocalDate date, PaymentStatus paymentStatus) {
         Map<Integer, List<Payment>> resultMap;
 
-        boolean hasAdminAccess = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // If no authentication context (e.g., scheduled task), return all payments
+        boolean hasAdminAccess = authentication != null && authentication.getAuthorities().stream()
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN") ||
                         (grantedAuthority.getAuthority().equals("FINANCE_PAYMENT_READ_ALL")));
 
-        if (hasAdminAccess) {
+        if (hasAdminAccess || authentication == null) {
             List<Fee> fees = feeFacade.getFeesByStatus(paymentStatus, true);
             List<Loan> loans = loanFacade.getLoansByStatus(paymentStatus, true);
 

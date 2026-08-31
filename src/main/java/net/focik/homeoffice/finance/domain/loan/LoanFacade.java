@@ -67,7 +67,14 @@ public class LoanFacade implements AddLoanUseCase, GetLoanUseCase, UpdateLoanUse
 
     @Override
     public List<Loan> getLoansByStatus(PaymentStatus loanStatus, boolean withInstallment) {
-        boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // If no authentication context (e.g., scheduled task), return all loans
+        if (authentication == null) {
+            return loanService.findLoansByStatus(loanStatus, withInstallment);
+        }
+
+        boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(ROLE_ADMIN)
                         || grantedAuthority.getAuthority().equals(FINANCE_LOAN_READ_ALL)
                         || grantedAuthority.getAuthority().equals(FINANCE_PAYMENT_READ_ALL));

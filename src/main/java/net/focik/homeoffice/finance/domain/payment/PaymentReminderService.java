@@ -148,7 +148,7 @@ public class PaymentReminderService {
 
         fee.getInstallments().stream()
                 .filter(installment -> installment.getPaymentStatus() != PaymentStatus.PAID)
-                .filter(installment -> shouldSendReminder(installment.getDeadLineDate(), today))
+                .filter(installment -> shouldSendReminder(installment.getPaymentDeadline(), today))
                 .forEach(installment -> {
                     try {
                         sendFeeReminderEmail(fee, installment);
@@ -171,7 +171,7 @@ public class PaymentReminderService {
 
         loan.getInstallments().stream()
                 .filter(installment -> installment.getPaymentStatus() != PaymentStatus.PAID)
-                .filter(installment -> shouldSendReminder(installment.getDeadLineDate(), today))
+                .filter(installment -> shouldSendReminder(installment.getPaymentDeadline(), today))
                 .forEach(installment -> {
                     try {
                         sendLoanReminderEmail(loan, installment);

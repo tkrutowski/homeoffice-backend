@@ -2,6 +2,7 @@ package net.focik.homeoffice.finance.infrastructure.csvimport;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.focik.homeoffice.async.AsyncTask;
+import net.focik.homeoffice.async.AsyncTaskError;
 import net.focik.homeoffice.async.AsyncTaskService;
 import net.focik.homeoffice.async.AsyncTaskStatus;
 import net.focik.homeoffice.finance.api.dto.BankCsvImportResponse;
@@ -144,7 +145,7 @@ class BankCsvImportAdapterTest {
     }
 
     @Test
-    void getImportResult_ShouldReturnNullWhenResultJsonIsEmpty() {
+    void getImportResult_ShouldReturnErrorResponseWhenResultJsonIsEmpty() {
         String jobId = "job-123";
         AsyncTask task = AsyncTask.builder()
                 .jobId(jobId)
@@ -156,11 +157,12 @@ class BankCsvImportAdapterTest {
 
         BankCsvImportResponse result = adapter.getImportResult(jobId);
 
-        assertThat(result).isNull();
+        assertThat(result).isNotNull();
+        assertThat(result.getErrors()).contains("No import data available");
     }
 
     @Test
-    void getImportResult_ShouldReturnNullWhenDeserializationFails() {
+    void getImportResult_ShouldReturnErrorResponseWhenDeserializationFails() {
         String jobId = "job-123";
         AsyncTask task = AsyncTask.builder()
                 .jobId(jobId)
@@ -172,28 +174,24 @@ class BankCsvImportAdapterTest {
 
         BankCsvImportResponse result = adapter.getImportResult(jobId);
 
-        assertThat(result).isNull();
+        assertThat(result).isNotNull();
+        assertThat(result.getErrors()).isNotEmpty();
+        assertThat(result.getErrors().get(0)).contains("Failed to deserialize import result");
     }
 
     @Test
-    void getImportResult_ShouldReturnResultWhenTaskFailed() throws Exception {
+    void getImportResult_ShouldReturnErrorsWhenTaskFailed() throws Exception {
         String jobId = "job-123";
-        BankCsvImportResponse expectedResult = BankCsvImportResponse.builder()
-                .totalProcessed(0)
-                .transactionCount(0)
-                .purchaseCount(0)
-                .duplicateCount(0)
-                .transactions(new ArrayList<>())
-                .purchases(new ArrayList<>())
-                .errors(java.util.List.of("Błąd przetwarzania"))
-                .build();
 
-        String resultJson = objectMapper.writeValueAsString(expectedResult);
+        // Create AsyncTaskError with message
+        AsyncTaskError error = AsyncTaskError.builder()
+                .message("Błąd przetwarzania")
+                .build();
 
         AsyncTask failedTask = AsyncTask.builder()
                 .jobId(jobId)
                 .status(AsyncTaskStatus.FAILED)
-                .textractResultJson(resultJson)
+                .errors(java.util.List.of(error))
                 .build();
 
         when(asyncTaskService.getJobStatus(jobId)).thenReturn(failedTask);

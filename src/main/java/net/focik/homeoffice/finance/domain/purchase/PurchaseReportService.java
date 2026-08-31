@@ -135,7 +135,7 @@ public class PurchaseReportService implements GeneratePurchaseReportUseCase {
                     // Get purchases from previous week
                     List<Purchase> purchases = getPurchaseUseCase.findByUser(user.getUsername(), null, previousMonday);
                     purchases = purchases.stream()
-                            .filter(p -> p.getPurchaseDate().isAfter(previousMonday) && p.getPurchaseDate().isBefore(lastSunday.plusDays(1)))
+                            .filter(p -> !p.getPurchaseDate().isBefore(previousMonday) && p.getPurchaseDate().isBefore(lastSunday.plusDays(1)))
                             .collect(Collectors.toList());
 
                     if (!purchases.isEmpty()) {

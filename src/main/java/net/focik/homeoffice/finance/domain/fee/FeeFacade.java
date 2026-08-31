@@ -71,8 +71,14 @@ public class FeeFacade implements AddFeeUseCase, GetFeeUseCase, UpdateFeeUseCase
 
     @Override
     public List<Fee> getFeesByStatus(PaymentStatus paymentStatus, boolean withInstallment) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+        // If no authentication context (e.g., scheduled task), return all fees
+        if (authentication == null) {
+            return feeService.findFeesByStatus(paymentStatus, withInstallment);
+        }
+
+        boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(ROLE_ADMIN)
                         || grantedAuthority.getAuthority().equals(FINANCE_FEE_READ_ALL)
                         || grantedAuthority.getAuthority().equals(FINANCE_PAYMENT_READ_ALL));
