@@ -238,12 +238,15 @@
 
             <!-- Group by Card -->
             <div th:each="cardEntry : ${purchasesByCard.entrySet()}" style="margin-bottom: 25px;">
-                <div style="background-color: #f0f0f0; padding: 10px 15px; border-radius: 4px; margin-bottom: 10px; font-weight: bold; color: #333;">
-                    <span th:text="${cardEntry.key}"></span> (<span th:text="${cardEntry.value.size()}"></span> zakupów)
+                <div style="background-color: #f0f0f0; padding: 10px 15px; border-radius: 4px; margin-bottom: 10px; font-weight: bold; color: #333; display: flex; justify-content: space-between; align-items: center;">
+                    <span>
+                        <span th:text="${cardEntry.key}"></span> (<span th:text="${cardEntry.value.get('purchases').size()}"></span> zakupów)
+                    </span>
+                    <span style="color: #e74c3c; font-size: 16px;" th:text="${cardEntry.value.get('totalFormatted')}"></span>
                 </div>
 
                 <!-- Individual Purchases in Card Group -->
-                <div class="expense-item" th:each="expense : ${cardEntry.value}" style="border-left-color: #e74c3c;">
+                <div class="expense-item" th:each="expense : ${cardEntry.value.get('purchases')}" style="border-left-color: #e74c3c;">
                     <div class="expense-description">
                         <div class="expense-name" th:text="${expense.description}"></div>
                         <div class="expense-date" th:text="${#temporals.format(expense.entryDate, 'dd.MM.yyyy')}"></div>

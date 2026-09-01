@@ -242,7 +242,7 @@ public class PurchaseReportService implements GeneratePurchaseReportUseCase {
         templateVariables.put("averageIncome", "0,00 zł");
 
         // Group purchases by card and format for display
-        Map<String, List<Map<String, Object>>> purchasesByCard = new LinkedHashMap<>();
+        Map<String, Map<String, Object>> purchasesByCard = new LinkedHashMap<>();
 
         for (Purchase purchase : purchases) {
             try {
@@ -253,11 +253,31 @@ public class PurchaseReportService implements GeneratePurchaseReportUseCase {
                 purchaseMap.put("entryDate", purchase.getPurchaseDate());
                 purchaseMap.put("amount", MoneyUtils.mapMoneyToString(Money.of(purchase.getAmount(), "PLN")));
 
-                purchasesByCard.computeIfAbsent(cardName, k -> new ArrayList<>()).add(purchaseMap);
+                purchasesByCard.computeIfAbsent(cardName, k -> {
+                    Map<String, Object> cardData = new HashMap<>();
+                    cardData.put("purchases", new ArrayList<Map<String, Object>>());
+                    cardData.put("total", Money.of(0, "PLN"));
+                    return cardData;
+                });
+
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> cardPurchases = (List<Map<String, Object>>) purchasesByCard.get(cardName).get("purchases");
+                cardPurchases.add(purchaseMap);
+
+                // Update total for this card
+                Money cardTotal = (Money) purchasesByCard.get(cardName).get("total");
+                Money purchaseAmount = Money.of(purchase.getAmount(), "PLN");
+                purchasesByCard.get(cardName).put("total", cardTotal.add(purchaseAmount));
             } catch (Exception e) {
                 log.warn("Could not find card with id: {}, skipping purchase: {}", purchase.getIdCard(), purchase.getId(), e);
             }
         }
+
+        // Convert Money totals to formatted strings
+        purchasesByCard.forEach((cardName, cardData) -> {
+            Money total = (Money) cardData.get("total");
+            cardData.put("totalFormatted", MoneyUtils.mapMoneyToString(total));
+        });
 
         templateVariables.put("purchasesByCard", purchasesByCard);
         templateVariables.put("currentYear", LocalDate.now().getYear());
