@@ -1,5 +1,6 @@
 package net.focik.homeoffice.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedHashMap;
@@ -99,12 +100,22 @@ public class StringHelper {
             log.warn("Provided map is null or empty.");
             return "";
         }
-        String result = map.entrySet().stream()
-                .map(entry -> entry.getKey() + "=" + entry.getValue())
-                .collect(Collectors.joining(separator));
 
-        log.debug("Result: {}", result);
-        return result;
+        // Use JSON format for safe serialization (handles special characters)
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String result = objectMapper.writeValueAsString(map);
+            log.debug("Serialized map to JSON: {}", result);
+            return result;
+        } catch (Exception e) {
+            log.error("Failed to serialize map to JSON", e);
+            // Fallback to old format for backward compatibility
+            String result = map.entrySet().stream()
+                    .map(entry -> entry.getKey() + "=" + entry.getValue())
+                    .collect(Collectors.joining(separator));
+            log.debug("Result (fallback): {}", result);
+            return result;
+        }
     }
 
     public static Map<String, String> stringToMap(String input, String regex) {
@@ -113,12 +124,27 @@ public class StringHelper {
             log.warn("Input string is null or empty.");
             return map;
         }
+
         log.info("Processing input string: {}", input);
+
+        // Try JSON format first
+        if (input.trim().startsWith("{")) {
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map<String, String> jsonMap = objectMapper.readValue(input, LinkedHashMap.class);
+                log.debug("Deserialized JSON map: {}", jsonMap);
+                return jsonMap;
+            } catch (Exception e) {
+                log.warn("Failed to parse as JSON, falling back to separator format", e);
+            }
+        }
+
+        // Fallback to old separator format for backward compatibility
         String[] pairs = input.split(regex);
         log.debug("Split input into pairs: {}", (Object) pairs);
         for (String pair : pairs) {
             log.debug("Processing pair: {}", pair);
-            String[] keyValue = pair.split("=");
+            String[] keyValue = pair.split("=", 2);  // Split on first "=" only
             if (keyValue.length == 2) {
                 log.debug("Added entry to map: {} -> {}", keyValue[0], keyValue[1]);
                 map.put(keyValue[0], keyValue[1]);
