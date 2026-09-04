@@ -21,7 +21,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        APP_VERSION: 3.18.3
+        APP_VERSION: 3.19.0
     container_name: homeoffice-backend
     expose:
       - "8077"
