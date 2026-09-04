@@ -2,6 +2,7 @@ package net.focik.homeoffice.finance.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
+import net.focik.homeoffice.finance.domain.transaction.model.TransactionCategory;
 import net.focik.homeoffice.finance.domain.transaction.model.TransactionLabel;
 import net.focik.homeoffice.finance.domain.transaction.model.TransactionType;
 
@@ -21,6 +22,7 @@ public class BankTransactionImportDto {
     private LocalDate transactionDate;
     private String amount;
     private TransactionType transactionType;
+    private TransactionCategory transactionCategory;
     private List<TransactionLabel> transactionLabel;
     private boolean exists;
     private String balance;

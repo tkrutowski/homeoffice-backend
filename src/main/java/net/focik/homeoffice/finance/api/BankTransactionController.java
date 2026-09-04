@@ -118,7 +118,7 @@ public class BankTransactionController extends ExceptionHandling {
 
     @PostMapping("/import")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
-    public ResponseEntity<BankTransactionImportResponse> importTransactions(
+    public ResponseEntity<BankTransactionImportResponse> importTransactionsTest(
             @RequestBody MultipartFile csvFile,
             @RequestParam(defaultValue = "true") boolean testMode) {
         log.info("Request to import bank transactions from CSV file: {}", csvFile.getOriginalFilename());
