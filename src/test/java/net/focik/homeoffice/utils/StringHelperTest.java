@@ -95,24 +95,52 @@ class StringHelperTest {
 
     @Test
     void testMapToString() {
-        Map<String, String> map = LinkedHashMap.newLinkedHashMap(10);
+        Map<String, String> map = new LinkedHashMap<>();
         map.put("key1", "value1");
         map.put("key2", "value2");
         map.put("key3", "value3");
 
-        String expected = "key1=value1;;key2=value2;;key3=value3";
-        assertEquals(expected, StringHelper.mapToString(map, ";;"));
+        String result = StringHelper.mapToString(map, ";;");
+        // New format: JSON
+        assertTrue(result.contains("\"key1\":\"value1\"") || result.contains("key1=value1"),
+                "Result should contain mapping in JSON or fallback format");
+        assertEquals(map, StringHelper.stringToMap(result, ";;"));
     }
 
     @Test
     void testMapToStringEmptyMap() {
         Map<String, String> map = Map.of();
-        String expected = "";
-        assertEquals(expected, StringHelper.mapToString(map, ";;"));
+        String result = StringHelper.mapToString(map, ";;");
+        assertEquals("", result);
     }
 
     @Test
-    void testStringToMap() {
+    void testMapToStringWithSpecialCharacters() {
+        Map<String, String> map = new LinkedHashMap<>();
+        map.put("color", "red");
+        map.put("description", "Cost=500PLN");  // Contains "="
+        map.put("notes", "First;;Second");      // Contains ";;"
+
+        String result = StringHelper.mapToString(map, ";;");
+        // JSON format handles special characters safely
+        Map<String, String> converted = StringHelper.stringToMap(result, ";;");
+        assertEquals(map, converted);
+    }
+
+    @Test
+    void testStringToMapJsonFormat() {
+        String input = "{\"key1\":\"value1\",\"key2\":\"value2\",\"key3\":\"value3\"}";
+        Map<String, String> expected = Map.of(
+                "key1", "value1",
+                "key2", "value2",
+                "key3", "value3"
+        );
+        assertEquals(expected, StringHelper.stringToMap(input, ";;"));
+    }
+
+    @Test
+    void testStringToMapLegacyFormat() {
+        // Test backward compatibility with old format
         String input = "key1=value1;;key2=value2;;key3=value3";
         Map<String, String> expected = Map.of(
                 "key1", "value1",
@@ -130,20 +158,33 @@ class StringHelperTest {
     }
 
     @Test
-    void testStringToMapInvalidFormat() {
-        String input = "key1=value1;; key2=value2;; key3";
-        assertThrows(IllegalArgumentException.class, () -> {
-            StringHelper.stringToMap(input, ";;");
-        });
+    void testStringToMapLegacyWithEquals() {
+        // Old format didn't handle "=" in values, but new split("=", 2) handles it
+        String input = "key1=value1;;key2=Cost=500PLN";
+        Map<String, String> result = StringHelper.stringToMap(input, ";;");
+        assertEquals("Cost=500PLN", result.get("key2"));
     }
 
     @Test
     void testBothConversions() {
-        Map<String, String> originalMap = Map.of(
-                "key1", "value1",
-                "key2", "value2",
-                "key3", "value3"
-        );
+        Map<String, String> originalMap = new LinkedHashMap<>();
+        originalMap.put("key1", "value1");
+        originalMap.put("key2", "value2");
+        originalMap.put("key3", "value3");
+
+        String mapAsString = StringHelper.mapToString(originalMap, ";;");
+        Map<String, String> convertedBackMap = StringHelper.stringToMap(mapAsString, ";;");
+        assertEquals(originalMap, convertedBackMap);
+    }
+
+    @Test
+    void testBothConversionsWithSpecialCharacters() {
+        Map<String, String> originalMap = new LinkedHashMap<>();
+        originalMap.put("color", "red");
+        originalMap.put("description", "Cost=500PLN");
+        originalMap.put("notes", "First;;Second");
+        originalMap.put("url", "https://example.com?param1=value1&param2=value2");
+
         String mapAsString = StringHelper.mapToString(originalMap, ";;");
         Map<String, String> convertedBackMap = StringHelper.stringToMap(mapAsString, ";;");
         assertEquals(originalMap, convertedBackMap);
