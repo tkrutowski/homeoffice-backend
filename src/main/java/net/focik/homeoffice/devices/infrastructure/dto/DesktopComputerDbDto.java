@@ -1,12 +1,14 @@
 package net.focik.homeoffice.devices.infrastructure.dto;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import net.focik.homeoffice.audit.AuditableEntity;
-import net.focik.homeoffice.devices.domain.model.ComputerType;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -14,35 +16,47 @@ import net.focik.homeoffice.utils.share.ActiveStatus;
 @Entity
 @ToString
 @Table(name = "devices_computer")
-public
-class
-ComputerDbDto extends AuditableEntity {
+public class DesktopComputerDbDto extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
+
     @Column(name = "id_user")
     private Integer idUser;
+
     private String name;
+
     private Integer processor;
+
     private Integer motherboard;
+
     private String ram;
+
     private String disk;
+
     private Integer power;
+
     private String cooling;
+
     private String display;
+
     private Integer keyboard;
+
     private Integer mouse;
+
     private Integer computerCase;
+
     private Integer soundCard;
+
     private String graphicCard;
+
     private String usb;
+
     private String info;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private ActiveStatus activeStatus;
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type")
-    private ComputerType computerType;
 }

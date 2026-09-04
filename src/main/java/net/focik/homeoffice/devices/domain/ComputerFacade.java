@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import net.focik.homeoffice.audit.AuditAction;
 import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.devices.domain.model.Computer;
+import net.focik.homeoffice.devices.domain.model.ComputerType;
 import net.focik.homeoffice.devices.domain.port.primary.*;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 import org.springframework.stereotype.Component;
@@ -21,12 +22,12 @@ public class ComputerFacade implements FindComputerUseCase, SaveComputerUseCase,
     }
 
     @Override
-    public Computer getComputerById(int id) {
-        return computerService.getComputerById(id);
+    public Computer getComputerById(int id, ComputerType type) {
+        return computerService.getComputerById(id, type);
     }
 
     @Override
-    public List<Computer> getComputers(ActiveStatus status) {
+    public List<? extends Computer> getComputers(ActiveStatus status) {
         return computerService.getComputers(status);
     }
 
@@ -44,8 +45,8 @@ public class ComputerFacade implements FindComputerUseCase, SaveComputerUseCase,
 
     @Override
     @AuditLog(action = AuditAction.UPDATE, entityType = "Computer")
-    public Computer updateStatus(Integer idDevice, ActiveStatus status) {
-        return computerService.updateStatus(idDevice, status);
+    public Computer updateStatus(Integer idDevice, ActiveStatus status, ComputerType type) {
+        return computerService.updateStatus(idDevice, status, type);
     }
 
     @Override

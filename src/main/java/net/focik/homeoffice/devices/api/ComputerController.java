@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.devices.api.dto.ComputerDto;
 import net.focik.homeoffice.devices.api.mapper.ApiComputerMapper;
 import net.focik.homeoffice.devices.domain.model.Computer;
+import net.focik.homeoffice.devices.domain.model.ComputerType;
 import net.focik.homeoffice.devices.domain.port.primary.*;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 import org.springframework.http.HttpStatus;
@@ -30,7 +31,7 @@ public class ComputerController {
     @PreAuthorize("hasAnyAuthority('COMPUTER_READ_ALL','COMPUTER_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<List<ComputerDto>> getComputersDevices(@RequestParam(value = "status", defaultValue = "ALL") ActiveStatus activeStatus) {
         log.info("Request to get computers with status: {}.",activeStatus);
-        List<Computer> computers = findComputerUseCase.getComputers(activeStatus);
+        List<? extends Computer> computers = findComputerUseCase.getComputers(activeStatus);
 
         if (computers.isEmpty()) {
             log.warn("No computers found.");
@@ -47,11 +48,11 @@ public class ComputerController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('COMPUTER_READ_ALL','COMPUTER_READ') or hasRole('ROLE_ADMIN')")
-    ResponseEntity<ComputerDto> getById(@PathVariable int id) {
-        log.info("Request to get computer by id: {}", id);
-        Computer computer = findComputerUseCase.getComputerById(id);
+    ResponseEntity<ComputerDto> getById(@PathVariable int id, @RequestParam ComputerType type) {
+        log.info("Request to get computer by id: {} and type: {}", id, type);
+        Computer computer = findComputerUseCase.getComputerById(id, type);
         if (computer == null) {
-            log.warn("No computer found with id: {}", id);
+            log.warn("No computer found with id: {} and type: {}", id, type);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
@@ -106,10 +107,10 @@ public class ComputerController {
 
     @PutMapping("/status/{id}")
     @PreAuthorize("hasAnyAuthority('COMPUTER_WRITE_ALL','COMPUTER_WRITE') or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ComputerDto> updateStatus(@PathVariable int id, @RequestParam ActiveStatus status) {
-        log.info("Request to update status with id: {}", id);
+    public ResponseEntity<ComputerDto> updateStatus(@PathVariable int id, @RequestParam ActiveStatus status, @RequestParam ComputerType type) {
+        log.info("Request to update status with id: {} to {} and type: {}", id, status, type);
 
-        Computer updatedComputer = saveComputerUseCase.updateStatus(id, status);
+        Computer updatedComputer = saveComputerUseCase.updateStatus(id, status, type);
         log.info("Computer updated successfully: {}", updatedComputer);
 
         ComputerDto dto = apiComputerMapper.toDto(updatedComputer);

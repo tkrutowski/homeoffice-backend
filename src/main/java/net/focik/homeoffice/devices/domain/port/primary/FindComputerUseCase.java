@@ -1,6 +1,7 @@
 package net.focik.homeoffice.devices.domain.port.primary;
 
 import net.focik.homeoffice.devices.domain.model.Computer;
+import net.focik.homeoffice.devices.domain.model.ComputerType;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.List;
 public interface FindComputerUseCase {
     Computer getComputerBuUser(int idUser);
 
-    Computer getComputerById(int id);
+    Computer getComputerById(int id, ComputerType type);
 
-    List<Computer> getComputers(ActiveStatus activeStatus);
+    List<? extends Computer> getComputers(ActiveStatus activeStatus);
 }
