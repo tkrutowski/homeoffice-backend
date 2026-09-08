@@ -1,0 +1,121 @@
+{
+  "name": "Propozycje kredytow z e-maili",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "customEmailConfig": "[\"UNSEEN\"]",
+          "forceReconnect": 60
+        }
+      },
+      "id": "c2f111ff-5f95-4028-a1cc-4081eab8b47f",
+      "name": "Email Trigger (IMAP)",
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "imap": {
+          "id": "adYLabIiSkWuHgdv",
+          "name": "IMAP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const email = $json;\n// n8n IMAP node (format: simple) zwraca naglowki w polu \"metadata\",\n// a nie \"headers\" - obsluguj oba warianty.\nconst headers = email.metadata || email.headers || {};\n\nlet messageId =\n  email.messageId ||\n  headers['message-id'] ||\n  headers['Message-ID'] ||\n  '';\n\nif (!messageId) {\n  const parts = [];\n  if (email.date) parts.push(String(email.date));\n  if (email.subject) parts.push(String(email.subject));\n  messageId = parts.join(' - ');\n}\n\nlet from = '';\nif (email.from && typeof email.from === 'object') {\n  from =\n    email.from.text ||\n    (email.from.value && email.from.value[0] && email.from.value[0].address) ||\n    '';\n} else if (email.from) {\n  from = String(email.from);\n}\n\nif (!messageId) {\n  throw new Error('Brak messageId - backend zwrocilby 400 Bad Request');\n}\n\nreturn {\n  json: {\n    messageId: String(messageId),\n    from: from,\n    subject: email.subject || '',\n    textBody: email.textPlain || email.text || '',\n    htmlBody: email.textHtml || email.html || '',\n  },\n};"
+      },
+      "id": "8678337a-b4bf-45c5-a46f-09836836934d",
+      "name": "Build Ingest Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8077/internal/loan-proposals/ingest",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpTemplatedCustomAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          },
+          "timeout": 10000
+        }
+      },
+      "id": "d0982584-21c6-43f4-a651-1bfd5f5ba307",
+      "name": "POST loan-proposals/ingest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "httpTemplatedCustomAuth": {
+          "id": "GhIBm0ltzxCuD0e6",
+          "name": "Backend Internal Token (X-Internal-Token) (Tomasz K)"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Email Trigger (IMAP)": {
+      "main": [
+        [
+          {
+            "node": "Build Ingest Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Ingest Payload": {
+      "main": [
+        [
+          {
+            "node": "POST loan-proposals/ingest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "69bb07cd-2864-4e4f-bda4-818328c5b2d8",
+  "meta": {
+    "instanceId": "6bbd5c571fea0a3a03427cb4d2ac17a22e022067c5473df03ff0426d95fb6456"
+  },
+  "nodeGroups": [
+    {
+      "id": "e744f92a-b87f-4400-bbf1-bfab51e751c1",
+      "name": "Ingest e-maili",
+      "nodeIds": [
+        "8678337a-b4bf-45c5-a46f-09836836934d",
+        "d0982584-21c6-43f4-a651-1bfd5f5ba307"
+      ],
+      "description": "Buduje payload IngestLoanEmailRequest z maila IMAP i wysyla go POST-em do backendu jako propozycje kredytu."
+    }
+  ],
+  "id": "V1WPK9TpCZfxx4PG",
+  "tags": []
+}

@@ -40,6 +40,7 @@ services:
       - KSEF_TOKEN=${KSEF_TOKEN}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      - INTERNAL_API_TOKEN=${INTERNAL_API_TOKEN}
       - DEBUG=${DEBUG:-false}
       - SCHEDULER_CRON=${SCHEDULER_CRON:-0 0 9 * * FRI}
       - TZ=Europe/Warsaw
@@ -50,7 +51,8 @@ services:
       - homeoffice-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8077/actuator/health"]
+      # curl nie jest zainstalowany w obrazie (patrz Dockerfile) - uzywamy wget z busybox, ktory jest wbudowany w Alpine
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8077/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 2
@@ -69,6 +71,41 @@ services:
       - homeoffice-network
     restart: unless-stopped
 
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: homeoffice-n8n
+    ports:
+      - "5679:5678"
+    environment:
+      - N8N_PORT=5678
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_SECURE_COOKIE=false
+      - GENERIC_TIMEZONE=Europe/Warsaw
+      - TZ=Europe/Warsaw
+      - N8N_UNVERIFIED_PACKAGES_ENABLED=false
+      - N8N_RUNNERS_TASK_TIMEOUT=300
+      - N8N_COMPRESSION_NODE_MAX_DECOMPRESSED_SIZE_BYTES=2147483648
+      - N8N_COMPRESSION_NODE_MAX_ZIP_ENTRIES=5000
+      # Sandbox AI (sandbox-api/sandbox-runner) ze wspoldzielonego stacka "n8n" (siec n8n_default)
+      - N8N_INSTANCE_AI_SANDBOX_ENABLED=true
+      - N8N_INSTANCE_AI_SANDBOX_PROVIDER=n8n-sandbox
+      - N8N_INSTANCE_AI_SANDBOX_API_URL=http://sandbox-api:8080
+      - N8N_SANDBOX_SERVICE_URL=http://sandbox-api:8080
+      - N8N_SANDBOX_SERVICE_API_KEY=${N8N_SANDBOX_SERVICE_API_KEY}
+      - N8N_INSTANCE_AI_SEARXNG_URL=http://searxng:8080
+    volumes:
+      - ./.n8n:/home/node/.n8n
+      - ./n8n-workflows:/home/node/backups
+    networks:
+      - homeoffice-network
+      - n8n_default
+    restart: unless-stopped
+
 networks:
   homeoffice-network:
     driver: bridge
+  n8n_default:
+    external: true
