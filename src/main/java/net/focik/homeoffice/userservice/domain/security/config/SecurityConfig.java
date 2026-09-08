@@ -1,6 +1,7 @@
 package net.focik.homeoffice.userservice.domain.security.config;
 
 import lombok.RequiredArgsConstructor;
+import net.focik.homeoffice.userservice.domain.security.filter.InternalTokenAuthenticationFilter;
 import net.focik.homeoffice.userservice.domain.security.filter.JwtAccessDeniedHandler;
 import net.focik.homeoffice.userservice.domain.security.filter.JwtAuthenticationEntryPoint;
 import net.focik.homeoffice.userservice.domain.security.filter.JwtAuthenticationFilter;
@@ -27,6 +28,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final InternalTokenAuthenticationFilter internalTokenAuthFilter;
     private final AuthenticationProvider authenticationProvider;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
@@ -44,6 +46,7 @@ public class SecurityConfig {
                                 req.requestMatchers(publicUrl)
                                         .permitAll()
                                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                        .requestMatchers("/internal/**").hasAuthority("ROLE_INTERNAL")
 //                                .requestMatchers("/api/v1/management/**").hasAnyRole(ADMIN.name(), MANAGER.name())
 //                                .requestMatchers(GET, "/api/v1/management/**").hasAnyAuthority(ADMIN_READ.name(), MANAGER_READ.name())
 //                                .requestMatchers(POST, "/api/v1/management/**").hasAnyAuthority(ADMIN_CREATE.name(), MANAGER_CREATE.name())
@@ -58,6 +61,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(internalTokenAuthFilter, UsernamePasswordAuthenticationFilter.class)
 //                .logout(logout ->
 //                        logout.logoutUrl("/api/v1/auth/logout")
 //                                .addLogoutHandler(logoutHandler)

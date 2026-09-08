@@ -8,6 +8,7 @@ import net.focik.homeoffice.finance.infrastructure.jpa.BankTransactionDtoReposit
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaBankTransactionMapper;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,12 +33,14 @@ class BankTransactionRepositoryAdapter implements BankTransactionRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<BankTransaction> findBankTransactionById(Integer id) {
         Optional<BankTransactionDbDto> byId = bankTransactionDtoRepository.findById(id);
         return byId.map(mapper::toDomain);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BankTransaction> findBankTransactionByUserId(Integer idUser) {
         return bankTransactionDtoRepository.findAllByIdUser(idUser).stream()
                 .map(mapper::toDomain)
@@ -45,6 +48,7 @@ class BankTransactionRepositoryAdapter implements BankTransactionRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BankTransaction> findBankTransactionBetween(Integer idUser, LocalDate dateFrom, LocalDate dateTo) {
         return bankTransactionDtoRepository.findByUserAndDateRange(idUser, dateFrom, dateTo).stream()
                 .map(mapper::toDomain)
@@ -57,6 +61,7 @@ class BankTransactionRepositoryAdapter implements BankTransactionRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BankTransaction> findAll() {
         return bankTransactionDtoRepository.findAll().stream()
                 .map(mapper::toDomain)

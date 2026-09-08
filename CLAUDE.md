@@ -113,3 +113,9 @@ Controllers always depend on `*UseCase` port interfaces from `domain/`, never on
 ## Deployment
 
 Dockerfile expects `target/homeoffice-${APP_VERSION}.jar`. CI workflows in `.github/workflows/` (`deploy-to-synology.yml`, `ec2.yml`) handle release. Build artifact version comes from `pom.xml` (`<version>`).
+
+## AWS CLI / Agent Toolkit
+
+- AWS CLI credentials: use `aws login --profile agent-toolkit` for local AWS access via the Agent Toolkit MCP server (SigV4, browser-based, auto-refreshes).
+- Do not use the `default` profile for Agent Toolkit — it holds the application's long-lived access keys (`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`).
+- AWS MCP server `aws-mcp` is registered in Claude Code (user scope) for AWS documentation/skill lookups and read/write AWS operations via SigV4.

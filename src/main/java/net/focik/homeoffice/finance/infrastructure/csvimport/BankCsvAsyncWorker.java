@@ -14,19 +14,27 @@ import net.focik.homeoffice.finance.api.dto.PurchaseImportDto;
 import net.focik.homeoffice.finance.domain.card.Card;
 import net.focik.homeoffice.finance.domain.csvimport.RawBankCsvRecord;
 import net.focik.homeoffice.finance.domain.firm.Firm;
+import net.focik.homeoffice.finance.domain.purchase.Purchase;
 import net.focik.homeoffice.finance.domain.purchase.port.secondary.PurchaseRepository;
+import net.focik.homeoffice.finance.domain.transaction.model.BankTransaction;
+import net.focik.homeoffice.finance.domain.transaction.model.TransactionCategory;
+import net.focik.homeoffice.finance.domain.transaction.model.TransactionCategoryType;
 import net.focik.homeoffice.finance.domain.transaction.model.TransactionLabel;
 import net.focik.homeoffice.finance.domain.transaction.model.TransactionType;
 import net.focik.homeoffice.finance.domain.transaction.port.secondary.BankTransactionRepository;
 import net.focik.homeoffice.finance.domain.card.port.primary.GetCardUseCase;
 import net.focik.homeoffice.finance.domain.firm.port.primary.GetFirmUseCase;
+import net.focik.homeoffice.finance.domain.transaction.port.primary.GetTransactionCategoryUseCase;
 import net.focik.homeoffice.finance.domain.transaction.port.primary.GetTransactionLabelUseCase;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -35,13 +43,17 @@ public class BankCsvAsyncWorker {
 
     private final MilleniumBankCsvParser csvParser;
     private final ClaudeAiMatcher aiMatcher;
+    private final HistoricalTransactionMatcher historicalTransactionMatcher;
     private final GetFirmUseCase getFirmUseCase;
     private final GetCardUseCase getCardUseCase;
     private final GetTransactionLabelUseCase getTransactionLabelUseCase;
+    private final GetTransactionCategoryUseCase getTransactionCategoryUseCase;
     private final BankTransactionRepository bankTransactionRepository;
     private final PurchaseRepository purchaseRepository;
     private final AsyncTaskService asyncTaskService;
     private final ObjectMapper objectMapper;
+
+    private static final int DEFAULT_EXPENSE_CATEGORY_ID = 24; // Inne
 
     @Async
     public void processJobAsync(String jobId, byte[] fileContent, int idUser) {
@@ -68,6 +80,9 @@ public class BankCsvAsyncWorker {
                 if (!parseResult.records.isEmpty()) {
                     List<Firm> allFirms = getFirmUseCase.findByAll();
                     List<TransactionLabel> allLabels = getTransactionLabelUseCase.getAllTransactionLabels();
+                    List<TransactionCategory> allCategories = getTransactionCategoryUseCase.getAllTransactionCategories();
+                    List<BankTransaction> history = bankTransactionRepository.findBankTransactionByUserId(idUser);
+                    List<Purchase> purchaseHistory = purchaseRepository.findPurchaseByUserId(idUser);
 
                     int transactionCount = 0;
                     int purchaseCount = 0;
@@ -76,7 +91,7 @@ public class BankCsvAsyncWorker {
                     for (RawBankCsvRecord record : parseResult.records) {
                         try {
                             if (record.isAccountRow()) {
-                                BankTransactionImportDto dto = processBankTransaction(record, idUser, allFirms, allLabels);
+                                BankTransactionImportDto dto = processBankTransaction(record, idUser, allFirms, allLabels, allCategories, history);
                                 if (dto != null) {
                                     transactions.add(dto);
                                     if (dto.isExists()) {
@@ -87,7 +102,7 @@ public class BankCsvAsyncWorker {
                             } else {
                                 // Only process if there's a debit (expense)
                                 if (record.getDebit() != null) {
-                                    PurchaseImportDto dto = processPurchase(record, idUser, allFirms);
+                                    PurchaseImportDto dto = processPurchase(record, idUser, allFirms, purchaseHistory);
                                     if (dto != null) {
                                         purchases.add(dto);
                                         if (dto.isExists()) {
@@ -138,21 +153,59 @@ public class BankCsvAsyncWorker {
         }
     }
 
-    private BankTransactionImportDto processBankTransaction(RawBankCsvRecord record, int idUser, List<Firm> allFirms, List<TransactionLabel> allLabels) {
-        String matchText = (record.getRecipientSender() + " " + record.getDescription()).trim();
-        ClaudeAiMatcher.MatchResult matchResult = aiMatcher.match(matchText, allFirms, allLabels);
+    private BankTransactionImportDto processBankTransaction(RawBankCsvRecord record, int idUser, List<Firm> allFirms,
+                                                              List<TransactionLabel> allLabels, List<TransactionCategory> allCategories,
+                                                              List<BankTransaction> history) {
+        TransactionType type = record.getDebit() != null ? TransactionType.TRANSFER_OUT : TransactionType.TRANSFER_IN;
+        TransactionCategoryType expectedCategoryType = type == TransactionType.TRANSFER_OUT
+                ? TransactionCategoryType.EXPENSE : TransactionCategoryType.INCOME;
 
-        int firmId = matchResult.firmId != null ? matchResult.firmId : 0;
-        List<TransactionLabel> labels = new ArrayList<>();
-        for (Integer labelId : matchResult.labelIds) {
-            TransactionLabel label = getTransactionLabelUseCase.getTransactionLabelById(labelId);
-            if (label != null) {
-                labels.add(label);
+        // Scalamy odbiorcę/zleceniodawcę z opisem - dla przelewów sam "Opis" bywa identyczny dla
+        // różnych osób (np. "Przelew BLIK na telefon"), a to właśnie odbiorca niesie tożsamość.
+        // Ten sam, wzbogacony tekst trafia do usera (pole description) i do bazy, dzięki czemu
+        // przyszłe importy mogą się do niego odwołać przez HistoricalTransactionMatcher.
+        String description = joinNonBlank(record.getRecipientSender(), record.getDescription());
+
+        Optional<HistoricalTransactionMatcher.HistoricalMatch> historicalMatch =
+                historicalTransactionMatcher.findMatch(description, history);
+
+        int firmId;
+        List<TransactionLabel> labels;
+        Integer categoryId;
+
+        if (historicalMatch.isPresent()) {
+            HistoricalTransactionMatcher.HistoricalMatch match = historicalMatch.get();
+            firmId = match.firmId();
+            labels = match.labels();
+            categoryId = match.categoryId();
+        } else {
+            List<TransactionCategory> candidateCategories = allCategories.stream()
+                    .filter(c -> c.getType() == expectedCategoryType)
+                    .toList();
+
+            ClaudeAiMatcher.MatchResult matchResult = aiMatcher.match(description, allFirms, allLabels, candidateCategories);
+
+            firmId = matchResult.firmId != null ? matchResult.firmId : 0;
+            labels = new ArrayList<>();
+            for (Integer labelId : matchResult.labelIds) {
+                TransactionLabel label = getTransactionLabelUseCase.getTransactionLabelById(labelId);
+                if (label != null) {
+                    labels.add(label);
+                }
             }
+            categoryId = matchResult.categoryId;
         }
 
+        // Brak dopasowania (ani historycznego, ani od AI): dla wydatku wracamy do kategorii "Inne",
+        // dla przychodu zostawiamy null - użytkownik uzupełnia ją ręcznie w podglądzie importu.
+        if (categoryId == null && expectedCategoryType == TransactionCategoryType.EXPENSE) {
+            categoryId = DEFAULT_EXPENSE_CATEGORY_ID;
+        }
+        TransactionCategory category = categoryId != null
+                ? getTransactionCategoryUseCase.getTransactionCategoryById(categoryId)
+                : null;
+
         BigDecimal amount = record.getDebit() != null ? record.getDebit().abs() : record.getCredit().abs();
-        TransactionType type = record.getDebit() != null ? TransactionType.TRANSFER_OUT : TransactionType.TRANSFER_IN;
 
         boolean exists = bankTransactionRepository.existsByTransactionDateAndAmountAndIdUser(
                 record.getTransactionDate(), amount, idUser
@@ -161,17 +214,26 @@ public class BankCsvAsyncWorker {
         return BankTransactionImportDto.builder()
                 .idFirm(firmId)
                 .idUser(idUser)
-                .description(record.getDescription())
+                .description(description)
                 .transactionDate(record.getTransactionDate())
                 .amount(amount.toString())
                 .transactionType(type)
                 .transactionLabel(labels)
+                .transactionCategory(category)
                 .exists(exists)
                 .balance(record.getBalance() != null ? record.getBalance().toString() : null)
                 .build();
     }
 
-    private PurchaseImportDto processPurchase(RawBankCsvRecord record, int idUser, List<Firm> allFirms) {
+    private static String joinNonBlank(String... parts) {
+        return Arrays.stream(parts)
+                .filter(p -> p != null && !p.isBlank())
+                .map(String::trim)
+                .collect(Collectors.joining(" "));
+    }
+
+    private PurchaseImportDto processPurchase(RawBankCsvRecord record, int idUser, List<Firm> allFirms,
+                                               List<Purchase> purchaseHistory) {
         String last4Digits = record.getLastFourDigits();
         Card matchedCard = null;
 
@@ -191,9 +253,17 @@ public class BankCsvAsyncWorker {
         }
 
         String matchText = (record.getDescription()).trim();
-        ClaudeAiMatcher.MatchResult matchResult = aiMatcher.match(matchText, allFirms, new ArrayList<>());
+        // Purchase (zakup kartą) nie ma w domenie pola kategorii - kategorię dostaje dopiero
+        // powiązana BankTransaction, tworzona automatycznie przy opłaceniu (PurchaseFacade.findCategoryByCard).
+        Optional<Integer> historicalFirmId = historicalTransactionMatcher.findFirmMatch(matchText, purchaseHistory);
 
-        int firmId = matchResult.firmId != null ? matchResult.firmId : 0;
+        int firmId;
+        if (historicalFirmId.isPresent()) {
+            firmId = historicalFirmId.get();
+        } else {
+            ClaudeAiMatcher.MatchResult matchResult = aiMatcher.match(matchText, allFirms, new ArrayList<>(), new ArrayList<>());
+            firmId = matchResult.firmId != null ? matchResult.firmId : 0;
+        }
         boolean exists = purchaseRepository.existsByPurchaseDateAndAmountAndIdUser(
                 record.getTransactionDate(), record.getDebit().abs(), idUser
         );

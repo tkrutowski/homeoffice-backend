@@ -3,9 +3,8 @@ package net.focik.homeoffice.finance.infrastructure.dto;
 import jakarta.persistence.*;
 import lombok.*;
 import net.focik.homeoffice.audit.AuditableEntity;
-import net.focik.homeoffice.finance.domain.transaction.model.TransactionCategory;
-import net.focik.homeoffice.finance.domain.transaction.model.TransactionLabel;
 import net.focik.homeoffice.finance.domain.transaction.model.TransactionType;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
@@ -33,9 +32,13 @@ public class BankTransactionDbDto extends AuditableEntity {
     @Enumerated(EnumType.STRING)
     private TransactionType transactionType;
     private Integer transactionCategoryId;
+    // BatchSize: przy odczycie wielu transakcji naraz (np. historia w BankCsvAsyncWorker) Hibernate
+    // dociąga etykiety grupowo (WHERE transaction_id IN (...)) zamiast osobnym zapytaniem
+    // na każdą transakcję (problem N+1).
     @ElementCollection
     @CollectionTable(name = "bank_transaction_labels", joinColumns = @JoinColumn(name = "transaction_id"))
     @Column(name = "label_id")
+    @BatchSize(size = 50)
     private List<Integer> transactionLabelIds;
     private boolean boughtOnCredit;
 }
