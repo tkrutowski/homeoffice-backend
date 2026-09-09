@@ -7,7 +7,9 @@ import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.finance.api.mapper.ApiPurchaseMapper;
 import net.focik.homeoffice.finance.domain.card.Card;
 import net.focik.homeoffice.finance.domain.card.CardFacade;
+import net.focik.homeoffice.finance.domain.card.PaymentDeadlineCalculator;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.AddPurchaseUseCase;
+import net.focik.homeoffice.finance.domain.purchase.port.primary.CalculatePaymentDeadlineUseCase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.DeletePurchaseUseCase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.GetPurchaseUseCase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.UpdatePurchaseUseCase;
@@ -26,7 +28,7 @@ import java.util.Optional;
 @Log4j2
 @RequiredArgsConstructor
 @Component
-public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase, GetPurchaseUseCase, DeletePurchaseUseCase {
+public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase, GetPurchaseUseCase, DeletePurchaseUseCase, CalculatePaymentDeadlineUseCase {
 
 
     private final PurchaseService purchaseService;
@@ -141,5 +143,11 @@ public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase
     @Override
     public Number getTotalSumToPay() {
         return purchaseService.getTotalSumToPay();
+    }
+
+    @Override
+    public LocalDate calculatePaymentDeadline(int idCard, LocalDate purchaseDate) {
+        Card card = cardFacade.findById(idCard);
+        return PaymentDeadlineCalculator.calculate(card, purchaseDate);
     }
 }

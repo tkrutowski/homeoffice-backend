@@ -68,8 +68,6 @@ public class ApiPurchaseMapper {
     private void valid(PurchaseDto dto) {
         if (dto.getIdUser() == 0)
             throw new PurchaseNotValidException("IdUser can't be null.");
-        if (dto.getPaymentDeadline() == null)
-            throw new PurchaseNotValidException("Date can't be empty.");
         if (dto.getPurchaseDate() == null)
             throw new PurchaseNotValidException("Date can't be empty.");
         if (dto.getAmount().isEmpty())

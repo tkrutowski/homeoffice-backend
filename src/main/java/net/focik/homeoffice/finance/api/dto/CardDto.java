@@ -19,13 +19,15 @@ public class CardDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Europe/Warsaw")
     private LocalDate activationDate;
     private int limit;
-    private int repaymentDay;
+    private String cardType;
+    private Integer closingDay;
+    private Integer repaymentDay;
+    private Integer paymentTermDays;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Europe/Warsaw")
     private LocalDate expirationDate;
     private String otherInfo;
     private String activeStatus;
     private String cardNumber;
-    private int closingDay;
     private String imageUrl;
     private boolean multi;
 }

@@ -7,6 +7,7 @@ import net.focik.homeoffice.finance.api.dto.PurchaseDto;
 import net.focik.homeoffice.finance.api.mapper.ApiPurchaseMapper;
 import net.focik.homeoffice.finance.domain.purchase.Purchase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.AddPurchaseUseCase;
+import net.focik.homeoffice.finance.domain.purchase.port.primary.CalculatePaymentDeadlineUseCase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.DeletePurchaseUseCase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.GetPurchaseUseCase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.UpdatePurchaseUseCase;
@@ -38,6 +39,7 @@ public class PurchaseController extends ExceptionHandling {
     private final UpdatePurchaseUseCase updatePurchaseUseCase;
     private final GetPurchaseUseCase getPurchaseUseCase;
     private final DeletePurchaseUseCase deletePurchaseUseCase;
+    private final CalculatePaymentDeadlineUseCase calculatePaymentDeadlineUseCase;
 
 
     @GetMapping("/{id}")
@@ -132,6 +134,18 @@ public class PurchaseController extends ExceptionHandling {
                 dtoPage.getTotalPages());
 
         return ResponseEntity.ok(dtoPage);
+    }
+
+    @GetMapping("/payment-deadline")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
+    ResponseEntity<LocalDate> getPaymentDeadline(@RequestParam int idCard,
+                                                  @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate purchaseDate) {
+        log.info("Request to calculate payment deadline for card: {} and purchase date: {}", idCard, purchaseDate);
+
+        LocalDate deadline = calculatePaymentDeadlineUseCase.calculatePaymentDeadline(idCard, purchaseDate);
+        log.info("Calculated payment deadline: {}", deadline);
+
+        return new ResponseEntity<>(deadline, OK);
     }
 
     @PostMapping

@@ -21,13 +21,24 @@ public class Card {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate activationDate;
     private int limit;
-    private int repaymentDay;
+    private CardType cardType;
+    /**
+     * Dzień zamknięcia cyklu rozliczeniowego - dotyczy tylko kart typu {@link CardType#CREDIT}.
+     */
+    private Integer closingDay;
+    /**
+     * Dzień spłaty po zamknięciu cyklu - dotyczy tylko kart typu {@link CardType#CREDIT}.
+     */
+    private Integer repaymentDay;
+    /**
+     * Liczba dni od daty zakupu do terminu płatności - dotyczy tylko kart typu {@link CardType#DEFERRED_PAYMENT}.
+     */
+    private Integer paymentTermDays;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate expirationDate;
     private String otherInfo;
     private ActiveStatus activeStatus;
     private String cardNumber;
-    private int closingDay;
     private String imageUrl;
     private boolean multi;
 

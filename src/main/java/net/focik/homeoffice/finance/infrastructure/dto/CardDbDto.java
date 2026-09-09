@@ -2,6 +2,7 @@ package net.focik.homeoffice.finance.infrastructure.dto;
 
 import lombok.*;
 import net.focik.homeoffice.audit.AuditableEntity;
+import net.focik.homeoffice.finance.domain.card.CardType;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 
 import jakarta.persistence.*;
@@ -28,14 +29,17 @@ public class CardDbDto extends AuditableEntity {
     private LocalDate activationDate;
     @Column(name = "card_limit")
     private Integer limit;
+    @Enumerated(EnumType.STRING)
+    private CardType cardType;
+    private Integer closingDay;
     private Integer repaymentDay;
+    private Integer paymentTermDays;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate expirationDate;
     private String otherInfo;
     @Enumerated(EnumType.STRING)
     private ActiveStatus activeStatus;
     private String cardNumber;
-    private Integer closingDay;
     private String imageUrl;
     private Boolean multi;
 }

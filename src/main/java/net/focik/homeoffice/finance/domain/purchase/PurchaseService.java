@@ -2,6 +2,9 @@ package net.focik.homeoffice.finance.domain.purchase;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import net.focik.homeoffice.finance.domain.card.Card;
+import net.focik.homeoffice.finance.domain.card.CardFacade;
+import net.focik.homeoffice.finance.domain.card.PaymentDeadlineCalculator;
 import net.focik.homeoffice.finance.domain.exception.CardNotValidException;
 import net.focik.homeoffice.finance.domain.exception.PurchaseNotFoundException;
 import net.focik.homeoffice.finance.domain.exception.PurchaseNotValidException;
@@ -23,10 +26,12 @@ import java.util.stream.Collectors;
 class PurchaseService {
 
     private final PurchaseRepository purchaseRepository;
+    private final CardFacade cardFacade;
 
     Purchase addPurchase(Purchase purchase) {
         if (isNotValid(purchase))
             throw new CardNotValidException();
+        purchase.setPaymentDeadline(calculatePaymentDeadline(purchase));
         return purchaseRepository.savePurchase(purchase);
     }
 
@@ -81,13 +86,19 @@ class PurchaseService {
     public Purchase updatePurchase(Purchase purchase) {
         if (isNotValid(purchase))
             throw new PurchaseNotValidException();
+        purchase.setPaymentDeadline(calculatePaymentDeadline(purchase));
         return purchaseRepository.savePurchase(purchase);
+    }
+
+    private LocalDate calculatePaymentDeadline(Purchase purchase) {
+        Card card = cardFacade.findById(purchase.getIdCard());
+        return PaymentDeadlineCalculator.calculate(card, purchase.getPurchaseDate());
     }
 
     private boolean isNotValid(Purchase purchase) {
         if (Objects.equals(purchase.getAmount(), BigDecimal.ZERO))
             return true;
-        return purchase.getPurchaseDate() == null && purchase.getPaymentDeadline() == null && purchase.getPaymentDate() == null;
+        return purchase.getPurchaseDate() == null && purchase.getPaymentDate() == null;
     }
 
     public List<Purchase> findByCard(int idCard) {

@@ -32,7 +32,8 @@ class CardService {
         if(!cardRepository.findCardByName(card.getCardName()).isEmpty())
             throw new CardAlreadyExistException("Karta o tej nazwie już istnieje.");
 
-        card.setImageUrl(fileRepository.downloadAndSaveImage(card.getImageUrl(), card.getCardName(), Module.CARD));
+        if (card.getImageUrl() != null && !card.getImageUrl().isBlank())
+            card.setImageUrl(fileRepository.downloadAndSaveImage(card.getImageUrl(), card.getCardName(), Module.CARD));
         return cardRepository.saveCard(card);
     }
 
@@ -97,7 +98,15 @@ class CardService {
         log.debug("Checking if card is not valid");
         if (card.getLimit() == 0)
             return true;
-        return card.getActivationDate() == null && card.getExpirationDate() == null;
+        if (card.getActivationDate() == null && card.getExpirationDate() == null)
+            return true;
+        if (card.getCardType() == null)
+            return true;
+
+        return switch (card.getCardType()) {
+            case CREDIT -> card.getClosingDay() == null || card.getRepaymentDay() == null;
+            case DEFERRED_PAYMENT -> card.getPaymentTermDays() == null;
+        };
     }
 
     public List<Card> findCardsByBank(Integer idBank) {

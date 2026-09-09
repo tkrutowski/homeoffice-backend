@@ -2,11 +2,11 @@ package net.focik.homeoffice.finance.api.mapper;
 
 import net.focik.homeoffice.finance.api.dto.CardDto;
 import net.focik.homeoffice.finance.domain.card.Card;
+import net.focik.homeoffice.finance.domain.card.CardType;
 import net.focik.homeoffice.finance.domain.exception.LoanNotValidException;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 
@@ -22,12 +22,14 @@ public class ApiCardMapper {
                 .cardName(dto.getName())
                 .activationDate(dto.getActivationDate())
                 .limit(dto.getLimit())
+                .cardType(CardType.valueOf(dto.getCardType()))
+                .closingDay(dto.getClosingDay())
                 .repaymentDay(dto.getRepaymentDay())
+                .paymentTermDays(dto.getPaymentTermDays())
                 .expirationDate(calculateDate(dto.getExpirationDate().toString()))
                 .otherInfo(dto.getOtherInfo())
                 .activeStatus(ActiveStatus.valueOf(dto.getActiveStatus()))
                 .cardNumber(dto.getCardNumber())
-                .closingDay(dto.getClosingDay())
                 .imageUrl(dto.getImageUrl())
                 .multi(dto.isMulti())
                 .build();
@@ -50,12 +52,14 @@ public class ApiCardMapper {
                 .name(card.getCardName())
                 .activationDate(card.getActivationDate())
                 .limit(card.getLimit())
+                .cardType(card.getCardType() == null ? null : card.getCardType().toString())
+                .closingDay(card.getClosingDay())
                 .repaymentDay(card.getRepaymentDay())
+                .paymentTermDays(card.getPaymentTermDays())
                 .expirationDate(card.getExpirationDate())
                 .otherInfo(card.getOtherInfo() == null ? "" : card.getOtherInfo())
                 .activeStatus(card.getActiveStatus().toString())
                 .cardNumber(card.getCardNumber())
-                .closingDay(card.getClosingDay())
                 .imageUrl(card.getImageUrl())
                 .multi(card.isMulti())
                 .build();
@@ -64,6 +68,8 @@ public class ApiCardMapper {
     private void valid(CardDto dto) {
         if (dto.getIdUser() == 0)
             throw new LoanNotValidException("IdUser can't be null.");
+        if (dto.getCardType() == null || dto.getCardType().isEmpty())
+            throw new LoanNotValidException("CardType can't be null.");
 //        if (dto.getActivationDate())
 //            throw new LoanNotValidException("Date can't be empty.");
 //        if (dto.getExpirationDate().isEmpty())
