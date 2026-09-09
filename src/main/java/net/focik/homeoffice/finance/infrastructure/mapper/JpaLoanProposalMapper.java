@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.finance.domain.loanproposal.LoanProposal;
 import net.focik.homeoffice.finance.domain.loanproposal.ProposedLoanData;
+import net.focik.homeoffice.finance.domain.loanproposal.ProposedPurchaseData;
 import net.focik.homeoffice.finance.infrastructure.dto.LoanProposalDbDto;
 import org.springframework.stereotype.Component;
 
@@ -25,8 +26,10 @@ public class JpaLoanProposalMapper {
                 .sourceFileS3Key(proposal.getSourceFileS3Key())
                 .status(proposal.getStatus())
                 .proposedLoanJson(writeJson(proposal.getProposedLoan()))
+                .proposedPurchaseJson(writeJson(proposal.getProposedPurchase()))
                 .failureReason(proposal.getFailureReason())
                 .createdLoanId(proposal.getCreatedLoanId())
+                .createdPurchaseId(proposal.getCreatedPurchaseId())
                 .handledAt(proposal.getHandledAt())
                 .handledByUserId(proposal.getHandledByUserId())
                 .build();
@@ -40,35 +43,37 @@ public class JpaLoanProposalMapper {
                 .sourceSubject(dto.getSourceSubject())
                 .sourceFileS3Key(dto.getSourceFileS3Key())
                 .status(dto.getStatus())
-                .proposedLoan(readJson(dto.getProposedLoanJson()))
+                .proposedLoan(readJson(dto.getProposedLoanJson(), ProposedLoanData.class))
+                .proposedPurchase(readJson(dto.getProposedPurchaseJson(), ProposedPurchaseData.class))
                 .failureReason(dto.getFailureReason())
                 .createdLoanId(dto.getCreatedLoanId())
+                .createdPurchaseId(dto.getCreatedPurchaseId())
                 .receivedAt(dto.getCreatedAt())
                 .handledAt(dto.getHandledAt())
                 .handledByUserId(dto.getHandledByUserId())
                 .build();
     }
 
-    private String writeJson(ProposedLoanData data) {
+    private String writeJson(Object data) {
         if (data == null) {
             return null;
         }
         try {
             return objectMapper.writeValueAsString(data);
         } catch (JsonProcessingException e) {
-            log.error("Failed to serialize ProposedLoanData", e);
+            log.error("Failed to serialize {}", data.getClass().getSimpleName(), e);
             return null;
         }
     }
 
-    private ProposedLoanData readJson(String json) {
+    private <T> T readJson(String json, Class<T> type) {
         if (json == null || json.isBlank()) {
             return null;
         }
         try {
-            return objectMapper.readValue(json, ProposedLoanData.class);
+            return objectMapper.readValue(json, type);
         } catch (JsonProcessingException e) {
-            log.error("Failed to deserialize ProposedLoanData: {}", json, e);
+            log.error("Failed to deserialize {}: {}", type.getSimpleName(), json, e);
             return null;
         }
     }

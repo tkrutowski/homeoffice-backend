@@ -28,15 +28,25 @@ public class LoanProposal {
     private String sourceFileS3Key;
     private LoanProposalStatus status;
     private ProposedLoanData proposedLoan;
+    /**
+     * Kandydat na zakup wyekstrahowany z tego samego maila co {@code proposedLoan}, wypełniany
+     * tylko gdy e-mail dotyczy finansowania konkretnego zakupu (np. PayPo, Allegro), nie zwykłego
+     * kredytu bankowego - patrz {@code LoanProposalExtractionService.buildPurchaseCandidate}.
+     * Użytkownik wybiera na froncie, czy zaksięgować propozycję jako kredyt czy jako zakup.
+     */
+    private ProposedPurchaseData proposedPurchase;
     private String failureReason;
     /** Ustawiane dopiero po accept() - id realnego Loan powstałego z tej propozycji. */
     private Integer createdLoanId;
+    /** Ustawiane dopiero po acceptAsPurchase() - id realnego Purchase powstałego z tej propozycji. */
+    private Integer createdPurchaseId;
     private LocalDateTime receivedAt;
     private LocalDateTime handledAt;
     private Integer handledByUserId;
 
-    public void markExtracted(ProposedLoanData proposedLoan) {
+    public void markExtracted(ProposedLoanData proposedLoan, ProposedPurchaseData proposedPurchase) {
         this.proposedLoan = proposedLoan;
+        this.proposedPurchase = proposedPurchase;
         this.status = LoanProposalStatus.EXTRACTED;
     }
 
@@ -47,6 +57,13 @@ public class LoanProposal {
 
     public void markAccepted(int createdLoanId, int handledByUserId) {
         this.createdLoanId = createdLoanId;
+        this.status = LoanProposalStatus.ACCEPTED;
+        this.handledByUserId = handledByUserId;
+        this.handledAt = LocalDateTime.now();
+    }
+
+    public void markAcceptedAsPurchase(int createdPurchaseId, int handledByUserId) {
+        this.createdPurchaseId = createdPurchaseId;
         this.status = LoanProposalStatus.ACCEPTED;
         this.handledByUserId = handledByUserId;
         this.handledAt = LocalDateTime.now();

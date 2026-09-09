@@ -8,6 +8,7 @@ import net.focik.homeoffice.finance.domain.exception.LoanProposalAlreadyHandledE
 import net.focik.homeoffice.finance.domain.exception.LoanProposalNotFoundException;
 import net.focik.homeoffice.finance.domain.loan.Loan;
 import net.focik.homeoffice.finance.domain.loan.port.primary.AddLoanUseCase;
+import net.focik.homeoffice.finance.domain.loanproposal.port.primary.AcceptLoanProposalAsPurchaseUseCase;
 import net.focik.homeoffice.finance.domain.loanproposal.port.primary.AcceptLoanProposalUseCase;
 import net.focik.homeoffice.finance.domain.loanproposal.port.primary.DeleteLoanProposalUseCase;
 import net.focik.homeoffice.finance.domain.loanproposal.port.primary.GetLoanProposalUseCase;
@@ -15,6 +16,8 @@ import net.focik.homeoffice.finance.domain.loanproposal.port.primary.IgnoreLoanP
 import net.focik.homeoffice.finance.domain.loanproposal.port.primary.IngestLoanProposalUseCase;
 import net.focik.homeoffice.finance.domain.loanproposal.port.secondary.LoanEmailArchivePort;
 import net.focik.homeoffice.finance.domain.loanproposal.port.secondary.LoanProposalRepository;
+import net.focik.homeoffice.finance.domain.purchase.Purchase;
+import net.focik.homeoffice.finance.domain.purchase.port.primary.AddPurchaseUseCase;
 import net.focik.homeoffice.utils.UserHelper;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;
@@ -31,12 +34,14 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class LoanProposalFacade implements IngestLoanProposalUseCase, GetLoanProposalUseCase,
-        AcceptLoanProposalUseCase, IgnoreLoanProposalUseCase, DeleteLoanProposalUseCase {
+        AcceptLoanProposalUseCase, AcceptLoanProposalAsPurchaseUseCase, IgnoreLoanProposalUseCase,
+        DeleteLoanProposalUseCase {
 
     private final LoanProposalRepository loanProposalRepository;
     private final LoanEmailArchivePort loanEmailArchivePort;
     private final LoanProposalExtractionRunner extractionRunner;
     private final AddLoanUseCase addLoanUseCase;
+    private final AddPurchaseUseCase addPurchaseUseCase;
 
     @Override
     public LoanProposal ingest(RawLoanEmail email) {
@@ -100,6 +105,21 @@ public class LoanProposalFacade implements IngestLoanProposalUseCase, GetLoanPro
 
         log.info("LoanProposal id={} accepted, created loan id={}", proposalId, createdLoan.getId());
         return createdLoan;
+    }
+
+    @Override
+    @AuditLog(action = AuditAction.CREATE, entityType = "Purchase")
+    public Purchase acceptAsPurchase(int proposalId, Purchase finalPurchase) {
+        LoanProposal proposal = getLoanProposalById(proposalId);
+        requireNotYetHandled(proposal);
+
+        Purchase createdPurchase = addPurchaseUseCase.addPurchase(finalPurchase);
+
+        proposal.markAcceptedAsPurchase(createdPurchase.getId(), UserHelper.getCurrentUserId());
+        loanProposalRepository.save(proposal);
+
+        log.info("LoanProposal id={} accepted as purchase, created purchase id={}", proposalId, createdPurchase.getId());
+        return createdPurchase;
     }
 
     @Override

@@ -44,9 +44,13 @@ public class LoanProposalDbDto extends AuditableEntity {
     @Lob
     @Column(columnDefinition = "json")
     private String proposedLoanJson;
+    @Lob
+    @Column(columnDefinition = "json")
+    private String proposedPurchaseJson;
     @Column(length = 1000)
     private String failureReason;
     private Integer createdLoanId;
+    private Integer createdPurchaseId;
     private LocalDateTime handledAt;
     private Integer handledByUserId;
 }

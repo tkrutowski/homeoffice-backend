@@ -4,15 +4,19 @@ import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.focik.homeoffice.finance.api.dto.LoanDto;
 import net.focik.homeoffice.finance.api.dto.LoanProposalDto;
+import net.focik.homeoffice.finance.api.dto.PurchaseDto;
 import net.focik.homeoffice.finance.api.mapper.ApiLoanMapper;
 import net.focik.homeoffice.finance.api.mapper.ApiLoanProposalMapper;
+import net.focik.homeoffice.finance.api.mapper.ApiPurchaseMapper;
 import net.focik.homeoffice.finance.domain.loan.Loan;
 import net.focik.homeoffice.finance.domain.loanproposal.LoanProposal;
 import net.focik.homeoffice.finance.domain.loanproposal.LoanProposalStatus;
+import net.focik.homeoffice.finance.domain.loanproposal.port.primary.AcceptLoanProposalAsPurchaseUseCase;
 import net.focik.homeoffice.finance.domain.loanproposal.port.primary.AcceptLoanProposalUseCase;
 import net.focik.homeoffice.finance.domain.loanproposal.port.primary.DeleteLoanProposalUseCase;
 import net.focik.homeoffice.finance.domain.loanproposal.port.primary.GetLoanProposalUseCase;
 import net.focik.homeoffice.finance.domain.loanproposal.port.primary.IgnoreLoanProposalUseCase;
+import net.focik.homeoffice.finance.domain.purchase.Purchase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -38,10 +42,12 @@ class LoanProposalController {
 
     private final GetLoanProposalUseCase getLoanProposalUseCase;
     private final AcceptLoanProposalUseCase acceptLoanProposalUseCase;
+    private final AcceptLoanProposalAsPurchaseUseCase acceptLoanProposalAsPurchaseUseCase;
     private final IgnoreLoanProposalUseCase ignoreLoanProposalUseCase;
     private final DeleteLoanProposalUseCase deleteLoanProposalUseCase;
     private final ApiLoanProposalMapper apiLoanProposalMapper;
     private final ApiLoanMapper apiLoanMapper;
+    private final ApiPurchaseMapper apiPurchaseMapper;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
@@ -76,6 +82,18 @@ class LoanProposalController {
 
         log.info("Loan proposal id={} accepted, created loan id={}", id, createdLoan.getId());
         return new ResponseEntity<>(apiLoanMapper.toDto(createdLoan), HttpStatus.CREATED);
+    }
+
+    @PostMapping("/{id}/accept-as-purchase")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
+    ResponseEntity<PurchaseDto> acceptAsPurchase(@PathVariable int id, @RequestBody PurchaseDto purchaseDto) {
+        log.info("Request to accept loan proposal id={} as purchase with data: {}", id, purchaseDto);
+
+        Purchase finalPurchase = apiPurchaseMapper.toDomain(purchaseDto);
+        Purchase createdPurchase = acceptLoanProposalAsPurchaseUseCase.acceptAsPurchase(id, finalPurchase);
+
+        log.info("Loan proposal id={} accepted as purchase, created purchase id={}", id, createdPurchase.getId());
+        return new ResponseEntity<>(apiPurchaseMapper.toDto(createdPurchase), HttpStatus.CREATED);
     }
 
     @PostMapping("/{id}/ignore")

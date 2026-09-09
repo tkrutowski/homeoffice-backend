@@ -22,8 +22,10 @@ public class LoanProposalDto {
     private String sourceFileS3Key;
     private LoanProposalStatus status;
     private ProposedLoanDataDto proposedLoan;
+    private ProposedPurchaseDataDto proposedPurchase;
     private String failureReason;
     private Integer createdLoanId;
+    private Integer createdPurchaseId;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Europe/Warsaw")
     private LocalDateTime receivedAt;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Europe/Warsaw")

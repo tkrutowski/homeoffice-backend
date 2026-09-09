@@ -30,17 +30,18 @@ public class LoanProposalExtractionService {
     private final GetBankUseCase getBankUseCase;
 
     /**
-     * @return puste, gdy Claude nie rozpoznał dokumentu jako kredytu (proposal ma wtedy trafić na FAILED)
+     * @return puste (oba kandydaty), gdy Claude nie rozpoznał dokumentu jako kredytu
+     * (proposal ma wtedy trafić na FAILED)
      */
-    public Optional<ProposedLoanData> extract(String emailText) {
+    public ExtractedProposals extract(String emailText) {
         LoanExtractionResult result = loanExtractorPort.extract(emailText);
 
         if (!result.isLoanDocument()) {
             log.info("Email not recognized as a loan document");
-            return Optional.empty();
+            return ExtractedProposals.none();
         }
 
-        return Optional.of(ProposedLoanData.builder()
+        ProposedLoanData loan = ProposedLoanData.builder()
                 .originalSenderEmail(result.getOriginalSenderEmail())
                 .bankId(resolveBankId(result.getBankOrCreditor()))
                 .bankName(result.getBankOrCreditor())
@@ -54,6 +55,27 @@ public class LoanProposalExtractionService {
                 .firstPaymentDate(parseDate(result.getFirstPaymentDate()))
                 .loanCost(parseAmount(result.getLoanCost()))
                 .otherInfo(result.getOtherInfo())
+                .build();
+
+        return ExtractedProposals.of(loan, buildPurchaseCandidate(result).orElse(null));
+    }
+
+    /**
+     * Propozycja zakupu ma sens tylko, gdy e-mail dotyczy finansowania KONKRETNEGO zakupu
+     * (PayPo, Allegro - Claude wtedy wypełnia merchantName), nie zwykłego kredytu bankowego
+     * (gotówkowego/hipotecznego), gdzie nie ma czego zaksięgować jako "zakup".
+     */
+    private Optional<ProposedPurchaseData> buildPurchaseCandidate(LoanExtractionResult result) {
+        if (result.getMerchantName() == null || result.getMerchantName().isBlank()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(ProposedPurchaseData.builder()
+                .name(result.getMerchantName())
+                .amount(parseAmount(result.getAmount()))
+                .purchaseDate(LocalDate.now())
+                .otherInfo(result.getOtherInfo())
+                .installment(result.getNumberOfInstallments() != null && result.getNumberOfInstallments() > 1)
                 .build());
     }
 

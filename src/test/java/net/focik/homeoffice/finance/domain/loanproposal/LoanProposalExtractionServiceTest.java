@@ -12,7 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -38,9 +37,11 @@ class LoanProposalExtractionServiceTest {
         when(loanExtractorPort.extract("newsletter")).thenReturn(
                 LoanExtractionResult.builder().isLoanDocument(false).build());
 
-        Optional<ProposedLoanData> result = service.extract("newsletter");
+        ExtractedProposals result = service.extract("newsletter");
 
-        assertThat(result).isEmpty();
+        assertThat(result.isEmpty()).isTrue();
+        assertThat(result.loan()).isEmpty();
+        assertThat(result.purchase()).isEmpty();
     }
 
     @Test
@@ -60,10 +61,10 @@ class LoanProposalExtractionServiceTest {
                 bank(2, "PayPo Sp. z o.o.")
         ));
 
-        Optional<ProposedLoanData> result = service.extract("mail");
+        ExtractedProposals result = service.extract("mail");
 
-        assertThat(result).isPresent();
-        ProposedLoanData data = result.get();
+        assertThat(result.loan()).isPresent();
+        ProposedLoanData data = result.loan().get();
         assertThat(data.getBankId()).isEqualTo(2);
         assertThat(data.getBankName()).isEqualTo("PayPo");
         assertThat(data.getAmount()).isEqualByComparingTo(new BigDecimal("1234.56"));
@@ -82,11 +83,11 @@ class LoanProposalExtractionServiceTest {
                 .build());
         when(getBankUseCase.findByAll()).thenReturn(List.of(bank(1, "mBank")));
 
-        Optional<ProposedLoanData> result = service.extract("mail");
+        ExtractedProposals result = service.extract("mail");
 
-        assertThat(result).isPresent();
-        assertThat(result.get().getBankId()).isNull();
-        assertThat(result.get().getBankName()).isEqualTo("Nieznany Wierzyciel");
+        assertThat(result.loan()).isPresent();
+        assertThat(result.loan().get().getBankId()).isNull();
+        assertThat(result.loan().get().getBankName()).isEqualTo("Nieznany Wierzyciel");
     }
 
     @Test
@@ -98,10 +99,65 @@ class LoanProposalExtractionServiceTest {
                 .build());
         when(getBankUseCase.findByAll()).thenReturn(List.of());
 
-        Optional<ProposedLoanData> result = service.extract("mail");
+        ExtractedProposals result = service.extract("mail");
 
-        assertThat(result).isPresent();
-        assertThat(result.get().getAmount()).isNull();
+        assertThat(result.loan()).isPresent();
+        assertThat(result.loan().get().getAmount()).isNull();
+    }
+
+    @Test
+    void extract_ShouldAlsoProposePurchase_WhenMerchantNameIsRecognized() {
+        when(loanExtractorPort.extract("mail")).thenReturn(LoanExtractionResult.builder()
+                .isLoanDocument(true)
+                .bankOrCreditor("PayPo")
+                .merchantName("GLOBAL-E.SHELLY EU")
+                .amount("299.99")
+                .numberOfInstallments(4)
+                .otherInfo("raty 0%")
+                .build());
+        when(getBankUseCase.findByAll()).thenReturn(List.of());
+
+        ExtractedProposals result = service.extract("mail");
+
+        assertThat(result.purchase()).isPresent();
+        ProposedPurchaseData purchase = result.purchase().get();
+        assertThat(purchase.getName()).isEqualTo("GLOBAL-E.SHELLY EU");
+        assertThat(purchase.getAmount()).isEqualByComparingTo(new BigDecimal("299.99"));
+        assertThat(purchase.getPurchaseDate()).isEqualTo(LocalDate.now());
+        assertThat(purchase.getOtherInfo()).isEqualTo("raty 0%");
+        assertThat(purchase.isInstallment()).isTrue();
+    }
+
+    @Test
+    void extract_ShouldNotProposePurchase_WhenMerchantNameIsMissing() {
+        when(loanExtractorPort.extract("mail")).thenReturn(LoanExtractionResult.builder()
+                .isLoanDocument(true)
+                .bankOrCreditor("mBank")
+                .amount("50000")
+                .build());
+        when(getBankUseCase.findByAll()).thenReturn(List.of());
+
+        ExtractedProposals result = service.extract("mail");
+
+        assertThat(result.loan()).isPresent();
+        assertThat(result.purchase()).isEmpty();
+    }
+
+    @Test
+    void extract_ShouldMarkPurchaseAsNonInstallment_WhenOnlyOneInstallment() {
+        when(loanExtractorPort.extract("mail")).thenReturn(LoanExtractionResult.builder()
+                .isLoanDocument(true)
+                .bankOrCreditor("Allegro")
+                .merchantName("Sklep XYZ")
+                .amount("100.00")
+                .numberOfInstallments(1)
+                .build());
+        when(getBankUseCase.findByAll()).thenReturn(List.of());
+
+        ExtractedProposals result = service.extract("mail");
+
+        assertThat(result.purchase()).isPresent();
+        assertThat(result.purchase().get().isInstallment()).isFalse();
     }
 
     private Bank bank(int id, String name) {

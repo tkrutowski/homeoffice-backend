@@ -6,8 +6,6 @@ import net.focik.homeoffice.finance.domain.loanproposal.port.secondary.LoanPropo
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
 /**
  * Odpala ekstrakcję poza wątkiem HTTP, żeby POST /internal/loan-proposals/ingest (webhook n8n)
  * nie czekał na odpowiedź Claude. Osobny bean od {@link LoanProposalFacade}, bo @Async na
@@ -30,10 +28,11 @@ public class LoanProposalExtractionRunner {
         }
 
         try {
-            Optional<ProposedLoanData> extracted = extractionService.extract(emailText);
-            if (extracted.isPresent()) {
-                proposal.markExtracted(extracted.get());
-                log.info("LoanProposal id={} extracted successfully", proposalId);
+            ExtractedProposals extracted = extractionService.extract(emailText);
+            if (!extracted.isEmpty()) {
+                proposal.markExtracted(extracted.loan().orElse(null), extracted.purchase().orElse(null));
+                log.info("LoanProposal id={} extracted successfully (loan={}, purchase={})",
+                        proposalId, extracted.loan().isPresent(), extracted.purchase().isPresent());
             } else {
                 proposal.markFailed("Nie rozpoznano wiadomości jako dokumentu kredytowego");
                 log.info("LoanProposal id={} not recognized as a loan document", proposalId);

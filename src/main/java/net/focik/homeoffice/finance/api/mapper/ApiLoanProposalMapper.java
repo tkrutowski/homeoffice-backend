@@ -3,8 +3,10 @@ package net.focik.homeoffice.finance.api.mapper;
 import net.focik.homeoffice.finance.api.dto.IngestLoanEmailRequest;
 import net.focik.homeoffice.finance.api.dto.LoanProposalDto;
 import net.focik.homeoffice.finance.api.dto.ProposedLoanDataDto;
+import net.focik.homeoffice.finance.api.dto.ProposedPurchaseDataDto;
 import net.focik.homeoffice.finance.domain.loanproposal.LoanProposal;
 import net.focik.homeoffice.finance.domain.loanproposal.ProposedLoanData;
+import net.focik.homeoffice.finance.domain.loanproposal.ProposedPurchaseData;
 import net.focik.homeoffice.finance.domain.loanproposal.RawLoanEmail;
 import org.springframework.stereotype.Component;
 
@@ -21,8 +23,10 @@ public class ApiLoanProposalMapper {
                 .sourceFileS3Key(p.getSourceFileS3Key())
                 .status(p.getStatus())
                 .proposedLoan(toDto(p.getProposedLoan()))
+                .proposedPurchase(toDto(p.getProposedPurchase()))
                 .failureReason(p.getFailureReason())
                 .createdLoanId(p.getCreatedLoanId())
+                .createdPurchaseId(p.getCreatedPurchaseId())
                 .receivedAt(p.getReceivedAt())
                 .handledAt(p.getHandledAt())
                 .build();
@@ -46,6 +50,19 @@ public class ApiLoanProposalMapper {
                 .installmentAmount(d.getInstallmentAmount())
                 .loanCost(d.getLoanCost())
                 .otherInfo(d.getOtherInfo())
+                .build();
+    }
+
+    private ProposedPurchaseDataDto toDto(ProposedPurchaseData d) {
+        if (d == null) {
+            return null;
+        }
+        return ProposedPurchaseDataDto.builder()
+                .name(d.getName())
+                .amount(d.getAmount())
+                .purchaseDate(d.getPurchaseDate())
+                .otherInfo(d.getOtherInfo())
+                .installment(d.isInstallment())
                 .build();
     }
 
