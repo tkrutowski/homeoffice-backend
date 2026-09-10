@@ -30,7 +30,8 @@ import java.util.Map;
  * Domain service for managing payment reminders
  * Handles business logic for sending payment reminders:
  * - 7, 3, 1 days before payment deadline
- * - Daily for overdue payments
+ * - 1, 3, 7 days after payment deadline (overdue)
+ * - Weekly after that (every 7 days), until the installment is paid
  */
 @Slf4j
 @Component
@@ -187,17 +188,27 @@ public class PaymentReminderService {
     /**
      * Determine if a reminder should be sent based on the deadline date
      * Sends reminders:
-     * - 1 or 7 days after deadline (overdue payments)
+     * - 7, 3, or 1 days before deadline (if deadline is in the future)
+     * - 1, 3, or 7 days after deadline (overdue)
+     * - Every 7 days after that (14, 21, 28, ...), until the installment is paid
      *
      * @param deadlineDate the payment deadline
      * @param today today's date
      * @return true if reminder should be sent
      */
     private boolean shouldSendReminder(LocalDate deadlineDate, LocalDate today) {
-        long daysAfterDeadline = ChronoUnit.DAYS.between(deadlineDate, today);
+        long daysUntilDeadline = ChronoUnit.DAYS.between(today, deadlineDate);
+        if (daysUntilDeadline == 7L || daysUntilDeadline == 3L || daysUntilDeadline == 1L) {
+            return true;
+        }
 
-        // Send reminders only 1 and 7 days after deadline
-        return daysAfterDeadline == 1L || daysAfterDeadline == 7L;
+        long daysAfterDeadline = ChronoUnit.DAYS.between(deadlineDate, today);
+        if (daysAfterDeadline == 1L || daysAfterDeadline == 3L || daysAfterDeadline == 7L) {
+            return true;
+        }
+
+        // After the first week overdue, remind weekly
+        return daysAfterDeadline > 7L && daysAfterDeadline % 7L == 0L;
     }
 
     /**

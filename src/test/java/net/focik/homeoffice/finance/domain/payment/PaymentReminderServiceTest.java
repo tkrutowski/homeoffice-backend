@@ -22,7 +22,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -72,7 +71,7 @@ class PaymentReminderServiceTest {
     }
 
     @Test
-    void shouldNotSendReminderSevenDaysBeforeDeadline() {
+    void shouldSendReminderSevenDaysBeforeDeadline() {
         // Given
         LocalDate today = LocalDate.now();
         LocalDate deadline = today.plusDays(7);
@@ -89,16 +88,17 @@ class PaymentReminderServiceTest {
 
         when(feeFacade.getFeesByStatus(PaymentStatus.TO_PAY, true)).thenReturn(List.of(testFee));
         when(loanFacade.getLoansByStatus(PaymentStatus.TO_PAY, true)).thenReturn(List.of());
+        when(userFacade.findUserById(1L)).thenReturn(testUser);
 
         // When
         paymentReminderService.processPaymentReminders();
 
-        // Then - nie wysyłamy przed terminem
-        verify(emailNotificationPort, never()).sendTemplatedEmail(any());
+        // Then - wysyłamy 7 dni przed terminem
+        verify(emailNotificationPort, times(1)).sendTemplatedEmail(any());
     }
 
     @Test
-    void shouldNotSendReminderThreeDaysBeforeDeadline() {
+    void shouldSendReminderThreeDaysBeforeDeadline() {
         // Given
         LocalDate today = LocalDate.now();
         LocalDate deadline = today.plusDays(3);
@@ -115,16 +115,17 @@ class PaymentReminderServiceTest {
 
         when(feeFacade.getFeesByStatus(PaymentStatus.TO_PAY, true)).thenReturn(List.of(testFee));
         when(loanFacade.getLoansByStatus(PaymentStatus.TO_PAY, true)).thenReturn(List.of());
+        when(userFacade.findUserById(1L)).thenReturn(testUser);
 
         // When
         paymentReminderService.processPaymentReminders();
 
-        // Then - nie wysyłamy przed terminem
-        verify(emailNotificationPort, never()).sendTemplatedEmail(any());
+        // Then - wysyłamy 3 dni przed terminem
+        verify(emailNotificationPort, times(1)).sendTemplatedEmail(any());
     }
 
     @Test
-    void shouldNotSendReminderOneDayBeforeDeadline() {
+    void shouldSendReminderOneDayBeforeDeadline() {
         // Given
         LocalDate today = LocalDate.now();
         LocalDate deadline = today.plusDays(1);
@@ -141,12 +142,13 @@ class PaymentReminderServiceTest {
 
         when(feeFacade.getFeesByStatus(PaymentStatus.TO_PAY, true)).thenReturn(List.of(testFee));
         when(loanFacade.getLoansByStatus(PaymentStatus.TO_PAY, true)).thenReturn(List.of());
+        when(userFacade.findUserById(1L)).thenReturn(testUser);
 
         // When
         paymentReminderService.processPaymentReminders();
 
-        // Then - nie wysyłamy przed terminem
-        verify(emailNotificationPort, never()).sendTemplatedEmail(any());
+        // Then - wysyłamy 1 dzień przed terminem
+        verify(emailNotificationPort, times(1)).sendTemplatedEmail(any());
     }
 
     @Test
@@ -177,6 +179,33 @@ class PaymentReminderServiceTest {
     }
 
     @Test
+    void shouldSendReminderThreeDaysAfterDeadline() {
+        // Given - 3 dni po terminie
+        LocalDate today = LocalDate.now();
+        LocalDate deadline = today.minusDays(3);
+
+        FeeInstallment installment = FeeInstallment.builder()
+                .idFeeInstallment(1)
+                .idFee(1)
+                .paymentDeadline(deadline)
+                .paymentStatus(PaymentStatus.TO_PAY)
+                .installmentAmountToPay(Money.of(100, "PLN"))
+                .build();
+
+        testFee.setInstallments(List.of(installment));
+
+        when(feeFacade.getFeesByStatus(PaymentStatus.TO_PAY, true)).thenReturn(List.of(testFee));
+        when(loanFacade.getLoansByStatus(PaymentStatus.TO_PAY, true)).thenReturn(List.of());
+        when(userFacade.findUserById(1L)).thenReturn(testUser);
+
+        // When
+        paymentReminderService.processPaymentReminders();
+
+        // Then - wysyłamy 3 dni po terminie
+        verify(emailNotificationPort, times(1)).sendTemplatedEmail(any());
+    }
+
+    @Test
     void shouldSendReminderSevenDaysAfterDeadline() {
         // Given - 7 dni po terminie
         LocalDate today = LocalDate.now();
@@ -200,6 +229,33 @@ class PaymentReminderServiceTest {
         paymentReminderService.processPaymentReminders();
 
         // Then - wysyłamy 7 dni po terminie
+        verify(emailNotificationPort, times(1)).sendTemplatedEmail(any());
+    }
+
+    @Test
+    void shouldSendReminderFourteenDaysAfterDeadline() {
+        // Given - 14 dni po terminie (pierwsze cotygodniowe przypomnienie po pierwszym tygodniu)
+        LocalDate today = LocalDate.now();
+        LocalDate deadline = today.minusDays(14);
+
+        FeeInstallment installment = FeeInstallment.builder()
+                .idFeeInstallment(1)
+                .idFee(1)
+                .paymentDeadline(deadline)
+                .paymentStatus(PaymentStatus.TO_PAY)
+                .installmentAmountToPay(Money.of(100, "PLN"))
+                .build();
+
+        testFee.setInstallments(List.of(installment));
+
+        when(feeFacade.getFeesByStatus(PaymentStatus.TO_PAY, true)).thenReturn(List.of(testFee));
+        when(loanFacade.getLoansByStatus(PaymentStatus.TO_PAY, true)).thenReturn(List.of());
+        when(userFacade.findUserById(1L)).thenReturn(testUser);
+
+        // When
+        paymentReminderService.processPaymentReminders();
+
+        // Then - wysyłamy co tydzień po pierwszym tygodniu opóźnienia
         verify(emailNotificationPort, times(1)).sendTemplatedEmail(any());
     }
 
@@ -256,8 +312,8 @@ class PaymentReminderServiceTest {
     }
 
     @Test
-    void shouldNotSendReminderMoreThanSevenDaysAfterDeadline() {
-        // Given - 8 dni po terminie (nie wysyłamy, tylko 1 i 7 dni po)
+    void shouldNotSendReminderEightDaysAfterDeadline() {
+        // Given - 8 dni po terminie (poza 1/3/7 i nie jest wielokrotnością 7 od terminu)
         LocalDate today = LocalDate.now();
         LocalDate deadline = today.minusDays(8);
 
@@ -277,7 +333,7 @@ class PaymentReminderServiceTest {
         // When
         paymentReminderService.processPaymentReminders();
 
-        // Then - nie wysyłamy dla opóźnień poza 1 i 7 dni
+        // Then - nie wysyłamy dla opóźnień poza 1/3/7 dni i poza cyklem tygodniowym
         verify(emailNotificationPort, never()).sendTemplatedEmail(any());
     }
 
@@ -309,7 +365,7 @@ class PaymentReminderServiceTest {
     }
 
     @Test
-    void shouldNotSendReminderForLoanInstallmentBeforeDeadline() {
+    void shouldSendReminderForLoanInstallmentBeforeDeadline() {
         // Given - 7 dni przed terminem
         LocalDate today = LocalDate.now();
         LocalDate deadline = today.plusDays(7);
@@ -326,12 +382,13 @@ class PaymentReminderServiceTest {
 
         when(feeFacade.getFeesByStatus(PaymentStatus.TO_PAY, true)).thenReturn(List.of());
         when(loanFacade.getLoansByStatus(PaymentStatus.TO_PAY, true)).thenReturn(List.of(testLoan));
+        when(userFacade.findUserById(1L)).thenReturn(testUser);
 
         // When
         paymentReminderService.processPaymentReminders();
 
-        // Then - nie wysyłamy przed terminem
-        verify(emailNotificationPort, never()).sendTemplatedEmail(any());
+        // Then - wysyłamy 7 dni przed terminem
+        verify(emailNotificationPort, times(1)).sendTemplatedEmail(any());
     }
 
     @Test
