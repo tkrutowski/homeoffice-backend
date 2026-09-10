@@ -1,4 +1,4 @@
-FROM karluto/jdk21-apline3.18:latest
+FROM eclipse-temurin:25-jre-alpine
 
 # Install tzdata for timezone management and fonts for PDF generation
 RUN apk add --no-cache tzdata fontconfig ttf-dejavu ttf-liberation
