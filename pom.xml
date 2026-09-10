@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.5</version>
+        <version>4.1.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>net.focik</groupId>
@@ -14,9 +14,10 @@
     <name>homeoffice</name>
     <description>HomeOfficeApp</description>
     <properties>
-        <java.version>21</java.version>
-        <spring-ai.version>1.0.0-M3</spring-ai.version>
-        <springframework-boot.version>3.5.7</springframework-boot.version>
+        <java.version>25</java.version>
+        <lombok.version>1.18.48</lombok.version>
+        <spring-ai.version>2.0.0</spring-ai.version>
+        <springframework-boot.version>4.1.1</springframework-boot.version>
     </properties>
 
     <dependencyManagement>
@@ -67,16 +68,21 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
+            <!-- Boot 4: RestTemplateBuilder zostal wydzielony z autoconfigure do wlasnego modulu -->
+            <artifactId>spring-boot-restclient</artifactId>
             <version>${springframework-boot.version}</version>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>org.springframework.ai</groupId>-->
-        <!--            <artifactId>spring-ai-openai-spring-boot-starter</artifactId>-->
-        <!--        </dependency>-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <!-- spring-boot-starter-aop zostal przemianowany na spring-boot-starter-aspectj w Boot 4.0
+                 (ta sama zawartosc - spring-aspects + aspectjweaver). Uzywane przez @Aspect (AuditAspect). -->
+            <artifactId>spring-boot-starter-aspectj</artifactId>
+            <version>${springframework-boot.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-anthropic-spring-boot-starter</artifactId>
+            <!-- przemianowane w Spring AI 2.0: spring-ai-anthropic-spring-boot-starter -> spring-ai-starter-model-anthropic -->
+            <artifactId>spring-ai-starter-model-anthropic</artifactId>
             <version>${spring-ai.version}</version>
         </dependency>
 
@@ -97,7 +103,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.32</version>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -125,7 +131,7 @@
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
-            <version>0.12.5</version>
+            <version>0.12.6</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -211,7 +217,7 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk18on</artifactId>
-            <version>1.82</version>
+            <version>1.84</version>
         </dependency>
         <dependency>
             <groupId>jakarta.xml.bind</groupId>
@@ -232,32 +238,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/eu.europa.ec.joinup.sd-dss/dss-enumerations -->
-<!--        <dependency>-->
-<!--            <groupId>eu.europa.ec.joinup.sd-dss</groupId>-->
-<!--            <artifactId>dss-enumerations</artifactId>-->
-<!--            <version>5.12</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>eu.europa.ec.joinup.sd-dss</groupId>-->
-<!--            <artifactId>dss-model</artifactId>-->
-<!--            <version>6.3</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>eu.europa.ec.joinup.sd-dss</groupId>-->
-<!--            <artifactId>dss-spi</artifactId>-->
-<!--            <version>6.3</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>eu.europa.ec.joinup.sd-dss</groupId>-->
-<!--            <artifactId>dss-xades</artifactId>-->
-<!--            <version>6.3</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>eu.europa.ec.joinup.sd-dss</groupId>-->
-<!--            <artifactId>dss-pades</artifactId>-->
-<!--            <version>6.3</version>-->
-<!--        </dependency>-->
     </dependencies>
 
     <repositories>
@@ -265,6 +245,16 @@
             <id>spring-milestones</id>
             <name>Spring Milestones</name>
             <url>https://repo.spring.io/milestone</url>
+        </repository>
+        <!-- Jawnie dodane przed "github": GitHub Packages zwraca 401 (zamiast 404) dla artefaktow,
+             ktorych nie ma w danym repo, co przerywa dalsze przeszukiwanie repozytoriow zamiast
+             pozwolic Mavenowi spasc na Central. Bez tego wpisu Central jest dolaczany niejawnie
+             na koncu listy (po "github"), wiec kazdy nowy (jeszcze niescache'owany lokalnie)
+             artefakt spoza ksef-client-java potrafi sie tu wywrocic z 401 Unauthorized. -->
+        <repository>
+            <id>central</id>
+            <name>Maven Central</name>
+            <url>https://repo.maven.apache.org/maven2</url>
         </repository>
         <repository>
             <id>github</id>
@@ -275,6 +265,22 @@
     
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- Jawne annotationProcessorPaths dla Lomboka - pod JDK 25 auto-wykrywanie
+                         procesora adnotacji z classpath (domyslne zachowanie wtyczki) zawodzi w tym
+                         projekcie (Lombok dziala poprawnie w izolacji, ale nie w pelnym build Mavena). -->
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -294,52 +300,6 @@
                     </excludes>
                 </configuration>
             </plugin>
-<!--            <plugin>-->
-<!--                <groupId>org.codehaus.mojo</groupId>-->
-<!--                <artifactId>jaxb2-maven-plugin</artifactId>-->
-<!--                <version>3.2.0</version>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <id>xjc</id>-->
-<!--                        <goals>-->
-<!--                            <goal>xjc</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--                <configuration>-->
-<!--                    <sources>-->
-<!--                        <source>${project.basedir}/schemat.xsd</source>-->
-<!--                    </sources>-->
-<!--                    <packageName>net.focik.homeoffice.goahead.domain.invoice.ksef.model</packageName>-->
-<!--                    <outputDirectory>${project.basedir}/src/main/java</outputDirectory>-->
-<!--                    &lt;!&ndash; Zwiększenie limitu złożoności schematu dla parsera XML &ndash;&gt;-->
-<!--                    <xjcArgs>-->
-<!--                        <xjcArg>-J-DentityExpansionLimit=10000</xjcArg>-->
-<!--                    </xjcArgs>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
-<!--            <plugin>-->
-<!--                <groupId>org.codehaus.mojo</groupId>-->
-<!--                <artifactId>jaxb2-maven-plugin</artifactId>-->
-<!--                <version>4.0.0</version>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <id>xjc</id>-->
-<!--                        <goals>-->
-<!--                            <goal>xjc</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--                <configuration>-->
-<!--                    <sources>-->
-<!--                        <source>${project.basedir}/schemat.xsd</source>-->
-<!--&lt;!&ndash;                        <source>${project.basedir}/KodyKrajow_v10-0E.xsd</source>&ndash;&gt;-->
-<!--                    </sources>-->
-<!--                    <packageName>net.focik.homeoffice.goahead.domain.invoice.ksef.model</packageName>-->
-<!--                    <extension>true</extension>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
-
         </plugins>
     </build>
 

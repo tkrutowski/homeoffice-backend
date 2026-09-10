@@ -1,6 +1,6 @@
 package net.focik.homeoffice.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedHashMap;

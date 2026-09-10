@@ -1,6 +1,6 @@
 package net.focik.homeoffice.finance.infrastructure.csvimport;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import net.focik.homeoffice.async.AsyncTask;
 import net.focik.homeoffice.async.AsyncTaskError;
 import net.focik.homeoffice.async.AsyncTaskService;

@@ -87,7 +87,9 @@ public class CostRepositoryAdapter implements CostRepository {
 
     @Override
     public Page<Cost> findAll(Pageable pageable, String globalFilter, Integer idSupplier, LocalDate sellDate, String dateComparisonType, LocalDate invoiceDate, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
-        Specification<CostDbDto> spec = Specification.where(null);
+        // Spring Data JPA 4.0+: Specification.where(null) rzuca IllegalArgumentException
+        // ("Specification must not be null") - trzeba użyć unrestricted() jako punktu startowego.
+        Specification<CostDbDto> spec = Specification.unrestricted();
 
         if (globalFilter != null && !globalFilter.isEmpty()) {
             spec = spec.and((root, query, cb) ->

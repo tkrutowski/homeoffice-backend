@@ -1,6 +1,6 @@
 package net.focik.homeoffice.library.infrastructure.claude;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.port.secondary.AiScraperPort;
@@ -15,6 +15,7 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -99,7 +100,10 @@ public class ClaudeBookScraperAdapter implements AiScraperPort {
         UserMessage userMessage = new UserMessage(USER_PROMPT + pageContent);
         Prompt prompt = new Prompt(List.of(systemMessage, userMessage));
 
-        String response = chatModel.call(prompt).getResult().getOutput().getContent();
+        String response = Objects.requireNonNull(chatModel.call(prompt).getResult()).getOutput().getText();
+        if (response == null) {
+            throw new RuntimeException("Claude nie zwrócił treści tekstowej odpowiedzi");
+        }
         log.debug("Claude response length: {} characters", response.length());
         return response;
     }

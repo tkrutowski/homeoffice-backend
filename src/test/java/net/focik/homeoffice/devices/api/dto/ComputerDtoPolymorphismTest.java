@@ -1,6 +1,6 @@
 package net.focik.homeoffice.devices.api.dto;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

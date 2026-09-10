@@ -1,7 +1,7 @@
 package net.focik.homeoffice.devices.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import lombok.*;
 import net.focik.homeoffice.devices.domain.model.DeviceFile;
 import net.focik.homeoffice.devices.domain.model.DeviceType;

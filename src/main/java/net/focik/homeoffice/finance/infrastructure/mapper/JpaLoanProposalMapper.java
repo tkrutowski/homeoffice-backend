@@ -1,7 +1,7 @@
 package net.focik.homeoffice.finance.infrastructure.mapper;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.finance.domain.loanproposal.LoanProposal;
@@ -60,7 +60,7 @@ public class JpaLoanProposalMapper {
         }
         try {
             return objectMapper.writeValueAsString(data);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("Failed to serialize {}", data.getClass().getSimpleName(), e);
             return null;
         }
@@ -72,7 +72,7 @@ public class JpaLoanProposalMapper {
         }
         try {
             return objectMapper.readValue(json, type);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("Failed to deserialize {}: {}", type.getSimpleName(), json, e);
             return null;
         }

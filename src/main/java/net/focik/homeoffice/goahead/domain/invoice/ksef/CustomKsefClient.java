@@ -1,5 +1,7 @@
 package net.focik.homeoffice.goahead.domain.invoice.ksef;
 
+// Uwaga: to celowo Jackson 2 (nie tools.jackson.databind), bo zewnetrzny ksef-client SDK
+// (DefaultKsefClient) jest zbudowany na Jackson 2 - patrz Config.ksefObjectMapper().
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.focik.homeoffice.goahead.domain.exception.KsefResponseException;
 import org.springframework.stereotype.Component;

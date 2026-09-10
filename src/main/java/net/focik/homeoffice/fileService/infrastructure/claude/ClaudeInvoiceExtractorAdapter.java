@@ -1,6 +1,6 @@
 package net.focik.homeoffice.fileService.infrastructure.claude;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.config.AwsProperties;
@@ -12,7 +12,7 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.model.Media;
+import org.springframework.ai.content.Media;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MimeType;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -20,8 +20,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
-import java.io.IOException;
 import java.util.Base64;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -143,7 +143,10 @@ public class ClaudeInvoiceExtractorAdapter implements InvoiceExtractorPort {
             UserMessage userMessage = new UserMessage(prompt);
             Prompt promptObj = new Prompt(userMessage);
 
-            String response = chatModel.call(promptObj).getResult().getOutput().getContent();
+            String response = Objects.requireNonNull(chatModel.call(promptObj).getResult()).getOutput().getText();
+            if (response == null) {
+                throw new IllegalStateException("Claude nie zwrócił treści tekstowej odpowiedzi");
+            }
             log.debug("Claude API response received (text), response length: {}", response.length());
             return response;
         } catch (Exception e) {
@@ -154,11 +157,20 @@ public class ClaudeInvoiceExtractorAdapter implements InvoiceExtractorPort {
 
     private String callClaudeApiWithImage(String base64Content, String mediaType) {
         try {
-            Media media = new Media(MimeType.valueOf(mediaType), base64Content.getBytes());
-            UserMessage userMessage = new UserMessage(USER_PROMPT, media);
+            Media media = Media.builder()
+                    .mimeType(MimeType.valueOf(mediaType))
+                    .data(base64Content.getBytes())
+                    .build();
+            UserMessage userMessage = UserMessage.builder()
+                    .text(USER_PROMPT)
+                    .media(media)
+                    .build();
             Prompt promptObj = new Prompt(userMessage);
 
-            String response = chatModel.call(promptObj).getResult().getOutput().getContent();
+            String response = Objects.requireNonNull(chatModel.call(promptObj).getResult()).getOutput().getText();
+            if (response == null) {
+                throw new IllegalStateException("Claude nie zwrócił treści tekstowej odpowiedzi");
+            }
             log.debug("Claude API response received (image), response length: {}", response.length());
             return response;
         } catch (Exception e) {

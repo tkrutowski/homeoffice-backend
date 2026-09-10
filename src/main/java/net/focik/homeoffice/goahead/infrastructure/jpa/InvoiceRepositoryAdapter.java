@@ -77,7 +77,9 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
 
     @Override
     public Page<Invoice> findAll(Pageable pageable, String globalFilter, Integer idCustomer, LocalDate sellDate, String sellDateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
-        Specification<InvoiceDbDto> spec = Specification.where(null);
+        // Spring Data JPA 4.0+: Specification.where(null) rzuca IllegalArgumentException
+        // ("Specification must not be null") - trzeba użyć unrestricted() jako punktu startowego.
+        Specification<InvoiceDbDto> spec = Specification.unrestricted();
 
         if (globalFilter != null && !globalFilter.isEmpty()) {
             spec = spec.and((root, query, cb) ->

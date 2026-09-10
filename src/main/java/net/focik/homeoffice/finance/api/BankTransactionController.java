@@ -92,7 +92,7 @@ public class BankTransactionController extends ExceptionHandling {
         log.info(result.getId() > 0 ? "bank transaction added with id = " + result : "No bank transaction added!");
 
         if (result.getId() <= 0)
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
         return new ResponseEntity<>(ApiBankTransactionMapper.toDto(result), HttpStatus.CREATED);
     }

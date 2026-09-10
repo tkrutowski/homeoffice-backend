@@ -1,12 +1,5 @@
 package net.focik.homeoffice.config;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.goahead.domain.invoice.InvoiceItem;
 import net.focik.homeoffice.goahead.infrastructure.dto.InvoiceItemDbDto;
@@ -24,8 +17,15 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
-import java.io.IOException;
 import java.net.http.HttpClient;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -65,13 +65,25 @@ class Config {
 
     @Bean
     public ObjectMapper objectMapper() {
-        JavaTimeModule javaTimeModule = new JavaTimeModule();
-        javaTimeModule.addDeserializer(LocalDate.class, new LocalDateDeserializer());
+        // Jackson 3: obsluga java.time jest wbudowana w jackson-databind (brak osobnego
+        // JavaTimeModule) - SimpleModule wystarcza do nadpisania samego deserializera LocalDate.
+        SimpleModule localDateModule = new SimpleModule();
+        localDateModule.addDeserializer(LocalDate.class, new LocalDateDeserializer());
 
-        return new ObjectMapper()
-                .registerModule(javaTimeModule)
+        return JsonMapper.builder()
+                .addModule(localDateModule)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+                // Jackson 3: WRITE_DATES_AS_TIMESTAMPS przeniesione z SerializationFeature do DateTimeFeature
+                .configure(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+                .build();
+    }
+
+    @Bean
+    // Zewnetrzny ksef-client SDK (DefaultKsefClient) jest zbudowany na Jackson 2, dlatego
+    // dla CustomKsefClient potrzebny jest osobny bean w starym typie com.fasterxml.jackson.
+    // Spring rozroznia go od objectMapper() po typie (tools.jackson vs com.fasterxml.jackson).
+    public com.fasterxml.jackson.databind.ObjectMapper ksefObjectMapper() {
+        return new com.fasterxml.jackson.databind.ObjectMapper();
     }
 
     @Bean
@@ -98,8 +110,9 @@ class Config {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService());
+        // Security 7: konstruktor bezargumentowy + setUserDetailsService(...) zostal usuniety,
+        // UserDetailsService jest teraz wymagany w konstruktorze.
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService());
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
@@ -115,7 +128,7 @@ class Config {
         }
 
         @Override
-        public LocalDate deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+        public LocalDate deserialize(JsonParser p, DeserializationContext ctxt) {
             String value = p.getValueAsString();
             if (value == null || value.isEmpty()) {
                 return null;
@@ -130,7 +143,9 @@ class Config {
                     // Spróbuj parsować format prostej daty (yyyy-MM-dd)
                     return LocalDate.parse(value, DateTimeFormatter.ISO_DATE);
                 } catch (Exception ex) {
-                    throw new IOException("Cannot deserialize LocalDate from: " + value, ex);
+                    // Jackson 3: wyjatki deserializacji sa unchecked - reportInputMismatch rzuca
+                    // odpowiedni JacksonException z kontekstem parsowania zamiast checked IOException.
+                    return ctxt.reportInputMismatch(LocalDate.class, "Cannot deserialize LocalDate from: " + value);
                 }
             }
         }

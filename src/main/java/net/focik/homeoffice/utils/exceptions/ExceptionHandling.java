@@ -1,16 +1,12 @@
 package net.focik.homeoffice.utils.exceptions;
 
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.persistence.NoResultException;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.userservice.domain.exceptions.*;
-import org.springframework.boot.web.servlet.error.ErrorController;
+import org.springframework.boot.webmvc.error.ErrorController;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-//import org.springframework.security.authentication.BadCredentialsException;
-//import org.springframework.security.authentication.DisabledException;
-//import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -115,7 +111,6 @@ public class ExceptionHandling implements ErrorController {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<HttpResponse> runtimeException(RuntimeException exception) {
         log.error("RuntimeException: " + exception.getMessage(), exception);
-//        return createHttpResponse(INTERNAL_SERVER_ERROR, ERROR_PROCESSING_FILE);
         return createHttpResponse(INTERNAL_SERVER_ERROR, exception.getMessage(), exception.getMessage());
     }
 
@@ -169,25 +164,10 @@ public class ExceptionHandling implements ErrorController {
         return createHttpResponse(BAD_REQUEST, exception.getMessage(), exception.getMessage());
     }
 
-
-
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<HttpResponse> authenticationException(AuthenticationException exception) {
         log.error("Authentication error", exception);
         return createHttpResponse(UNAUTHORIZED, exception.getMessage(), exception.getMessage());
     }
 
-
-
-
-
-
-
-
-
-
-
-    public String getErrorPath() {
-        return ERROR_PATH;
-    }
 }
