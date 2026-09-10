@@ -1,6 +1,6 @@
 package net.focik.homeoffice.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedHashMap;
@@ -66,7 +66,7 @@ public class StringHelper {
 
     /**
      * Extracts the file extension from a given URL.
-     *
+     * <p>
      * This method returns the substring after the last dot (.) in the URL, provided
      * that the dot appears after the last slash (/). If there is no dot, or if the last
      * dot appears before the last slash, the method returns an empty string.

@@ -1,7 +1,7 @@
 package net.focik.homeoffice.library.domain.checker;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.focik.homeoffice.library.domain.model.AudiobookPlatformResult;
@@ -42,10 +42,10 @@ public class StoritelAudiobookChecker implements AudiobookChecker {
 
             if (items != null && items.isArray()) {
                 for (JsonNode item : items) {
-                    String itemTitle = item.get("title").asText("");
+                    String itemTitle = item.get("title").asString("");
                     if (titleMatches(itemTitle, title)) {
                         if (hasAudiobookFormat(item)) {
-                            String shareUrl = item.get("shareUrl").asText();
+                            String shareUrl = item.get("shareUrl").asString();
                             return AudiobookPlatformResult.available(bookstore.getId(), "Storytel", shareUrl);
                         }
                     }
@@ -63,7 +63,7 @@ public class StoritelAudiobookChecker implements AudiobookChecker {
         JsonNode formats = item.get("formats");
         if (formats != null && formats.isArray()) {
             for (JsonNode format : formats) {
-                String type = format.get("type").asText("");
+                String type = format.get("type").asString("");
                 boolean isReleased = format.get("isReleased").asBoolean(false);
                 if ("abook".equals(type) && isReleased) {
                     return true;

@@ -1,7 +1,7 @@
 package net.focik.homeoffice.finance.infrastructure.claude;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.finance.domain.loanproposal.LoanExtractionResult;
@@ -167,7 +167,7 @@ public class LoanClaudeExtractorAdapter implements LoanExtractorPort {
         }
     }
 
-    private String buildRequestBody(String emailText) throws Exception {
+    private String buildRequestBody(String emailText) {
         String prompt = USER_PROMPT_PREFIX + emailText;
         return objectMapper.writeValueAsString(new AnthropicRequest(
                 model,
@@ -200,7 +200,7 @@ public class LoanClaudeExtractorAdapter implements LoanExtractorPort {
         return schema;
     }
 
-    private LoanExtractionResult parseResponse(String responseBody) throws Exception {
+    private LoanExtractionResult parseResponse(String responseBody) {
         JsonNode root = objectMapper.readTree(responseBody);
         JsonNode contentArray = root.get("content");
 
@@ -208,7 +208,7 @@ public class LoanClaudeExtractorAdapter implements LoanExtractorPort {
             throw new IllegalStateException("Unexpected Claude API response shape: " + responseBody);
         }
 
-        String text = contentArray.get(0).get("text").asText();
+        String text = contentArray.get(0).get("text").asString();
         JsonNode json = objectMapper.readTree(text);
 
         return LoanExtractionResult.builder()
@@ -229,7 +229,7 @@ public class LoanClaudeExtractorAdapter implements LoanExtractorPort {
 
     private String textOrNull(JsonNode node, String field) {
         JsonNode value = node.get(field);
-        return (value == null || value.isNull()) ? null : value.asText();
+        return (value == null || value.isNull()) ? null : value.asString();
     }
 
     private static class AnthropicRequest {

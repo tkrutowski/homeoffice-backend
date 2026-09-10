@@ -1,9 +1,10 @@
 package net.focik.homeoffice.finance.infrastructure.mapper;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
+
 import net.focik.homeoffice.finance.domain.loanproposal.LoanProposal;
 import net.focik.homeoffice.finance.domain.loanproposal.LoanProposalStatus;
 import net.focik.homeoffice.finance.domain.loanproposal.ProposedLoanData;
@@ -23,10 +24,10 @@ class JpaLoanProposalMapperTest {
 
     @BeforeEach
     void setUp() {
-        ObjectMapper objectMapper = new ObjectMapper()
-                .registerModule(new JavaTimeModule())
+        ObjectMapper objectMapper = JsonMapper.builder()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+                .configure(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+                .build();
         mapper = new JpaLoanProposalMapper(objectMapper);
     }
 

@@ -159,7 +159,7 @@ public class PurchaseController extends ExceptionHandling {
         log.info(result.getId() > 0 ? "purchase added with id = " + result : "No purchase added!");
 
         if (result.getId() <= 0)
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
         return new ResponseEntity<>(mapper.toDto(result), HttpStatus.CREATED);
     }

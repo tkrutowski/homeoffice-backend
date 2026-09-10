@@ -1,6 +1,6 @@
 package net.focik.homeoffice.finance.infrastructure.csvimport;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import net.focik.homeoffice.async.AsyncTask;
 import net.focik.homeoffice.async.AsyncTaskError;
 import net.focik.homeoffice.async.AsyncTaskService;
@@ -113,7 +113,7 @@ class BankCsvImportAdapterTest {
     }
 
     @Test
-    void getImportResult_ShouldDeserializeResultWhenTaskSucceeded() throws Exception {
+    void getImportResult_ShouldDeserializeResultWhenTaskSucceeded() {
         String jobId = "job-123";
         BankCsvImportResponse expectedResult = BankCsvImportResponse.builder()
                 .totalProcessed(10)
@@ -176,11 +176,11 @@ class BankCsvImportAdapterTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getErrors()).isNotEmpty();
-        assertThat(result.getErrors().get(0)).contains("Failed to deserialize import result");
+        assertThat(result.getErrors().getFirst()).contains("Failed to deserialize import result");
     }
 
     @Test
-    void getImportResult_ShouldReturnErrorsWhenTaskFailed() throws Exception {
+    void getImportResult_ShouldReturnErrorsWhenTaskFailed() {
         String jobId = "job-123";
 
         // Create AsyncTaskError with message

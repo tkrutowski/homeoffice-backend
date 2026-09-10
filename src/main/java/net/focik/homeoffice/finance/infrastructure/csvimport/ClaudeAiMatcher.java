@@ -1,7 +1,7 @@
 package net.focik.homeoffice.finance.infrastructure.csvimport;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.finance.domain.firm.Firm;
@@ -103,7 +103,7 @@ public class ClaudeAiMatcher {
         return sb.toString();
     }
 
-    private String buildRequestBody(String prompt, List<TransactionCategory> candidateCategories) throws Exception {
+    private String buildRequestBody(String prompt, List<TransactionCategory> candidateCategories) {
         return objectMapper.writeValueAsString(new AnthropicRequest(
                 model,
                 1024,
@@ -152,7 +152,7 @@ public class ClaudeAiMatcher {
 
             if (contentArray != null && contentArray.isArray() && !contentArray.isEmpty()) {
                 // output_config.format guarantees the first block is text with schema-valid JSON
-                String text = contentArray.get(0).get("text").asText();
+                String text = contentArray.get(0).get("text").asString();
                 JsonNode jsonNode = objectMapper.readTree(text);
 
                 Integer firmId = jsonNode.get("firmId").isNull() ? defaultFirmId : jsonNode.get("firmId").asInt();

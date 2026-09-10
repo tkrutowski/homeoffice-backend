@@ -1,6 +1,6 @@
 package net.focik.homeoffice.devices.api.dto;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,7 +22,7 @@ class ComputerDtoPolymorphismTest {
 
     @Test
     @DisplayName("Should serialize DesktopComputerDto with computerType DESKTOP")
-    void shouldSerializeDesktopComputerDto() throws Exception {
+    void shouldSerializeDesktopComputerDto() {
         // Given
         DesktopComputerDto dto = new DesktopComputerDto();
         dto.setId(1);
@@ -42,7 +42,7 @@ class ComputerDtoPolymorphismTest {
 
     @Test
     @DisplayName("Should serialize LaptopComputerDto with computerType LAPTOP")
-    void shouldSerializeLaptopComputerDto() throws Exception {
+    void shouldSerializeLaptopComputerDto() {
         // Given
         LaptopComputerDto dto = new LaptopComputerDto();
         dto.setId(2);
@@ -67,7 +67,7 @@ class ComputerDtoPolymorphismTest {
 
     @Test
     @DisplayName("Should deserialize DesktopComputerDto from JSON")
-    void shouldDeserializeDesktopComputerDto() throws Exception {
+    void shouldDeserializeDesktopComputerDto() {
         // Given
         String json = """
             {
@@ -85,7 +85,7 @@ class ComputerDtoPolymorphismTest {
 
         // Then
         assertNotNull(dto);
-        assertTrue(dto instanceof DesktopComputerDto);
+        assertInstanceOf(DesktopComputerDto.class, dto);
         DesktopComputerDto desktopDto = (DesktopComputerDto) dto;
         assertEquals(1, desktopDto.getId());
         assertEquals("Gaming PC", desktopDto.getName());
@@ -94,7 +94,7 @@ class ComputerDtoPolymorphismTest {
 
     @Test
     @DisplayName("Should deserialize LaptopComputerDto from JSON")
-    void shouldDeserializeLaptopComputerDto() throws Exception {
+    void shouldDeserializeLaptopComputerDto() {
         // Given
         String json = """
             {
@@ -107,7 +107,7 @@ class ComputerDtoPolymorphismTest {
                 "gpu": "Iris Xe",
                 "ram": "16GB",
                 "storage": "512GB SSD",
-                "display": "15.6\\\" Retina"
+                "display": "15.6\\" Retina"
             }
             """;
 
@@ -116,7 +116,7 @@ class ComputerDtoPolymorphismTest {
 
         // Then
         assertNotNull(dto);
-        assertTrue(dto instanceof LaptopComputerDto);
+        assertInstanceOf(LaptopComputerDto.class, dto);
         LaptopComputerDto laptopDto = (LaptopComputerDto) dto;
         assertEquals(2, laptopDto.getId());
         assertEquals("MacBook Pro", laptopDto.getName());
@@ -126,7 +126,7 @@ class ComputerDtoPolymorphismTest {
 
     @Test
     @DisplayName("Should deserialize list with mixed computer types")
-    void shouldDeserializeListWithMixedTypes() throws Exception {
+    void shouldDeserializeListWithMixedTypes() {
         // Given
         String json = """
             [
@@ -152,15 +152,15 @@ class ComputerDtoPolymorphismTest {
 
         // Then
         assertEquals(2, computers.size());
-        assertTrue(computers.get(0) instanceof DesktopComputerDto);
-        assertTrue(computers.get(1) instanceof LaptopComputerDto);
+        assertInstanceOf(DesktopComputerDto.class, computers.get(0));
+        assertInstanceOf(LaptopComputerDto.class, computers.get(1));
         assertEquals("Gaming PC", computers.get(0).getName());
         assertEquals("MacBook Pro", computers.get(1).getName());
     }
 
     @Test
     @DisplayName("Should preserve computerType field in serialization")
-    void shouldPreserveComputerTypeField() throws Exception {
+    void shouldPreserveComputerTypeField() {
         // Given
         DesktopComputerDto dto = new DesktopComputerDto();
         dto.setId(1);
@@ -171,14 +171,14 @@ class ComputerDtoPolymorphismTest {
         ComputerDto deserialized = objectMapper.readValue(json, ComputerDto.class);
 
         // Then
-        assertTrue(deserialized instanceof DesktopComputerDto);
+        assertInstanceOf(DesktopComputerDto.class, deserialized);
         assertEquals(1, deserialized.getId());
         assertEquals("PC", deserialized.getName());
     }
 
     @Test
     @DisplayName("Should handle null fields in serialization")
-    void shouldHandleNullFieldsInSerialization() throws Exception {
+    void shouldHandleNullFieldsInSerialization() {
         // Given
         LaptopComputerDto dto = new LaptopComputerDto();
         dto.setId(3);

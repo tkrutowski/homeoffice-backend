@@ -23,30 +23,43 @@
         </rollingPolicy>
     </appender>
     
-    <!-- Custom S3 Appender -->
-    <appender name="S3" class="net.focik.homeoffice.config.S3LogAppender">
-        <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
-        </encoder>
-        <bucketName>${aws.bucket.name:-focik-home}</bucketName>
-        <keyPrefix>logs/</keyPrefix>
-        <awsRegion>${aws.region:-eu-central-1}</awsRegion>
-        <batchSize>100</batchSize>
-        <flushIntervalSeconds>300</flushIntervalSeconds>
-    </appender>
-    
-    <!-- Async wrapper dla S3 (nie blokuje aplikacji) -->
-    <appender name="ASYNC_S3" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="S3"/>
-        <queueSize>500</queueSize>
-        <discardingThreshold>0</discardingThreshold>
-    </appender>
-    
-    <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
-        <springProfile name="!dev">
+    <!-- S3 appender (i jego async wrapper) definiujemy tylko poza "dev" - inaczej Logback i tak
+         tworzy i startuje S3LogAppender (z klientem AWS SDK), mimo ze nic go nie referencjonuje. -->
+    <springProfile name="!dev">
+        <!-- Custom S3 Appender -->
+        <appender name="S3" class="net.focik.homeoffice.config.S3LogAppender">
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+            </encoder>
+            <bucketName>${aws.bucket.name:-focik-home}</bucketName>
+            <keyPrefix>logs/</keyPrefix>
+            <awsRegion>${aws.region:-eu-central-1}</awsRegion>
+            <batchSize>100</batchSize>
+            <flushIntervalSeconds>300</flushIntervalSeconds>
+        </appender>
+
+        <!-- Async wrapper dla S3 (nie blokuje aplikacji) -->
+        <appender name="ASYNC_S3" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="S3"/>
+            <queueSize>500</queueSize>
+            <discardingThreshold>0</discardingThreshold>
+        </appender>
+    </springProfile>
+
+    <!-- springProfile nie moze byc zagniezdzony wewnatrz <root> (Logback przetwarza <root>
+         w drugiej fazie, bez ponownego uwzgledniania warunkow) - dlatego dwa osobne bloki. -->
+    <springProfile name="!dev">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
             <appender-ref ref="ASYNC_S3"/>
-        </springProfile>
-    </root>
+        </root>
+    </springProfile>
+
+    <springProfile name="dev">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
 </configuration>

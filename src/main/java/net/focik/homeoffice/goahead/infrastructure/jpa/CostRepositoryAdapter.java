@@ -87,10 +87,12 @@ public class CostRepositoryAdapter implements CostRepository {
 
     @Override
     public Page<Cost> findAll(Pageable pageable, String globalFilter, Integer idSupplier, LocalDate sellDate, String dateComparisonType, LocalDate invoiceDate, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
-        Specification<CostDbDto> spec = Specification.where(null);
+        // Spring Data JPA 4.0+: Specification.where(null) rzuca IllegalArgumentException
+        // ("Specification must not be null") - trzeba użyć unrestricted() jako punktu startowego.
+        Specification<CostDbDto> spec = Specification.unrestricted();
 
         if (globalFilter != null && !globalFilter.isEmpty()) {
-            spec = spec.and((root, query, cb) ->
+            spec = spec.and((root, _, cb) ->
                     cb.or(
                             cb.like(cb.lower(root.get("number")), "%" + globalFilter.toLowerCase() + "%"),
                             cb.like(cb.lower(root.get("supplier").get("name")), "%" + globalFilter.toLowerCase() + "%")
@@ -99,7 +101,7 @@ public class CostRepositoryAdapter implements CostRepository {
         }
 
         if (idSupplier != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("supplier").get("id"), idSupplier));
+            spec = spec.and((root, _, cb) -> cb.equal(root.get("supplier").get("id"), idSupplier));
         }
 
         if (sellDate != null) {
@@ -115,7 +117,7 @@ public class CostRepositoryAdapter implements CostRepository {
 //        }
 
         if (status != null && status != PaymentStatus.ALL) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("paymentStatus"), status));
+            spec = spec.and((root, _, cb) -> cb.equal(root.get("paymentStatus"), status));
         }
 
         return costDtoRepository.findAll(spec, pageable)

@@ -1,7 +1,7 @@
 package net.focik.homeoffice.library.domain.checker;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.focik.homeoffice.library.domain.model.AudiobookPlatformResult;
@@ -43,10 +43,10 @@ public class BookbeatAudiobookChecker implements AudiobookChecker {
 
             if (books != null && books.isArray()) {
                 for (JsonNode book : books) {
-                    String bookTitle = book.get("title").asText("");
+                    String bookTitle = book.get("title").asString("");
                     if (titleMatches(bookTitle, title)) {
                         if (hasAudiobook(book)) {
-                            String shareUrl = book.get("shareurl").asText();
+                            String shareUrl = book.get("shareurl").asString();
                             return AudiobookPlatformResult.available(bookstore.getId(), "Bookbeat", shareUrl);
                         }
                     }
@@ -62,7 +62,7 @@ public class BookbeatAudiobookChecker implements AudiobookChecker {
 
     private boolean hasAudiobook(JsonNode book) {
         JsonNode audiobookIsbn = book.get("audiobookisbn");
-        return audiobookIsbn != null && !audiobookIsbn.isNull() && !audiobookIsbn.asText("").isEmpty();
+        return audiobookIsbn != null && !audiobookIsbn.isNull() && !audiobookIsbn.asString("").isEmpty();
     }
 
     private boolean titleMatches(String found, String expected) {
