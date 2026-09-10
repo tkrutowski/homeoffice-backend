@@ -21,18 +21,14 @@ public class AuditAspect {
     @Around("@annotation(auditLog)")
     public Object auditMethod(ProceedingJoinPoint joinPoint, AuditLog auditLog) throws Throwable {
         Object result;
-        try {
-            result = joinPoint.proceed();
+        result = joinPoint.proceed();
 
-            String entityId = extractEntityId(joinPoint, result, auditLog.action());
-            String newValuesJson = serializeToJson(result);
+        String entityId = extractEntityId(joinPoint, result, auditLog.action());
+        String newValuesJson = serializeToJson(result);
 
-            auditService.log(auditLog.entityType(), entityId, auditLog.action(), newValuesJson, getCurrentAuditor());
+        auditService.log(auditLog.entityType(), entityId, auditLog.action(), newValuesJson, getCurrentAuditor());
 
-            return result;
-        } catch (Throwable e) {
-            throw e;
-        }
+        return result;
     }
 
     private String getCurrentAuditor() {

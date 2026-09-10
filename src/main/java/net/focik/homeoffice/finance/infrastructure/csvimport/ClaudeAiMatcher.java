@@ -103,7 +103,7 @@ public class ClaudeAiMatcher {
         return sb.toString();
     }
 
-    private String buildRequestBody(String prompt, List<TransactionCategory> candidateCategories) throws Exception {
+    private String buildRequestBody(String prompt, List<TransactionCategory> candidateCategories) {
         return objectMapper.writeValueAsString(new AnthropicRequest(
                 model,
                 1024,
@@ -152,7 +152,7 @@ public class ClaudeAiMatcher {
 
             if (contentArray != null && contentArray.isArray() && !contentArray.isEmpty()) {
                 // output_config.format guarantees the first block is text with schema-valid JSON
-                String text = contentArray.get(0).get("text").asText();
+                String text = contentArray.get(0).get("text").asString();
                 JsonNode jsonNode = objectMapper.readTree(text);
 
                 Integer firmId = jsonNode.get("firmId").isNull() ? defaultFirmId : jsonNode.get("firmId").asInt();

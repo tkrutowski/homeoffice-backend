@@ -113,7 +113,7 @@ class BankCsvImportAdapterTest {
     }
 
     @Test
-    void getImportResult_ShouldDeserializeResultWhenTaskSucceeded() throws Exception {
+    void getImportResult_ShouldDeserializeResultWhenTaskSucceeded() {
         String jobId = "job-123";
         BankCsvImportResponse expectedResult = BankCsvImportResponse.builder()
                 .totalProcessed(10)
@@ -176,11 +176,11 @@ class BankCsvImportAdapterTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getErrors()).isNotEmpty();
-        assertThat(result.getErrors().get(0)).contains("Failed to deserialize import result");
+        assertThat(result.getErrors().getFirst()).contains("Failed to deserialize import result");
     }
 
     @Test
-    void getImportResult_ShouldReturnErrorsWhenTaskFailed() throws Exception {
+    void getImportResult_ShouldReturnErrorsWhenTaskFailed() {
         String jobId = "job-123";
 
         // Create AsyncTaskError with message
