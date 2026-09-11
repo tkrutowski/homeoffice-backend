@@ -30,6 +30,4 @@ public class ProposedPurchaseData {
     private BigDecimal amount;
     private LocalDate purchaseDate;
     private String otherInfo;
-    /** Sugestia Claude, czy zakup jest ratalny (numberOfInstallments > 1) - informacyjne, front może zignorować. */
-    private boolean installment;
 }

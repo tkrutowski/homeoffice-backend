@@ -62,7 +62,6 @@ public class ApiLoanProposalMapper {
                 .amount(d.getAmount())
                 .purchaseDate(d.getPurchaseDate())
                 .otherInfo(d.getOtherInfo())
-                .installment(d.isInstallment())
                 .build();
     }
 

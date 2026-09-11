@@ -32,7 +32,6 @@ public class ApiPurchaseMapper {
                 .paymentDate(dto.getPaymentDate())
                 .otherInfo(dto.getOtherInfo())
                 .paymentStatus(dto.getPaymentStatus())
-                .isInstallment(dto.isInstallment())
                 .build();
     }
 
@@ -49,7 +48,6 @@ public class ApiPurchaseMapper {
                 .paymentDate(purchase.getPaymentDate())
                 .otherInfo(purchase.getOtherInfo() == null ? "" : purchase.getOtherInfo())
                 .paymentStatus(purchase.getPaymentStatus())
-                .isInstallment(purchase.isInstallment())
                 .build();
     }
 

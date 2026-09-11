@@ -45,6 +45,4 @@ public class PurchaseDbDto extends AuditableEntity {
     @Enumerated(EnumType.STRING)
 //    @Column(name = "czy_splacony")
     private PaymentStatus paymentStatus;
-//    @Column(name = "czy_raty")
-//    private Boolean isInstallment;
 }

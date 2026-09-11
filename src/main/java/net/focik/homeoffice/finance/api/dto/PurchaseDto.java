@@ -1,7 +1,6 @@
 package net.focik.homeoffice.finance.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 
@@ -27,6 +26,4 @@ public class PurchaseDto {
     private LocalDate paymentDate;
     private String otherInfo;
     private PaymentStatus paymentStatus;
-    @JsonProperty("installment")
-    private boolean isInstallment;
 }

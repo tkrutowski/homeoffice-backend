@@ -46,7 +46,6 @@ class JpaLoanProposalMapperTest {
                         .name("Sklep XYZ")
                         .amount(new BigDecimal("299.99"))
                         .purchaseDate(LocalDate.of(2026, 9, 9))
-                        .installment(true)
                         .build())
                 .build();
 
@@ -60,7 +59,6 @@ class JpaLoanProposalMapperTest {
         assertThat(roundTripped.getProposedLoan().getBankName()).isEqualTo("PayPo");
         assertThat(roundTripped.getProposedPurchase().getName()).isEqualTo("Sklep XYZ");
         assertThat(roundTripped.getProposedPurchase().getPurchaseDate()).isEqualTo(LocalDate.of(2026, 9, 9));
-        assertThat(roundTripped.getProposedPurchase().isInstallment()).isTrue();
     }
 
     @Test

@@ -125,7 +125,6 @@ class LoanProposalExtractionServiceTest {
         assertThat(purchase.getAmount()).isEqualByComparingTo(new BigDecimal("299.99"));
         assertThat(purchase.getPurchaseDate()).isEqualTo(LocalDate.now());
         assertThat(purchase.getOtherInfo()).isEqualTo("raty 0%");
-        assertThat(purchase.isInstallment()).isTrue();
     }
 
     @Test
@@ -141,23 +140,6 @@ class LoanProposalExtractionServiceTest {
 
         assertThat(result.loan()).isPresent();
         assertThat(result.purchase()).isEmpty();
-    }
-
-    @Test
-    void extract_ShouldMarkPurchaseAsNonInstallment_WhenOnlyOneInstallment() {
-        when(loanExtractorPort.extract("mail")).thenReturn(LoanExtractionResult.builder()
-                .isLoanDocument(true)
-                .bankOrCreditor("Allegro")
-                .merchantName("Sklep XYZ")
-                .amount("100.00")
-                .numberOfInstallments(1)
-                .build());
-        when(getBankUseCase.findByAll()).thenReturn(List.of());
-
-        ExtractedProposals result = service.extract("mail");
-
-        assertThat(result.purchase()).isPresent();
-        assertThat(result.purchase().get().isInstallment()).isFalse();
     }
 
     private Bank bank(int id, String name) {

@@ -75,7 +75,6 @@ public class LoanProposalExtractionService {
                 .amount(parseAmount(result.getAmount()))
                 .purchaseDate(LocalDate.now())
                 .otherInfo(result.getOtherInfo())
-                .installment(result.getNumberOfInstallments() != null && result.getNumberOfInstallments() > 1)
                 .build());
     }
 

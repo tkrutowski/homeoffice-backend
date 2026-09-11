@@ -29,7 +29,6 @@ public class Purchase {
     private LocalDate paymentDate;
     private String otherInfo;
     private PaymentStatus paymentStatus;
-    private boolean isInstallment;
     private String imageUrl;
 
     public void changePaymentStatus(PaymentStatus paymentStatus) {
