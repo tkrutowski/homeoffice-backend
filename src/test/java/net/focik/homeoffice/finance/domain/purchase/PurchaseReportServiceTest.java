@@ -133,8 +133,14 @@ class PurchaseReportServiceTest {
 
     @Test
     void shouldProcessWeeklyReportsWithPurchases() {
-        // Given - use purchase from previous week
-        LocalDate previousWeekDate = LocalDate.now().minusWeeks(1);
+        // Given - use a purchase date guaranteed to fall inside the [previousMonday, lastSunday]
+        // window computed by PurchaseReportService#processWeeklyReports. `now().minusWeeks(1)` is
+        // NOT reliable here: when today is Sunday, the service treats the week ending today as
+        // "previous week", so a date exactly 7 days ago lands one day before previousMonday.
+        LocalDate today = LocalDate.now();
+        LocalDate lastSunday = today.minusDays(today.getDayOfWeek().getValue() % 7);
+        LocalDate previousMonday = lastSunday.minusDays(6);
+        LocalDate previousWeekDate = previousMonday.plusDays(2);
 
         Purchase weeklyPurchase = Purchase.builder()
                 .id(1)

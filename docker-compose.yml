@@ -20,8 +20,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        APP_VERSION: 4.0.0
+      # Bez APP_VERSION - Dockerfile kopiuje jar przez wildcard (target/homeoffice-*.jar),
+      # wiec wersja nie musi byc tu ani nigdzie synchronizowana z pom.xml.
     container_name: homeoffice-backend
     expose:
       - "8077"

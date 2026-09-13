@@ -15,8 +15,11 @@ ENV APP_VERSION=${APP_VERSION}
 ENV SCHEDULER_CRON="0 0 8 * * FRI"
 
 WORKDIR /app
-#COPY target/homeoffice-3.6.0.jar .
-COPY target/homeoffice-${APP_VERSION}.jar app.jar
+# Wildcard zamiast dopasowywania po APP_VERSION - w target/ jest zawsze dokladnie jeden
+# spakowany jar (Maven nazywa go wg <version> z pom.xml), wiec nie trzeba tej wersji
+# przekazywac z zewnatrz zeby zbudowac obraz lokalnie (docker-compose). APP_VERSION ponizej
+# to tylko metadana (ENV w kontenerze / tag obrazu w CI), nieuzywana nigdzie w kodzie appki.
+COPY target/homeoffice-*.jar app.jar
 COPY src/main/resources ./src/main/resources
 EXPOSE 8077
 #CMD  java -jar homeoffice-3.6.0.jar
