@@ -3,14 +3,19 @@ package net.focik.homeoffice.finance.api;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.focik.homeoffice.finance.api.dto.BasicDto;
+import net.focik.homeoffice.finance.api.dto.ConvertPurchasesToLoanRequestDto;
 import net.focik.homeoffice.finance.api.dto.LoanDto;
+import net.focik.homeoffice.finance.api.dto.LoanFromPurchasesDraftDto;
 import net.focik.homeoffice.finance.api.dto.LoanInstallmentDto;
 import net.focik.homeoffice.finance.api.mapper.ApiLoanMapper;
 import net.focik.homeoffice.finance.domain.loan.Loan;
+import net.focik.homeoffice.finance.domain.loan.LoanFromPurchasesDraft;
 import net.focik.homeoffice.finance.domain.loan.LoanInstallment;
 import net.focik.homeoffice.finance.domain.loan.port.primary.AddLoanUseCase;
+import net.focik.homeoffice.finance.domain.loan.port.primary.ConvertPurchasesToLoanUseCase;
 import net.focik.homeoffice.finance.domain.loan.port.primary.DeleteLoanUseCase;
 import net.focik.homeoffice.finance.domain.loan.port.primary.GetLoanUseCase;
+import net.focik.homeoffice.finance.domain.loan.port.primary.SuggestLoanFromPurchasesUseCase;
 import net.focik.homeoffice.finance.domain.loan.port.primary.UpdateLoanUseCase;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.data.domain.Page;
@@ -40,6 +45,8 @@ class LoanController {
     private final AddLoanUseCase addLoanUseCase;
     private final UpdateLoanUseCase updateLoanUseCase;
     private final DeleteLoanUseCase deleteLoanUseCase;
+    private final SuggestLoanFromPurchasesUseCase suggestLoanFromPurchasesUseCase;
+    private final ConvertPurchasesToLoanUseCase convertPurchasesToLoanUseCase;
     private final ApiLoanMapper apiLoanMapper;
 
 
@@ -166,6 +173,33 @@ class LoanController {
         log.info("Request to delete a loan received with id: {}", idLoan);
         deleteLoanUseCase.deleteLoanById(idLoan);
         log.info("Loan deleted successfully with id: {}", idLoan);
+    }
+
+    //-----------------------------------------------------------------------------------------------------------
+    //LOAN FROM PURCHASES (zamiana jednego lub kilku zakupow na kredyt, np. PayPo/Allegro)
+    //
+    @GetMapping("/from-purchases/draft")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
+    public ResponseEntity<LoanFromPurchasesDraftDto> suggestLoanFromPurchases(@RequestParam List<Integer> purchaseIds) {
+        log.info("Request to suggest a loan draft from purchases: {}", purchaseIds);
+
+        LoanFromPurchasesDraft draft = suggestLoanFromPurchasesUseCase.suggestLoanFromPurchases(purchaseIds);
+        LoanFromPurchasesDraftDto dto = apiLoanMapper.toDto(draft);
+
+        log.info("Suggested loan draft: {}", dto);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    @PostMapping("/from-purchases")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
+    public ResponseEntity<LoanDto> convertPurchasesToLoan(@RequestBody ConvertPurchasesToLoanRequestDto request) {
+        log.info("Request to convert purchases {} into a loan with data: {}", request.getPurchaseIds(), request.getLoan());
+
+        Loan loanData = apiLoanMapper.toDomain(request.getLoan());
+        Loan result = convertPurchasesToLoanUseCase.convertPurchasesToLoan(request.getPurchaseIds(), loanData);
+
+        log.info("Purchases converted successfully into loan id: {}", result.getId());
+        return new ResponseEntity<>(apiLoanMapper.toDto(result), HttpStatus.CREATED);
     }
 
     //-----------------------------------------------------------------------------------------------------------

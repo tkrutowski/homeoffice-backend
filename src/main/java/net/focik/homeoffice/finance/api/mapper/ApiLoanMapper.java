@@ -2,9 +2,11 @@ package net.focik.homeoffice.finance.api.mapper;
 
 import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.finance.api.dto.LoanDto;
+import net.focik.homeoffice.finance.api.dto.LoanFromPurchasesDraftDto;
 import net.focik.homeoffice.finance.api.dto.LoanInstallmentDto;
 import net.focik.homeoffice.finance.domain.exception.LoanNotValidException;
 import net.focik.homeoffice.finance.domain.loan.Loan;
+import net.focik.homeoffice.finance.domain.loan.LoanFromPurchasesDraft;
 import net.focik.homeoffice.finance.domain.loan.LoanInstallment;
 import net.focik.homeoffice.finance.domain.transaction.model.TransactionType;
 import net.focik.homeoffice.finance.infrastructure.dto.BankTransactionDbDto;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 public class ApiLoanMapper {
 
     private final ApiBankMapper bankMapper;
+    private final ApiPurchaseMapper purchaseMapper;
 
     public Loan toDomain(LoanDto dto) {
         valid(dto);
@@ -120,6 +123,20 @@ public class ApiLoanMapper {
     private void valid(LoanInstallmentDto dto) {
         if (dto.getIdLoan() == 0)
             throw new LoanNotValidException("IdLoan can't be null.");
+    }
+
+    public LoanFromPurchasesDraftDto toDto(LoanFromPurchasesDraft draft) {
+        return LoanFromPurchasesDraftDto.builder()
+                .suggestedAmount(draft.getSuggestedAmount() != null
+                        ? String.format("%.2f", draft.getSuggestedAmount()).replace(",", ".")
+                        : null)
+                .suggestedName(draft.getSuggestedName())
+                .suggestedDate(draft.getSuggestedDate())
+                .purchases(draft.getPurchases() != null
+                        ? draft.getPurchases().stream().map(purchaseMapper::toDto).collect(Collectors.toList())
+                        : new ArrayList<>())
+                .warnings(draft.getWarnings())
+                .build();
     }
 
     public BankTransactionDbDto toBankTransaction(LoanInstallment installment, Loan loan, int transactionCategoryId, int firmId) {

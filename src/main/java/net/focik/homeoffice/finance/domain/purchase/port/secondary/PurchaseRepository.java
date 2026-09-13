@@ -17,6 +17,10 @@ public interface PurchaseRepository {
 
     Optional<Purchase> findPurchaseById(Integer id);
 
+    List<Purchase> findAllById(List<Integer> ids);
+
+    List<Purchase> findAllByLoan(Integer idLoan);
+
     List<Purchase> findPurchaseByUserId(Integer idUser);
 
     List<Purchase> findPurchaseByUserAndStatus(Integer idUser, PaymentStatus status);

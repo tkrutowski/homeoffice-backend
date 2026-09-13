@@ -30,6 +30,8 @@ public class Purchase {
     private String otherInfo;
     private PaymentStatus paymentStatus;
     private String imageUrl;
+    /** Id kredytu, do ktorego zakup zostal wlaczony (zob. ConvertPurchasesToLoanUseCase). Null = zwykly zakup. */
+    private Integer idLoan;
 
     public void changePaymentStatus(PaymentStatus paymentStatus) {
         this.paymentStatus = paymentStatus;

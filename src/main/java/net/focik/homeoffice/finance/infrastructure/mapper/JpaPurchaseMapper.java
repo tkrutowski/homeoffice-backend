@@ -20,6 +20,7 @@ public class JpaPurchaseMapper {
                 .paymentDate(purchase.getPaymentDate())
                 .otherInfo(purchase.getOtherInfo())
                 .paymentStatus(purchase.getPaymentStatus())
+                .idLoan(purchase.getIdLoan())
                 .build();
     }
 
@@ -36,6 +37,7 @@ public class JpaPurchaseMapper {
                 .paymentDate(dto.getPaymentDate())
                 .otherInfo(dto.getOtherInfo())
                 .paymentStatus(dto.getPaymentStatus())
+                .idLoan(dto.getIdLoan())
                 .build();
     }
 }

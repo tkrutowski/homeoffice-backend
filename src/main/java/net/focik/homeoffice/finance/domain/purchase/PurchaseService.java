@@ -78,6 +78,14 @@ class PurchaseService {
         return purchaseById.get();
     }
 
+    List<Purchase> findAllById(List<Integer> ids) {
+        return purchaseRepository.findAllById(ids);
+    }
+
+    List<Purchase> findByLoan(int idLoan) {
+        return purchaseRepository.findAllByLoan(idLoan);
+    }
+
     @Transactional
     public void deletePurchase(int idPurchase) {
         purchaseRepository.deletePurchaseById(idPurchase);

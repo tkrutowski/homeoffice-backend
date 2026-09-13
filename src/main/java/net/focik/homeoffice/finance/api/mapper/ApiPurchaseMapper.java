@@ -32,6 +32,7 @@ public class ApiPurchaseMapper {
                 .paymentDate(dto.getPaymentDate())
                 .otherInfo(dto.getOtherInfo())
                 .paymentStatus(dto.getPaymentStatus())
+                .idLoan(dto.getIdLoan())
                 .build();
     }
 
@@ -48,6 +49,7 @@ public class ApiPurchaseMapper {
                 .paymentDate(purchase.getPaymentDate())
                 .otherInfo(purchase.getOtherInfo() == null ? "" : purchase.getOtherInfo())
                 .paymentStatus(purchase.getPaymentStatus())
+                .idLoan(purchase.getIdLoan())
                 .build();
     }
 

@@ -100,6 +100,16 @@ public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase
     }
 
     @Override
+    public List<Purchase> findAllById(List<Integer> ids) {
+        return purchaseService.findAllById(ids);
+    }
+
+    @Override
+    public List<Purchase> findByLoan(int idLoan) {
+        return purchaseService.findByLoan(idLoan);
+    }
+
+    @Override
     public List<Purchase> findByUser(String userName, PaymentStatus paymentStatus, LocalDate date) {
         AppUser user = userFacade.findUserByUsername(userName);
         return purchaseService.findPurchasesByUser(Math.toIntExact(user.getId()), paymentStatus);

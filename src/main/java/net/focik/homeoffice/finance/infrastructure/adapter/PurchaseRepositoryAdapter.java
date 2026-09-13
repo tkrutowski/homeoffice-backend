@@ -43,6 +43,20 @@ class PurchaseRepositoryAdapter implements PurchaseRepository {
     }
 
     @Override
+    public List<Purchase> findAllById(List<Integer> ids) {
+        return purchaseDtoRepository.findAllById(ids).stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Purchase> findAllByLoan(Integer idLoan) {
+        return purchaseDtoRepository.findAllByIdLoan(idLoan).stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<Purchase> findPurchaseByUserId(Integer idUser) {
         return purchaseDtoRepository.findAllByIdUser(idUser).stream()
                 .map(loanDto -> mapper.toDomain(loanDto))

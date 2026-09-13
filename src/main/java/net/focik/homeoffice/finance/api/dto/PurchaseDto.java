@@ -26,4 +26,5 @@ public class PurchaseDto {
     private LocalDate paymentDate;
     private String otherInfo;
     private PaymentStatus paymentStatus;
+    private Integer idLoan;
 }

@@ -9,6 +9,9 @@ import net.focik.homeoffice.finance.domain.loan.port.primary.AddLoanUseCase;
 import net.focik.homeoffice.finance.domain.loan.port.primary.DeleteLoanUseCase;
 import net.focik.homeoffice.finance.domain.loan.port.primary.GetLoanUseCase;
 import net.focik.homeoffice.finance.domain.loan.port.primary.UpdateLoanUseCase;
+import net.focik.homeoffice.finance.domain.purchase.Purchase;
+import net.focik.homeoffice.finance.domain.purchase.port.primary.GetPurchaseUseCase;
+import net.focik.homeoffice.finance.domain.purchase.port.primary.UpdatePurchaseUseCase;
 import net.focik.homeoffice.finance.infrastructure.jpa.BankTransactionDtoRepository;
 import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.UserFacade;
@@ -18,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -37,6 +41,8 @@ public class LoanFacade implements AddLoanUseCase, GetLoanUseCase, UpdateLoanUse
     private final UserFacade userFacade;
     private final BankTransactionDtoRepository bankTransactionRepository;
     private final ApiLoanMapper apiLoanMapper;
+    private final GetPurchaseUseCase getPurchaseUseCase;
+    private final UpdatePurchaseUseCase updatePurchaseUseCase;
 
     @Override
     @AuditLog(action = AuditAction.CREATE, entityType = "Loan")
@@ -148,9 +154,30 @@ public class LoanFacade implements AddLoanUseCase, GetLoanUseCase, UpdateLoanUse
     }
 
     @Override
+    @Transactional
     @AuditLog(action = AuditAction.DELETE, entityType = "Loan")
     public void deleteLoanById(int idLoan) {
+        unlinkConvertedPurchases(idLoan);
         loanService.deleteLoan(idLoan);
+    }
+
+    /**
+     * Odwraca skutek {@code ConvertPurchasesToLoanUseCase} - zakupy wchlonięte przez ten kredyt
+     * (zob. {@code Purchase.idLoan}) wracają do statusu {@code TO_PAY} jako samodzielne zakupy,
+     * zamiast zostać osierocone (z FK na usuniety Loan) po skasowaniu kredytu.
+     */
+    private void unlinkConvertedPurchases(int idLoan) {
+        List<Purchase> linkedPurchases = getPurchaseUseCase.findByLoan(idLoan);
+
+        linkedPurchases.forEach(purchase -> {
+            purchase.setIdLoan(null);
+            purchase.changePaymentStatus(PaymentStatus.TO_PAY);
+            updatePurchaseUseCase.updatePurchase(purchase);
+        });
+
+        if (!linkedPurchases.isEmpty()) {
+            log.info("Unlinked {} purchase(s) from loan id={} before deletion", linkedPurchases.size(), idLoan);
+        }
     }
 
     @Override
