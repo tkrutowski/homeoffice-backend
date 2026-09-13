@@ -6,8 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Stack
 
-- Java 21, Spring Boot 3.4.5 (most starters pinned to 3.5.7 via `springframework-boot.version`)
+- Java 25, Spring Boot 4.1.1 (all starters pinned via `springframework-boot.version`); Spring AI 2.0.0 (`spring-ai-starter-model-anthropic`) for LLM integration
 - MySQL via Spring Data JPA; Flyway for schema (`spring.jpa.hibernate.ddl-auto=none`)
+- Real MySQL server (dev and prod — same DB on webio.pl) is 5.7.38, below the minimum Hibernate 7's default `MySQLDialect` supports (8.0.0) — uses `hibernate-community-dialects` with `MySQLLegacyDialect` instead
+- A few modules were renamed/split in Boot 4: `spring-boot-restclient` (RestTemplateBuilder split out of autoconfigure), `spring-boot-starter-aspectj` (replaces `spring-boot-starter-aop`, same content — spring-aspects + aspectjweaver, used by `@Aspect`/`AuditAspect`)
+- Lombok annotation processor path is declared explicitly in `maven-compiler-plugin` — classpath auto-detection fails under JDK 25 in this project
 - Maven (wrapper: `./mvnw` on Unix, `mvnw.cmd` on Windows)
 - AWS SDK v2 (S3, Textract); `ksef-client` SDK from GitHub Packages (`maven.pkg.github.com/CIRFMF/ksef-client-java`)
 - Lombok, ModelMapper, Moneta (JavaMoney), jjwt, iText, jsoup, vavr
