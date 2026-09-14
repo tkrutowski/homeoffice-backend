@@ -33,6 +33,7 @@ public class LoanProposalDbDto extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    private Integer idUser;
     @Column(nullable = false, unique = true)
     private String sourceMessageId;
     private String sourceEmailFrom;

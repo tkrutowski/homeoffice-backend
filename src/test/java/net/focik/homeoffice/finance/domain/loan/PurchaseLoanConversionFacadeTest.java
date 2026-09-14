@@ -9,18 +9,28 @@ import net.focik.homeoffice.finance.domain.exception.PurchaseUserMismatchExcepti
 import net.focik.homeoffice.finance.domain.purchase.Purchase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.GetPurchaseUseCase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.UpdatePurchaseUseCase;
+import net.focik.homeoffice.userservice.domain.AppUser;
+import net.focik.homeoffice.userservice.domain.UserFacade;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.javamoney.moneta.Money;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -44,11 +54,27 @@ class PurchaseLoanConversionFacadeTest {
     @Mock
     private UpdatePurchaseUseCase updatePurchaseUseCase;
 
+    @Mock
+    private UserFacade userFacade;
+
     private PurchaseLoanConversionFacade facade;
 
     @BeforeEach
     void setUp() {
-        facade = new PurchaseLoanConversionFacade(loanService, getPurchaseUseCase, updatePurchaseUseCase);
+        facade = new PurchaseLoanConversionFacade(loanService, getPurchaseUseCase, updatePurchaseUseCase, userFacade);
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
+    private void authenticateAs(String username, String... authorities) {
+        List<GrantedAuthority> grantedAuthorities = Arrays.stream(authorities)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(username, null, grantedAuthorities));
     }
 
     private Purchase purchase(Integer id, int idUser, int idCard, int idFirm, BigDecimal amount,
@@ -239,5 +265,89 @@ class PurchaseLoanConversionFacadeTest {
                 .isInstanceOf(PurchaseNotValidException.class);
 
         verify(getPurchaseUseCase, never()).findAllById(anyList());
+    }
+
+    // ---------- kontrola wlasnosci zakupow (na wzor LoanFacadeTest/PurchaseFacadeTest) ----------
+
+    @Test
+    void suggest_ShouldThrowAccessDenied_WhenRequestingUserDoesNotOwnAllPurchases() {
+        authenticateAs("john", "ROLE_FINANCE");
+        Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
+        when(getPurchaseUseCase.findAllById(List.of(1))).thenReturn(List.of(purchase));
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(99L).build());
+
+        assertThatThrownBy(() -> facade.suggestLoanFromPurchases(List.of(1)))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    void suggest_ShouldSucceed_WhenRequestingUserOwnsAllPurchases() {
+        authenticateAs("john", "ROLE_FINANCE");
+        Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
+        when(getPurchaseUseCase.findAllById(List.of(1))).thenReturn(List.of(purchase));
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(10L).build());
+
+        assertThatCode(() -> facade.suggestLoanFromPurchases(List.of(1))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void suggest_ShouldSucceed_WhenUserHasReadAllAuthority_EvenIfNotOwner() {
+        authenticateAs("admin", "FINANCE_PURCHASE_READ_ALL");
+        Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
+        when(getPurchaseUseCase.findAllById(List.of(1))).thenReturn(List.of(purchase));
+
+        assertThatCode(() -> facade.suggestLoanFromPurchases(List.of(1))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void convert_ShouldThrowAccessDenied_WhenRequestingUserDoesNotOwnAllPurchases() {
+        authenticateAs("john", "ROLE_FINANCE");
+        Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
+        Loan loanData = loanData(10, new BigDecimal("100.00"));
+        when(getPurchaseUseCase.findAllById(List.of(1))).thenReturn(List.of(purchase));
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(99L).build());
+
+        assertThatThrownBy(() -> facade.convertPurchasesToLoan(List.of(1), loanData))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(loanService, never()).saveLoan(any());
+    }
+
+    @Test
+    void convert_ShouldThrowAccessDenied_WhenUserHasOnlyReadAllAuthority_NotWriteAll() {
+        // READ_ALL i WRITE_ALL to celowo osobne uprawnienia
+        authenticateAs("john", "FINANCE_PURCHASE_READ_ALL");
+        Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
+        Loan loanData = loanData(10, new BigDecimal("100.00"));
+        when(getPurchaseUseCase.findAllById(List.of(1))).thenReturn(List.of(purchase));
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(99L).build());
+
+        assertThatThrownBy(() -> facade.convertPurchasesToLoan(List.of(1), loanData))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(loanService, never()).saveLoan(any());
+    }
+
+    @Test
+    void convert_ShouldSucceed_WhenRequestingUserOwnsAllPurchases() {
+        authenticateAs("john", "ROLE_FINANCE");
+        Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
+        Loan loanData = loanData(10, new BigDecimal("100.00"));
+        when(getPurchaseUseCase.findAllById(List.of(1))).thenReturn(List.of(purchase));
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(10L).build());
+        when(loanService.saveLoan(loanData)).thenReturn(Loan.builder().id(1).idUser(10).build());
+
+        assertThatCode(() -> facade.convertPurchasesToLoan(List.of(1), loanData)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void convert_ShouldSucceed_WhenUserHasWriteAllAuthority_EvenIfNotOwner() {
+        authenticateAs("admin", "FINANCE_PURCHASE_WRITE_ALL");
+        Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
+        Loan loanData = loanData(10, new BigDecimal("100.00"));
+        when(getPurchaseUseCase.findAllById(List.of(1))).thenReturn(List.of(purchase));
+        when(loanService.saveLoan(loanData)).thenReturn(Loan.builder().id(1).idUser(10).build());
+
+        assertThatCode(() -> facade.convertPurchasesToLoan(List.of(1), loanData)).doesNotThrowAnyException();
     }
 }

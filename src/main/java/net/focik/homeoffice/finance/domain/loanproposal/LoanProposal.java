@@ -22,6 +22,13 @@ import java.time.LocalDateTime;
 @ToString
 public class LoanProposal {
     private int id;
+    /**
+     * Domownik, ktorego dotyczy ta propozycja - ustalany automatycznie przy ingest (dopasowanie
+     * {@code sourceEmailFrom} do {@code AppUser.email}, zob. {@code LoanProposalFacade.ingest}).
+     * Null, gdy dopasowanie sie nie powiodlo - wtedy propozycja jest widoczna tylko dla
+     * uprzywilejowanych uzytkownikow (READ_ALL/WRITE_ALL/ROLE_ADMIN) do recznej weryfikacji.
+     */
+    private Integer idUser;
     private String sourceMessageId;
     private String sourceEmailFrom;
     private String sourceSubject;

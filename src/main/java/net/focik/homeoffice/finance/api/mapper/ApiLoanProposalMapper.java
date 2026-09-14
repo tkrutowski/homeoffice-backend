@@ -18,6 +18,7 @@ public class ApiLoanProposalMapper {
     public LoanProposalDto toDto(LoanProposal p) {
         return LoanProposalDto.builder()
                 .id(p.getId())
+                .idUser(p.getIdUser())
                 .sourceEmailFrom(p.getSourceEmailFrom())
                 .sourceSubject(p.getSourceSubject())
                 .sourceFileS3Key(p.getSourceFileS3Key())

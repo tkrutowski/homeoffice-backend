@@ -5,20 +5,34 @@ import net.focik.homeoffice.finance.domain.purchase.Purchase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.GetPurchaseUseCase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.UpdatePurchaseUseCase;
 import net.focik.homeoffice.finance.infrastructure.jpa.BankTransactionDtoRepository;
+import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.UserFacade;
 import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -53,6 +67,19 @@ class LoanFacadeTest {
                 getPurchaseUseCase, updatePurchaseUseCase);
     }
 
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
+    private void authenticateAs(String username, String... authorities) {
+        List<GrantedAuthority> grantedAuthorities = Arrays.stream(authorities)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(username, null, grantedAuthorities));
+    }
+
     private Purchase convertedPurchase(int id, int idLoan) {
         return Purchase.builder()
                 .id(id)
@@ -68,6 +95,7 @@ class LoanFacadeTest {
 
     @Test
     void deleteLoanById_ShouldUnlinkAndRevertConvertedPurchases_BeforeDeletingLoan() {
+        when(loanService.findLoanById(99, false)).thenReturn(Loan.builder().id(99).idUser(7).build());
         Purchase p1 = convertedPurchase(1, 99);
         Purchase p2 = convertedPurchase(2, 99);
         when(getPurchaseUseCase.findByLoan(99)).thenReturn(List.of(p1, p2));
@@ -88,11 +116,356 @@ class LoanFacadeTest {
 
     @Test
     void deleteLoanById_ShouldNotTouchPurchases_WhenNoneAreLinked() {
+        when(loanService.findLoanById(5, false)).thenReturn(Loan.builder().id(5).idUser(7).build());
         when(getPurchaseUseCase.findByLoan(5)).thenReturn(List.of());
 
         loanFacade.deleteLoanById(5);
 
         verify(updatePurchaseUseCase, never()).updatePurchase(any());
         verify(loanService, times(1)).deleteLoan(5);
+    }
+
+    @Test
+    void deleteLoanById_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoDeleteAllPrivilege() {
+        authenticateAs("john", "ROLE_FINANCE");
+        when(loanService.findLoanById(99, false)).thenReturn(Loan.builder().id(99).idUser(7).build());
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(99L).build());
+
+        assertThatThrownBy(() -> loanFacade.deleteLoanById(99))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(loanService, never()).deleteLoan(anyInt());
+        verify(getPurchaseUseCase, never()).findByLoan(anyInt());
+    }
+
+    @Test
+    void deleteLoanById_ShouldThrowAccessDenied_WhenUserHasOnlyWriteAllAuthority() {
+        // WRITE_ALL nie uprawnia do usuwania cudzych kredytow - do tego sluzy osobne DELETE_ALL
+        authenticateAs("john", "FINANCE_LOAN_WRITE_ALL");
+        when(loanService.findLoanById(99, false)).thenReturn(Loan.builder().id(99).idUser(7).build());
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(99L).build());
+
+        assertThatThrownBy(() -> loanFacade.deleteLoanById(99))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(loanService, never()).deleteLoan(anyInt());
+    }
+
+    @Test
+    void deleteLoanById_ShouldDeleteOwnLoan_WhenRequestingUserIsOwner() {
+        authenticateAs("john", "ROLE_FINANCE");
+        when(loanService.findLoanById(99, false)).thenReturn(Loan.builder().id(99).idUser(7).build());
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
+        when(getPurchaseUseCase.findByLoan(99)).thenReturn(List.of());
+
+        loanFacade.deleteLoanById(99);
+
+        verify(loanService).deleteLoan(99);
+    }
+
+    @Test
+    void deleteLoanById_ShouldDeleteAnyLoan_WhenUserHasDeleteAllAuthority() {
+        authenticateAs("admin", "FINANCE_LOAN_DELETE_ALL");
+        when(loanService.findLoanById(99, false)).thenReturn(Loan.builder().id(99).idUser(7).build());
+        when(getPurchaseUseCase.findByLoan(99)).thenReturn(List.of());
+
+        loanFacade.deleteLoanById(99);
+
+        verify(loanService).deleteLoan(99);
+        verify(userFacade, never()).findUserByUsername(any());
+    }
+
+    @Test
+    void deleteLoanInstallmentById_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoDeleteAllPrivilege() {
+        authenticateAs("john", "ROLE_FINANCE");
+        LoanInstallment installment = LoanInstallment.builder().idLoanInstallment(5).idLoan(99).build();
+        when(loanService.getLoanInstallment(5)).thenReturn(installment);
+        when(loanService.findLoanById(99, false)).thenReturn(Loan.builder().id(99).idUser(7).build());
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(99L).build());
+
+        assertThatThrownBy(() -> loanFacade.deleteLoanInstallmentById(5))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(loanService, never()).deleteLoanInstallment(anyInt());
+    }
+
+    @Test
+    void deleteLoanInstallmentById_ShouldDelete_WhenRequestingUserIsOwner() {
+        authenticateAs("john", "ROLE_FINANCE");
+        LoanInstallment installment = LoanInstallment.builder().idLoanInstallment(5).idLoan(99).build();
+        when(loanService.getLoanInstallment(5)).thenReturn(installment);
+        when(loanService.findLoanById(99, false)).thenReturn(Loan.builder().id(99).idUser(7).build());
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
+
+        loanFacade.deleteLoanInstallmentById(5);
+
+        verify(loanService).deleteLoanInstallment(5);
+    }
+
+    @Test
+    void deleteLoanInstallmentById_ShouldDelete_WhenUserHasDeleteAllAuthority() {
+        authenticateAs("admin", "FINANCE_LOAN_DELETE_ALL");
+        LoanInstallment installment = LoanInstallment.builder().idLoanInstallment(5).idLoan(99).build();
+        when(loanService.getLoanInstallment(5)).thenReturn(installment);
+        when(loanService.findLoanById(99, false)).thenReturn(Loan.builder().id(99).idUser(7).build());
+
+        loanFacade.deleteLoanInstallmentById(5);
+
+        verify(loanService).deleteLoanInstallment(5);
+        verify(userFacade, never()).findUserByUsername(any());
+    }
+
+    // ---- Kontrola dostępu (na wzór getLoansByStatus) ----
+
+    @Test
+    void getLoanById_ShouldReturnLoan_WhenNoAuthenticationContext() {
+        // brak kontekstu security (np. zadanie schedulera) - traktowane jak pelny dostep
+        Loan loan = Loan.builder().id(1).idUser(5).build();
+        when(loanService.findLoanById(1, true)).thenReturn(loan);
+
+        Loan result = loanFacade.getLoanById(1, true);
+
+        assertThat(result).isEqualTo(loan);
+        verify(userFacade, never()).findUserByUsername(any());
+    }
+
+    @Test
+    void getLoanById_ShouldReturnLoan_WhenRequestingUserIsOwner() {
+        authenticateAs("john", "ROLE_FINANCE");
+        Loan loan = Loan.builder().id(1).idUser(7).build();
+        when(loanService.findLoanById(1, true)).thenReturn(loan);
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
+
+        Loan result = loanFacade.getLoanById(1, true);
+
+        assertThat(result).isEqualTo(loan);
+    }
+
+    @Test
+    void getLoanById_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoReadAllPrivilege() {
+        authenticateAs("john", "ROLE_FINANCE");
+        Loan loan = Loan.builder().id(1).idUser(7).build();
+        when(loanService.findLoanById(1, true)).thenReturn(loan);
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(99L).build());
+
+        assertThatThrownBy(() -> loanFacade.getLoanById(1, true))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    void getLoanById_ShouldReturnAnyLoan_WhenUserHasReadAllAuthority() {
+        authenticateAs("admin", "FINANCE_LOAN_READ_ALL");
+        Loan loan = Loan.builder().id(1).idUser(7).build();
+        when(loanService.findLoanById(1, true)).thenReturn(loan);
+
+        Loan result = loanFacade.getLoanById(1, true);
+
+        assertThat(result).isEqualTo(loan);
+        verify(userFacade, never()).findUserByUsername(any());
+    }
+
+    @Test
+    void getLoanById_ShouldThrowAccessDenied_WhenUserHasOnlyWriteAllAuthority() {
+        // READ_ALL i WRITE_ALL to celowo osobne uprawnienia - samo WRITE_ALL nie daje prawa do odczytu cudzych danych
+        authenticateAs("john", "FINANCE_LOAN_WRITE_ALL");
+        Loan loan = Loan.builder().id(1).idUser(7).build();
+        when(loanService.findLoanById(1, true)).thenReturn(loan);
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(99L).build());
+
+        assertThatThrownBy(() -> loanFacade.getLoanById(1, true))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    void findLoansPageableWithFilters_ShouldOverrideRequestedIdUser_WhenUserHasNoReadAllPrivilege() {
+        authenticateAs("john", "ROLE_FINANCE");
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
+        when(loanService.findLoansPageableWithFilters(
+                eq(0), eq(20), eq("date"), eq("DESC"), isNull(), isNull(), isNull(),
+                isNull(), eq("EQUALS"), isNull(), eq("EQUALS"), isNull(), eq(7)))
+                .thenReturn(Page.empty());
+
+        // klient probuje podejrzec cudze dane (idUser=999) - serwer ma to zignorowac
+        loanFacade.findLoansPageableWithFilters(0, 20, "date", "DESC", null, null, null,
+                null, "EQUALS", null, "EQUALS", null, 999);
+
+        verify(loanService).findLoansPageableWithFilters(
+                eq(0), eq(20), eq("date"), eq("DESC"), isNull(), isNull(), isNull(),
+                isNull(), eq("EQUALS"), isNull(), eq("EQUALS"), isNull(), eq(7));
+    }
+
+    @Test
+    void findLoansPageableWithFilters_ShouldKeepRequestedIdUser_WhenUserHasReadAllAuthority() {
+        authenticateAs("admin", "ROLE_ADMIN");
+        when(loanService.findLoansPageableWithFilters(
+                eq(0), eq(20), eq("date"), eq("DESC"), isNull(), isNull(), isNull(),
+                isNull(), eq("EQUALS"), isNull(), eq("EQUALS"), isNull(), eq(999)))
+                .thenReturn(Page.empty());
+
+        loanFacade.findLoansPageableWithFilters(0, 20, "date", "DESC", null, null, null,
+                null, "EQUALS", null, "EQUALS", null, 999);
+
+        verify(loanService).findLoansPageableWithFilters(
+                eq(0), eq(20), eq("date"), eq("DESC"), isNull(), isNull(), isNull(),
+                isNull(), eq("EQUALS"), isNull(), eq("EQUALS"), isNull(), eq(999));
+        verify(userFacade, never()).findUserByUsername(any());
+    }
+
+    @Test
+    void addLoan_ShouldOverrideRequestedIdUser_WhenUserHasNoWriteAllPrivilege() {
+        authenticateAs("john", "ROLE_FINANCE");
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
+        // proba dodania kredytu "na konto" innej osoby (idUser=999)
+        Loan loanToAdd = Loan.builder().idUser(999).build();
+        when(loanService.saveLoan(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Loan result = loanFacade.addLoan(loanToAdd);
+
+        assertThat(result.getIdUser()).isEqualTo(7);
+    }
+
+    @Test
+    void addLoan_ShouldOverrideRequestedIdUser_WhenUserHasOnlyReadAllAuthority() {
+        // sam READ_ALL (bez WRITE_ALL) nie uprawnia do zakladania kredytow na cudze konto
+        authenticateAs("john", "FINANCE_LOAN_READ_ALL");
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
+        Loan loanToAdd = Loan.builder().idUser(999).build();
+        when(loanService.saveLoan(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Loan result = loanFacade.addLoan(loanToAdd);
+
+        assertThat(result.getIdUser()).isEqualTo(7);
+    }
+
+    @Test
+    void addLoan_ShouldKeepRequestedIdUser_WhenUserHasWriteAllAuthority() {
+        authenticateAs("admin", "FINANCE_LOAN_WRITE_ALL");
+        Loan loanToAdd = Loan.builder().idUser(999).build();
+        when(loanService.saveLoan(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Loan result = loanFacade.addLoan(loanToAdd);
+
+        assertThat(result.getIdUser()).isEqualTo(999);
+        verify(userFacade, never()).findUserByUsername(any());
+    }
+
+    @Test
+    void updateLoan_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoWriteAllPrivilege() {
+        authenticateAs("john", "ROLE_FINANCE");
+        Loan existingLoan = Loan.builder().id(1).idUser(7).build();
+        when(loanService.findLoanById(1, false)).thenReturn(existingLoan);
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(99L).build());
+
+        Loan loanToUpdate = Loan.builder().id(1).idUser(7).build();
+
+        assertThatThrownBy(() -> loanFacade.updateLoan(loanToUpdate))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(loanService, never()).updateLoan(any());
+    }
+
+    @Test
+    void updateLoan_ShouldOverrideRequestedIdUser_WhenOwnerTriesToReassignLoanToSomeoneElse() {
+        authenticateAs("john", "ROLE_FINANCE");
+        Loan existingLoan = Loan.builder().id(1).idUser(7).build();
+        when(loanService.findLoanById(1, false)).thenReturn(existingLoan);
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
+        // proba przepisania wlasnego kredytu na inna osobe (idUser=999)
+        Loan loanToUpdate = Loan.builder().id(1).idUser(999).build();
+        Loan updatedLoan = Loan.builder().id(1).idUser(7).build();
+        when(loanService.findLoanById(1, true)).thenReturn(updatedLoan);
+
+        Loan result = loanFacade.updateLoan(loanToUpdate);
+
+        assertThat(loanToUpdate.getIdUser()).isEqualTo(7);
+        assertThat(result.getIdUser()).isEqualTo(7);
+        verify(loanService).updateLoan(loanToUpdate);
+    }
+
+    @Test
+    void updateLoan_ShouldKeepRequestedIdUser_WhenUserHasWriteAllAuthority() {
+        authenticateAs("admin", "FINANCE_LOAN_WRITE_ALL");
+        Loan existingLoan = Loan.builder().id(1).idUser(7).build();
+        when(loanService.findLoanById(1, false)).thenReturn(existingLoan);
+        Loan loanToUpdate = Loan.builder().id(1).idUser(999).build();
+        Loan updatedLoan = Loan.builder().id(1).idUser(999).build();
+        when(loanService.findLoanById(1, true)).thenReturn(updatedLoan);
+
+        Loan result = loanFacade.updateLoan(loanToUpdate);
+
+        assertThat(result.getIdUser()).isEqualTo(999);
+        verify(userFacade, never()).findUserByUsername(any());
+    }
+
+    @Test
+    void updateLoan_ShouldThrowAccessDenied_WhenUserHasOnlyReadAllAuthority() {
+        // sam READ_ALL (bez WRITE_ALL) nie uprawnia do edycji cudzego kredytu
+        authenticateAs("john", "FINANCE_LOAN_READ_ALL");
+        Loan existingLoan = Loan.builder().id(1).idUser(7).build();
+        when(loanService.findLoanById(1, false)).thenReturn(existingLoan);
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(99L).build());
+
+        Loan loanToUpdate = Loan.builder().id(1).idUser(7).build();
+
+        assertThatThrownBy(() -> loanFacade.updateLoan(loanToUpdate))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(loanService, never()).updateLoan(any());
+    }
+
+    @Test
+    void updateLoanStatus_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoWriteAllPrivilege() {
+        authenticateAs("john", "ROLE_FINANCE");
+        Loan existingLoan = Loan.builder().id(1).idUser(7).build();
+        when(loanService.findLoanById(1, false)).thenReturn(existingLoan);
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(99L).build());
+
+        assertThatThrownBy(() -> loanFacade.updateLoanStatus(1, PaymentStatus.PAID))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(loanService, never()).updateLoan(any());
+    }
+
+    @Test
+    void updateLoanStatus_ShouldUpdateStatus_WhenRequestingUserIsOwner() {
+        authenticateAs("john", "ROLE_FINANCE");
+        Loan existingLoan = Loan.builder().id(1).idUser(7).loanStatus(PaymentStatus.TO_PAY).build();
+        when(loanService.findLoanById(1, false)).thenReturn(existingLoan);
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
+        Loan updatedLoan = Loan.builder().id(1).idUser(7).loanStatus(PaymentStatus.PAID).build();
+        when(loanService.findLoanById(1, true)).thenReturn(updatedLoan);
+
+        Loan result = loanFacade.updateLoanStatus(1, PaymentStatus.PAID);
+
+        assertThat(result.getLoanStatus()).isEqualTo(PaymentStatus.PAID);
+        verify(loanService).updateLoan(existingLoan);
+    }
+
+    @Test
+    void updateLoanStatus_ShouldUpdateStatus_WhenUserHasWriteAllAuthority() {
+        authenticateAs("admin", "FINANCE_LOAN_WRITE_ALL");
+        Loan existingLoan = Loan.builder().id(1).idUser(7).loanStatus(PaymentStatus.TO_PAY).build();
+        when(loanService.findLoanById(1, false)).thenReturn(existingLoan);
+        Loan updatedLoan = Loan.builder().id(1).idUser(7).loanStatus(PaymentStatus.PAID).build();
+        when(loanService.findLoanById(1, true)).thenReturn(updatedLoan);
+
+        Loan result = loanFacade.updateLoanStatus(1, PaymentStatus.PAID);
+
+        assertThat(result.getLoanStatus()).isEqualTo(PaymentStatus.PAID);
+        verify(userFacade, never()).findUserByUsername(any());
+    }
+
+    @Test
+    void updateLoanStatus_ShouldThrowAccessDenied_WhenUserHasOnlyReadAllAuthority() {
+        // sam READ_ALL (bez WRITE_ALL) nie uprawnia do zmiany statusu cudzego kredytu
+        authenticateAs("john", "FINANCE_LOAN_READ_ALL");
+        Loan existingLoan = Loan.builder().id(1).idUser(7).build();
+        when(loanService.findLoanById(1, false)).thenReturn(existingLoan);
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(99L).build());
+
+        assertThatThrownBy(() -> loanFacade.updateLoanStatus(1, PaymentStatus.PAID))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(loanService, never()).updateLoan(any());
     }
 }

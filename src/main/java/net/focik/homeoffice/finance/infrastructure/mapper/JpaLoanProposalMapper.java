@@ -20,6 +20,7 @@ public class JpaLoanProposalMapper {
     public LoanProposalDbDto toDto(LoanProposal proposal) {
         return LoanProposalDbDto.builder()
                 .id(proposal.getId() == 0 ? null : proposal.getId())
+                .idUser(proposal.getIdUser())
                 .sourceMessageId(proposal.getSourceMessageId())
                 .sourceEmailFrom(proposal.getSourceEmailFrom())
                 .sourceSubject(proposal.getSourceSubject())
@@ -38,6 +39,7 @@ public class JpaLoanProposalMapper {
     public LoanProposal toDomain(LoanProposalDbDto dto) {
         return LoanProposal.builder()
                 .id(dto.getId())
+                .idUser(dto.getIdUser())
                 .sourceMessageId(dto.getSourceMessageId())
                 .sourceEmailFrom(dto.getSourceEmailFrom())
                 .sourceSubject(dto.getSourceSubject())

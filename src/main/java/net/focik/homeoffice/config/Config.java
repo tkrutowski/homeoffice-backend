@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -20,7 +21,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.deser.std.StdDeserializer;
 import tools.jackson.databind.json.JsonMapper;
@@ -64,15 +64,30 @@ class Config {
     }
 
     @Bean
-    public ObjectMapper objectMapper() {
+    @Primary
+    public JsonMapper objectMapper() {
         // Jackson 3: obsluga java.time jest wbudowana w jackson-databind (brak osobnego
         // JavaTimeModule) - SimpleModule wystarcza do nadpisania samego deserializera LocalDate.
+        //
+        // Zwracany typ MUSI byc JsonMapper (nie szerszy ObjectMapper) - JacksonAutoConfiguration
+        // ze Spring Boota 4 rejestruje wlasny bean `jacksonJsonMapper()` typu JsonMapper,
+        // oznaczony @Primary i @ConditionalOnMissingBean(JsonMapper.class). Ten warunek jest
+        // sprawdzany po zadeklarowanym typie metody @Bean, wiec przy typie ObjectMapper (nadtyp)
+        // Boot NIE wykrywalby tego beana jako "juz istniejacego JsonMappera" i tworzylby swoj
+        // wlasny - bez naszego modulu LocalDate - ktory jako @Primary wygrywalby przy wstrzykiwaniu
+        // do konwerterow HTTP. Efekt: JSON z data-czasem (np. z Date.toISOString() na froncie)
+        // w polu LocalDate powodowal 500 mimo poprawnego deserializera tutaj.
         SimpleModule localDateModule = new SimpleModule();
         localDateModule.addDeserializer(LocalDate.class, new LocalDateDeserializer());
 
         return JsonMapper.builder()
                 .addModule(localDateModule)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                // Wiele DTO ma prymitywne pola `int id` i front wysyla dla nich jawne `null` przy
+                // tworzeniu nowego obiektu (id jeszcze nie istnieje) - zamiast rzucac blad, traktujemy
+                // to jak brak wartosci (0), zgodnie z konwencja "0 = brak/nieprzypisane" juz uzywana
+                // w mapperach (np. ApiLoanMapper sprawdza dto.getIdUser() == 0).
+                .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
                 // Jackson 3: WRITE_DATES_AS_TIMESTAMPS przeniesione z SerializationFeature do DateTimeFeature
                 .configure(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS, false)
                 .build();

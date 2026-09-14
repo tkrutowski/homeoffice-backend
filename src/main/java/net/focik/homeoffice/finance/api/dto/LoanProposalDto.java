@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @ToString
 public class LoanProposalDto {
     private int id;
+    private Integer idUser;
     private String sourceEmailFrom;
     private String sourceSubject;
     private String sourceFileS3Key;

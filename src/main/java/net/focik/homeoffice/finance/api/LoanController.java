@@ -87,6 +87,7 @@ class LoanController {
     }
 
     @GetMapping("/page")
+    @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
     ResponseEntity<Page<LoanDto>> getLoansPage(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,

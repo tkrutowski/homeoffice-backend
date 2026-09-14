@@ -16,7 +16,13 @@ import net.focik.homeoffice.finance.domain.loan.port.primary.SuggestLoanFromPurc
 import net.focik.homeoffice.finance.domain.purchase.Purchase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.GetPurchaseUseCase;
 import net.focik.homeoffice.finance.domain.purchase.port.primary.UpdatePurchaseUseCase;
+import net.focik.homeoffice.userservice.domain.AppUser;
+import net.focik.homeoffice.userservice.domain.UserFacade;
+import net.focik.homeoffice.utils.UserHelper;
 import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -25,7 +31,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static net.focik.homeoffice.utils.PrivilegeHelper.*;
 
 /**
  * Zamiana jednego lub kilku istniejacych Purchase w jeden Loan (np. PayPo: 1 zakup = 1 kredyt,
@@ -49,10 +58,12 @@ public class PurchaseLoanConversionFacade implements SuggestLoanFromPurchasesUse
     private final LoanService loanService;
     private final GetPurchaseUseCase getPurchaseUseCase;
     private final UpdatePurchaseUseCase updatePurchaseUseCase;
+    private final UserFacade userFacade;
 
     @Override
     public LoanFromPurchasesDraft suggestLoanFromPurchases(List<Integer> purchaseIds) {
         List<Purchase> purchases = fetchPurchases(purchaseIds);
+        assertCanReadPurchases(purchases);
 
         BigDecimal suggestedAmount = sumAmounts(purchases);
 
@@ -82,6 +93,7 @@ public class PurchaseLoanConversionFacade implements SuggestLoanFromPurchasesUse
     @AuditLog(action = AuditAction.CREATE, entityType = "Loan")
     public Loan convertPurchasesToLoan(List<Integer> purchaseIds, Loan loanData) {
         List<Purchase> purchases = fetchPurchases(purchaseIds);
+        assertCanWritePurchases(purchases);
 
         requireSameUser(purchases, loanData);
         requireNotAlreadyLinked(purchases);
@@ -185,5 +197,51 @@ public class PurchaseLoanConversionFacade implements SuggestLoanFromPurchasesUse
         }
 
         return warnings;
+    }
+
+    /**
+     * Rzuca {@link AccessDeniedException}, jesli aktualnie zalogowany uzytkownik nie ma uprawnien
+     * do przegladania wszystkich zakupow (READ_ALL), a wsrod wskazanych zakupow jest choc jeden
+     * nalezacy do kogos innego. Dotyczy samego podgladu (draft), zanim cokolwiek zostanie zapisane.
+     */
+    private void assertCanReadPurchases(List<Purchase> purchases) {
+        assertOwnsAllPurchases(purchases, this::canReadAllPurchases);
+    }
+
+    /**
+     * Jak {@link #assertCanReadPurchases}, ale wymaga WRITE_ALL - do uzytku przed faktyczna
+     * konwersja (zapisem), ktora zmienia stan cudzych zakupow (idLoan, status).
+     */
+    private void assertCanWritePurchases(List<Purchase> purchases) {
+        assertOwnsAllPurchases(purchases, this::canWriteAllPurchases);
+    }
+
+    private void assertOwnsAllPurchases(List<Purchase> purchases, Predicate<Authentication> hasFullAccess) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // Brak kontekstu security (np. scheduler) - traktujemy jak pelny dostep
+        if (authentication == null || hasFullAccess.test(authentication)) {
+            return;
+        }
+
+        AppUser user = userFacade.findUserByUsername(UserHelper.getUserName());
+        int currentUserId = Math.toIntExact(user.getId());
+
+        boolean ownsAll = purchases.stream().allMatch(purchase -> purchase.getIdUser() == currentUserId);
+        if (!ownsAll) {
+            throw new AccessDeniedException("Brak uprawnień do wskazanych zakupów.");
+        }
+    }
+
+    private boolean canReadAllPurchases(Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(ROLE_ADMIN)
+                        || grantedAuthority.getAuthority().equals(FINANCE_PURCHASE_READ_ALL));
+    }
+
+    private boolean canWriteAllPurchases(Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(ROLE_ADMIN)
+                        || grantedAuthority.getAuthority().equals(FINANCE_PURCHASE_WRITE_ALL));
     }
 }

@@ -26,6 +26,10 @@ public class UserFacade {
         return userService.findUserByUsername(username);
     }
 
+    public AppUser findUserByEmail(String email) {
+        return userService.findUserByEmail(email);
+    }
+
     @AuditLog(action = AuditAction.UPDATE, entityType = "User")
     public AppUser updateUser(Long id, String firstName, String lastName, String username, String email) {
         return userService.updateUser(id, firstName, lastName, username, email);
