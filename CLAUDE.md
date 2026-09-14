@@ -113,9 +113,25 @@ Controllers always depend on `*UseCase` port interfaces from `domain/`, never on
 - Match the hexagonal layering in any new module — put the port interface in `domain/`, the adapter in `infrastructure/`.
 - Inject `*UseCase` port interfaces in controllers, not `*Service` or `*Facade` implementations.
 
+## Versioning
+
+Before creating a git commit, bump the project `<version>` in `pom.xml` (the top-level `<project><version>`, **not** the `<parent><version>` — that one pins the Spring Boot BOM) according to Semantic Versioning, based on what the commit actually changes:
+
+- **MAJOR** (`X.0.0`, reset MINOR and PATCH to 0): breaking changes — removed/renamed public `*UseCase` ports or REST endpoints, incompatible request/response DTO changes, a DB schema change with no backward-compatible migration path.
+- **MINOR** (`x.Y.0`, reset PATCH to 0): new backward-compatible functionality — a new endpoint, new `*UseCase`, new module, new optional feature/config flag.
+- **PATCH** (`x.y.Z`): bug fixes, internal refactors, dependency bumps, test-only changes — anything that doesn't change a public contract.
+
+Skip the bump when the commit touches only non-shippable files with no effect on the built JAR: `.github/workflows/`, `CLAUDE.md`/`AGENTS.md`, other docs, IDE/editor config, `docker-compose.yml`, local dev scripts under `scripts/`.
+
+Bump exactly one level per commit, and fold the `pom.xml` change into the same commit as the rest of the diff — never a separate "bump version" commit. When unsure which level applies (e.g. a change could read as either MINOR or PATCH), ask rather than guessing.
+
+## Git commits
+
+Never stage or commit untracked files (new files git doesn't already know about) without the user explicitly naming each one first — this applies even to files Claude itself created earlier in the same session (new source files, new docs, new migrations). When asked to commit, only add already-tracked (modified) files by default; call out any untracked files that logically belong with the change and ask before including them, rather than assuming "commit the changes" covers them. `git add -A`/`git add .` are unsafe here for exactly this reason — this repo's working tree routinely carries unrelated untracked local files (scratch docs, debug scripts, local-only property files with real secrets) that must never end up in a commit.
+
 ## Deployment
 
-Dockerfile expects `target/homeoffice-${APP_VERSION}.jar`. CI workflows in `.github/workflows/` (`deploy-to-synology.yml`, `ec2.yml`) handle release. Build artifact version comes from `pom.xml` (`<version>`).
+Dockerfile copies whatever single jar exists at `target/homeoffice-*.jar` (wildcard — doesn't need `APP_VERSION` to find it). CI workflows in `.github/workflows/` (`deploy-to-synology.yml`, `ec2.yml`) handle release; they still read the version from `pom.xml` (`<version>`) via `mvn help:evaluate` to tag the Docker image and pass it as the `APP_VERSION` build-arg (used only as a cosmetic `ENV` in the container — not read anywhere in application code).
 
 ## AWS CLI / Agent Toolkit
 

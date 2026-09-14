@@ -1,13 +1,16 @@
-# Problemy z wysyłką maili (SMTP) i sekretami w konfiguracji — do naprawienia
+# Problemy z wysyłką maili (SMTP) i sekretami w konfiguracji
 
 Dokument powstał po analizie błędu z logów (2026-09-14 09:30, wysyłka `expense-report.html` do
 `tkrutowski@gmail.com`). Zebrano tu główny problem oraz dodatkowe usterki znalezione przy okazji
 przeglądu `EmailServiceAdapter` i konfiguracji SMTP — w tym jedno znalezisko wykraczające poza
 temat maili (punkt 4: realne sekrety jako wartości domyślne w niezacommitowanych lokalnych
 zmianach `application.properties` — **nie w gicie**, ale ryzyko przyszłego przypadkowego
-commita). Nic z poniższego nie zostało jeszcze naprawione — to lista do zrobienia na później.
+commita).
 
-## 1. Timeout przy autoryzacji SMTP (`smtp.webio.pl`)
+**Punkty 1-3 naprawione** (patrz opis zmian pod każdym). **Punkt 4 nadal czeka** — to zmiana
+organizacyjna (jak trzymać lokalne sekrety), nie fix w kodzie.
+
+## 1. ✅ Timeout przy autoryzacji SMTP (`smtp.webio.pl`) — naprawione
 
 **Priorytet: średni** (objawia się utratą maili, ale bez wpływu na resztę aplikacji)
 
@@ -44,20 +47,21 @@ hostem aplikacji a `webio.pl`. Jeśli powtarza się częściej niż sporadycznie
 monitorować (np. licząc błędy `MailException` w logach) zanim zdecydujemy się na któryś z
 poniższych fixów.
 
-### Jak naprawić (do wyboru / do połączenia)
+### Co zostało zrobione
 
-1. **Zwiększyć timeouty** — 5s to mało dla wolniejszego łącza/obciążonego serwera. Podnieść
-   `connectiontimeout`/`timeout`/`writetimeout` do np. 10–15s.
-2. **Dodać retry z backoffem** dla nieudanej wysyłki — obecnie `sendHtmlEmail`/`sendSimpleEmail`
-   w `EmailServiceAdapter` łapią wyjątek i tylko logują błąd (`catch (MailException e) { log.error(...) }`,
-   `EmailServiceAdapter.java:52-53`, `:72-77`) — brak retry, mail przepada bezpowrotnie.
-   Spring ma do tego `@Retryable` (`spring-retry`) albo można to zrobić ręcznie w
-   `emailTaskExecutor`.
-3. Jeśli problem będzie się powtarzał częściej — sprawdzić od strony `webio.pl`, czy nie ma
-   throttlingu/blokady dla IP serwera aplikacji (częste połączenia z tego samego adresu bywają
-   ograniczane przez dostawców poczty).
+1. **Zwiększone timeouty** — `application.properties:103-105`: `connectiontimeout`/`timeout`/
+   `writetimeout` z 5000 na **15000** ms.
+2. **Dodany retry z backoffem** — `EmailServiceAdapter.doSendSimpleEmail`/`doSendHtmlEmail`:
+   do 3 prób wysyłki, 2s odstępu między nimi (pole `retryBackoffMs`, ustawiane na `0` w testach,
+   żeby ich nie spowalniać). Po wyczerpaniu prób błąd jest logowany (`ERROR`) i połykany — wysyłka
+   maila nadal nie blokuje wątku wywołującego.
+3. **Throttling ze strony `webio.pl`** — nadal niesprawdzone, zostawione jako coś do obserwacji,
+   gdyby problem wracał mimo dłuższych timeoutów i retry.
 
-## 2. Mylący log w `sendTemplatedEmail` — mówi "sent" nawet gdy wysyłka się nie udała
+Testy: `EmailServiceAdapterTest` (6 przypadków — sukces za pierwszym razem, retry-i-sukces,
+wyczerpanie prób bez wyjątku, dla obu `sendSimpleEmail`/`sendHtmlEmail` oraz `sendTemplatedEmail`).
+
+## 2. ✅ Mylący log w `sendTemplatedEmail` — naprawione
 
 **Priorytet: niski** (tylko log, nie wpływa na działanie)
 
@@ -73,17 +77,14 @@ log.debug("Templated email processed and sent from template: {}", request.getTem
 faktycznie wyszedł. Dokładnie to widać w logu z błędu: zaraz po `ERROR ... Mail exception...`
 pojawia się `DEBUG ... Templated email processed and sent`.
 
-### Jak naprawić
+### Co zostało zrobione
 
-`sendHtmlEmail` powinien zwracać `boolean`/rzucać wyjątek zamiast połykać go w ciszy, a
-`sendTemplatedEmail` powinien logować sukces/porażkę na podstawie faktycznego wyniku, np.:
-```java
-boolean sent = sendHtmlEmailAndReturnStatus(...);
-if (sent) log.debug("...sent...") else log.warn("...failed...");
-```
-(wymaga też przemyślenia punktu 3 poniżej, bo obie metody są `@Async`).
+Logika wysyłki HTML maila (z retry) wydzielona do prywatnej `doSendHtmlEmail(...)`, zwracającej
+`boolean`. `sendTemplatedEmail` woła ją bezpośrednio (nie przez `sendHtmlEmail`) i loguje
+`DEBUG "...sent..."` tylko gdy naprawdę się udało, w przeciwnym razie `WARN "...NOT sent..."`.
+Przy okazji rozwiązuje to punkt 3 (self-invocation) — patrz niżej.
 
-## 3. `@Async` na `sendHtmlEmail` nie działa, gdy wywołane z `sendTemplatedEmail`
+## 3. ✅ `@Async` na `sendHtmlEmail` nie działało, gdy wywoływane z `sendTemplatedEmail` — naprawione
 
 **Priorytet: niski/informacyjny** (dziś nieszkodliwe, ale warto wiedzieć)
 
@@ -98,12 +99,13 @@ Obecnie nie robi to różnicy funkcjonalnej (i tak całość leci w wątku `emai
 zewnętrzne `@Async` na `sendTemplatedEmail`), ale jest mylące i warto to uporządkować przy
 okazji naprawy punktu 2.
 
-### Jak naprawić
+### Co zostało zrobione
 
-- Usunąć `@Async` z `sendHtmlEmail`, skoro w tej ścieżce nie działa (albo)
-- Wstrzyknąć self-proxy (`@Lazy EmailServiceAdapter self`) i wołać `self.sendHtmlEmail(...)`,
-  żeby `@Async` faktycznie zadziałało — niepotrzebne, jeśli i tak wszystko już jest w tle przez
-  `sendTemplatedEmail`.
+Usunięto wewnętrzne wywołanie `this.sendHtmlEmail(...)` z `sendTemplatedEmail` — obie metody
+(`sendHtmlEmail` publiczne, `@Async`, wołane też bezpośrednio przez `EmailController`, oraz
+`sendTemplatedEmail`) teraz wołają wspólną prywatną `doSendHtmlEmail(...)`, więc self-invocation
+w ogóle nie występuje. `@Async` na `sendHtmlEmail` nadal działa poprawnie dla zewnętrznych
+wywołań (np. `EmailController.java:70`), bo te nadal idą przez proxy Springa.
 
 ## 4. Prawdziwe hasła/sekrety jako wartości domyślne w lokalnych (niezacommitowanych) zmianach `application.properties`
 
