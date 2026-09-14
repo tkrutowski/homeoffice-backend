@@ -10,6 +10,7 @@ import net.focik.homeoffice.utils.share.PaymentStatus;
 import net.focik.homeoffice.utils.share.Vat;
 import org.javamoney.moneta.Money;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -27,6 +28,7 @@ class KsefInvoiceMapperTest {
     }
 
     @Test
+    @DisplayName("should return null when the invoice is null")
     void toKsefFaktura_ShouldReturnNull_WhenInvoiceIsNull() {
         // when
         InvoiceKsefDto result = mapper.toKsefFaktura(null, new Company());
@@ -36,6 +38,7 @@ class KsefInvoiceMapperTest {
     }
 
     @Test
+    @DisplayName("should map an invoice with multiple VAT rates to the KSeF DTO, including totals and payment terms")
     void toKsefFaktura_ShouldMapInvoiceToKsefDto_WithMultipleVatRates() {
         // given
         Company company = Company.builder()
@@ -158,6 +161,7 @@ class KsefInvoiceMapperTest {
     }
 
     @Test
+    @DisplayName("should correctly map a paid invoice's payment date and payment method")
     void toKsefFaktura_ShouldMapPaidInvoiceCorrectly() {
         // given
         Company company = Company.builder()

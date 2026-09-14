@@ -8,6 +8,7 @@ import net.focik.homeoffice.finance.domain.transaction.port.primary.GetBankTrans
 import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.UserFacade;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -72,6 +73,7 @@ class BankTransactionReportServiceTest {
     }
 
     @Test
+    @DisplayName("should send a monthly report email when there is a mix of income and expense transactions")
     void shouldProcessMonthlyReportsWithMixedTransactions() {
         // Given
         List<BankTransaction> transactions = List.of(incomeTransaction, expenseTransaction);
@@ -87,6 +89,7 @@ class BankTransactionReportServiceTest {
     }
 
     @Test
+    @DisplayName("should build and send a report email that separates income from expenses")
     void shouldSeparateIncomeFromExpenses() {
         // Given
         List<BankTransaction> transactions = List.of(incomeTransaction, expenseTransaction);
@@ -104,6 +107,7 @@ class BankTransactionReportServiceTest {
     }
 
     @Test
+    @DisplayName("should not send any report email when there are no transactions")
     void shouldNotSendReportWhenNoTransactions() {
         // Given
         when(getBankTransactionUseCase.findBetween(any(), any(), anyInt())).thenReturn(new ArrayList<>());
@@ -117,6 +121,7 @@ class BankTransactionReportServiceTest {
     }
 
     @Test
+    @DisplayName("should send a weekly report email when there are transactions")
     void shouldProcessWeeklyReportsWithTransactions() {
         // Given
         List<BankTransaction> transactions = List.of(incomeTransaction, expenseTransaction);
@@ -132,6 +137,7 @@ class BankTransactionReportServiceTest {
     }
 
     @Test
+    @DisplayName("should skip sending the report to a user who has no email address")
     void shouldNotSendToUserWithoutEmail() {
         // Given
         testUser.setEmail(null);
@@ -148,6 +154,7 @@ class BankTransactionReportServiceTest {
     }
 
     @Test
+    @DisplayName("should send a separate report email to each of multiple users")
     void shouldSendToMultipleUsers() {
         // Given
         AppUser user2 = AppUser.builder()
@@ -171,6 +178,7 @@ class BankTransactionReportServiceTest {
     }
 
     @Test
+    @DisplayName("should aggregate correctly and send one report when there are several income and expense transactions")
     void shouldHandleMultipleIncomeAndExpenses() {
         // Given
         BankTransaction income2 = BankTransaction.builder()
@@ -204,6 +212,7 @@ class BankTransactionReportServiceTest {
     }
 
     @Test
+    @DisplayName("should not send any email when fetching transactions fails with an error")
     void shouldHandleErrorDuringProcessing() {
         // Given
         when(getBankTransactionUseCase.findBetween(any(), any(), anyInt()))

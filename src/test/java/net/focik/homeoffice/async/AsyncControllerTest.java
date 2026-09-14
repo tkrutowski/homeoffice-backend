@@ -1,5 +1,6 @@
 package net.focik.homeoffice.async;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,6 +24,7 @@ class AsyncControllerTest {
     private AsyncController asyncController;
 
     @Test
+    @DisplayName("should return 200 OK with the status response when the task exists")
     void getLatestTaskStatus_ShouldReturnOkWithResponse_WhenTaskExists() {
         String jobType = "ZUS_DRA";
         LocalDateTime updatedAt = LocalDateTime.of(2026, 5, 24, 10, 30);
@@ -39,6 +41,7 @@ class AsyncControllerTest {
     }
 
     @Test
+    @DisplayName("should return 404 Not Found when no task exists for the given job type")
     void getLatestTaskStatus_ShouldReturnNotFound_WhenTaskDoesNotExist() {
         String jobType = "NONEXISTENT";
 

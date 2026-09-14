@@ -4,6 +4,7 @@ import net.focik.homeoffice.finance.domain.purchase.Purchase;
 import net.focik.homeoffice.finance.domain.transaction.model.BankTransaction;
 import net.focik.homeoffice.finance.domain.transaction.model.TransactionCategory;
 import net.focik.homeoffice.finance.domain.transaction.model.TransactionLabel;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -17,6 +18,7 @@ class HistoricalTransactionMatcherTest {
     private final HistoricalTransactionMatcher matcher = new HistoricalTransactionMatcher();
 
     @Test
+    @DisplayName("should return empty when the transaction history is empty")
     void findMatch_ShouldReturnEmpty_WhenHistoryIsEmpty() {
         Optional<HistoricalTransactionMatcher.HistoricalMatch> result =
                 matcher.findMatch("ZABKA Z3762 K.2 POZNAN POL 2026-08-18", List.of());
@@ -25,6 +27,7 @@ class HistoricalTransactionMatcherTest {
     }
 
     @Test
+    @DisplayName("should return empty when the description to match is blank")
     void findMatch_ShouldReturnEmpty_WhenDescriptionIsBlank() {
         List<BankTransaction> history = List.of(transaction("ZABKA", 5, null, null, LocalDate.now()));
 
@@ -34,6 +37,7 @@ class HistoricalTransactionMatcherTest {
     }
 
     @Test
+    @DisplayName("should return empty when no historical description matches")
     void findMatch_ShouldReturnEmpty_WhenNoHistoricalDescriptionMatches() {
         List<BankTransaction> history = List.of(transaction("LIDL 1 KRAKOW", 5, null, null, LocalDate.now()));
 
@@ -44,6 +48,7 @@ class HistoricalTransactionMatcherTest {
     }
 
     @Test
+    @DisplayName("should ignore digits and punctuation when comparing descriptions, so store number/date variants still match")
     void findMatch_ShouldIgnoreDigitsAndPunctuation_WhenComparingDescriptions() {
         // Różne numery placówek i daty w tym samym sklepie powinny się znormalizować do tego samego klucza.
         List<BankTransaction> history = List.of(
@@ -58,6 +63,7 @@ class HistoricalTransactionMatcherTest {
     }
 
     @Test
+    @DisplayName("should ignore historical transactions that have no assigned firm")
     void findMatch_ShouldIgnoreTransactionsWithoutAssignedFirm() {
         List<BankTransaction> history = List.of(
                 transaction("Stasiu Przelew BLIK na telefon", 0, null, null, LocalDate.now())
@@ -70,6 +76,7 @@ class HistoricalTransactionMatcherTest {
     }
 
     @Test
+    @DisplayName("should return the firm and category when all matching history entries agree on both")
     void findMatch_ShouldReturnUnanimousFirmAndCategory_WhenAllHistoryAgrees() {
         TransactionCategory groceries = category(2, "Spożywcze");
         List<BankTransaction> history = List.of(
@@ -86,6 +93,7 @@ class HistoricalTransactionMatcherTest {
     }
 
     @Test
+    @DisplayName("should return empty when the matching history disagrees on the firm")
     void findMatch_ShouldReturnEmpty_WhenHistoryDisagreesOnFirm() {
         List<BankTransaction> history = List.of(
                 transaction("Stasiu Przelew BLIK na telefon", 6, null, null, LocalDate.of(2026, 8, 1)),
@@ -99,6 +107,7 @@ class HistoricalTransactionMatcherTest {
     }
 
     @Test
+    @DisplayName("should return the firm with a null category when the history agrees on the firm but not the category")
     void findMatch_ShouldReturnNullCategory_WhenHistoryAgreesOnFirmButNotOnCategory() {
         List<BankTransaction> history = List.of(
                 transaction("Stasiu Przelew BLIK na telefon", 6, category(2, "Spożywcze"), null, LocalDate.of(2026, 8, 1)),
@@ -114,6 +123,7 @@ class HistoricalTransactionMatcherTest {
     }
 
     @Test
+    @DisplayName("should return the labels from the most recent matching historical transaction")
     void findMatch_ShouldReturnLabelsFromMostRecentMatchingTransaction() {
         TransactionLabel oldLabel = label(1, "old");
         TransactionLabel newLabel = label(2, "new");
@@ -129,6 +139,7 @@ class HistoricalTransactionMatcherTest {
     }
 
     @Test
+    @DisplayName("should return empty when the purchase history is empty")
     void findFirmMatch_ShouldReturnEmpty_WhenPurchaseHistoryIsEmpty() {
         Optional<Integer> result = matcher.findFirmMatch("ZABKA Z3762 K.2 POZNAN POL", List.of());
 
@@ -136,6 +147,7 @@ class HistoricalTransactionMatcherTest {
     }
 
     @Test
+    @DisplayName("should return empty when no purchase in the history matches the name")
     void findFirmMatch_ShouldReturnEmpty_WhenNoPurchaseMatches() {
         List<Purchase> history = List.of(purchase("LIDL 1 KRAKOW", 5, LocalDate.now()));
 
@@ -145,6 +157,7 @@ class HistoricalTransactionMatcherTest {
     }
 
     @Test
+    @DisplayName("should return the firm id when all matching past purchases agree on it")
     void findFirmMatch_ShouldReturnFirm_WhenAllMatchingPurchasesAgree() {
         List<Purchase> history = List.of(
                 purchase("Netflix.com", 9, LocalDate.of(2026, 7, 1)),
@@ -157,6 +170,7 @@ class HistoricalTransactionMatcherTest {
     }
 
     @Test
+    @DisplayName("should ignore digits and punctuation when comparing purchase names")
     void findFirmMatch_ShouldIgnoreDigitsAndPunctuation_WhenComparingPurchaseNames() {
         List<Purchase> history = List.of(purchase("ZABKA Z3762 K.1  POZNAN POL", 5, LocalDate.now()));
 
@@ -166,6 +180,7 @@ class HistoricalTransactionMatcherTest {
     }
 
     @Test
+    @DisplayName("should return the most recent purchase's firm id when the purchase history disagrees on the firm")
     void findFirmMatch_ShouldReturnMostRecentFirm_WhenPurchaseHistoryDisagreesOnFirm() {
         List<Purchase> history = List.of(
                 purchase("Netflix.com", 9, LocalDate.of(2026, 8, 1)),
@@ -178,6 +193,7 @@ class HistoricalTransactionMatcherTest {
     }
 
     @Test
+    @DisplayName("should ignore past purchases that have no assigned firm")
     void findFirmMatch_ShouldIgnorePurchasesWithoutAssignedFirm() {
         List<Purchase> history = List.of(purchase("Netflix.com", 0, LocalDate.now()));
 

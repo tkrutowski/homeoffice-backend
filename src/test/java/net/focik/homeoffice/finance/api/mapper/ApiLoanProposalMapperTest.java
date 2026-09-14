@@ -5,6 +5,7 @@ import net.focik.homeoffice.finance.domain.loanproposal.LoanProposal;
 import net.focik.homeoffice.finance.domain.loanproposal.LoanProposalStatus;
 import net.focik.homeoffice.finance.domain.loanproposal.ProposedLoanData;
 import net.focik.homeoffice.finance.domain.loanproposal.ProposedPurchaseData;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -17,6 +18,7 @@ class ApiLoanProposalMapperTest {
     private final ApiLoanProposalMapper mapper = new ApiLoanProposalMapper();
 
     @Test
+    @DisplayName("should map both the proposed loan and proposed purchase candidates when both are present")
     void toDto_ShouldMapBothCandidates_WhenBothPresent() {
         LoanProposal proposal = LoanProposal.builder()
                 .id(1)
@@ -38,6 +40,7 @@ class ApiLoanProposalMapperTest {
     }
 
     @Test
+    @DisplayName("should leave the proposed purchase null when it is not applicable")
     void toDto_ShouldLeaveProposedPurchaseNull_WhenNotApplicable() {
         LoanProposal proposal = LoanProposal.builder()
                 .id(1)
@@ -51,6 +54,7 @@ class ApiLoanProposalMapperTest {
     }
 
     @Test
+    @DisplayName("should map the created purchase id, leaving created loan id null")
     void toDto_ShouldMapCreatedPurchaseId() {
         LoanProposal proposal = LoanProposal.builder()
                 .id(1)

@@ -3,6 +3,7 @@ package net.focik.homeoffice.goahead.domain.cost;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.*;
 import net.focik.homeoffice.utils.share.PaymentMethod;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -20,6 +21,7 @@ class KsefCostMapperTest {
     }
 
     @Test
+    @DisplayName("should parse the address correctly when adresL1 is the street and adresL2 is zip plus city")
     void toCost_ShouldParseAddressCorrectly_WhenAdresL1IsStreetAndAdresL2IsZipAndCity() {
         // given
         InvoiceKsefDto invoiceKsefDto = buildInvoiceKsefDtoWithAddress("Testowa 1", "00-001 Warszawa");
@@ -36,6 +38,7 @@ class KsefCostMapperTest {
     }
 
     @Test
+    @DisplayName("should parse the address correctly when adresL2's city part contains multiple words")
     void toCost_ShouldParseAddressCorrectly_WhenAdresL2ContainsMultipleWords() {
         // given
         InvoiceKsefDto invoiceKsefDto = buildInvoiceKsefDtoWithAddress("Długa 2", "30-001 Kraków Wielkie Miasto");
@@ -50,6 +53,7 @@ class KsefCostMapperTest {
     }
 
     @Test
+    @DisplayName("should set only the street, leaving zip and city null, when adresL2 has no zip code")
     void toCost_ShouldSetStreetOnly_WhenAdresL2DoesNotContainZipCode() {
         // given
         InvoiceKsefDto invoiceKsefDto = buildInvoiceKsefDtoWithAddress("Testowa 5", "");
@@ -64,6 +68,7 @@ class KsefCostMapperTest {
     }
 
     @Test
+    @DisplayName("should leave the address null when adresL1 is null")
     void toCost_ShouldNotSetAddress_WhenAdresL1IsNull() {
         // given
         InvoiceKsefDto invoiceKsefDto = buildInvoiceKsefDtoWithAddress(null, "00-001 Warszawa");
@@ -77,6 +82,7 @@ class KsefCostMapperTest {
     }
 
     @Test
+    @DisplayName("should leave the address null when adresL1 is blank")
     void toCost_ShouldNotSetAddress_WhenAdresL1IsEmpty() {
         // given
         InvoiceKsefDto invoiceKsefDto = buildInvoiceKsefDtoWithAddress("   ", "00-001 Warszawa");
@@ -89,6 +95,7 @@ class KsefCostMapperTest {
     }
 
     @Test
+    @DisplayName("should parse street, zip and city from a full address packed into adresL1 alone")
     void toCost_ShouldParseFullAddressFromAdresL1_WithZipAndCity() {
         // given: cały adres w adresL1, bez adresL2
         InvoiceKsefDto invoiceKsefDto = buildInvoiceKsefDtoWithAddress("Ul. Żelazna 51/53 00-841 Warszawa", "");
@@ -104,6 +111,7 @@ class KsefCostMapperTest {
     }
 
     @Test
+    @DisplayName("should parse a full address and strip the leading \"ul.\" prefix from the street")
     void toCost_ShouldParseFullAddressAndRemoveUlPrefix() {
         // given: adres z prefiksem "ul."
         InvoiceKsefDto invoiceKsefDto = buildInvoiceKsefDtoWithAddress("ul. Szyperska, 13d/32 61-754 Poznań", "");
@@ -118,6 +126,7 @@ class KsefCostMapperTest {
     }
 
     @Test
+    @DisplayName("should remove various street prefix spellings (\"ul.\", \"UL.\", \"ulica\")")
     void toCost_ShouldRemoveStreetPrefixes() {
         // given: różne warianty prefiksu "ul."
         InvoiceKsefDto invoiceKsefDto1 = buildInvoiceKsefDtoWithAddress("ul. Testowa 1 00-001 Warszawa", "");
@@ -136,6 +145,7 @@ class KsefCostMapperTest {
     }
 
     @Test
+    @DisplayName("should prefer the zip code found in adresL1 over one present in adresL2")
     void toCost_ShouldPreferAdresL1WithZipOverAdresL2() {
         // given: kod pocztowy zarówno w adresL1 jak i adresL2
         InvoiceKsefDto invoiceKsefDto = buildInvoiceKsefDtoWithAddress(
@@ -153,6 +163,7 @@ class KsefCostMapperTest {
     }
 
     @Test
+    @DisplayName("should map a full KSeF invoice into a Cost with its supplier and cost items")
     void toCost_ShouldMapCostWithMultipleItems() {
         // given
         InvoiceKsefDto invoiceKsefDto = InvoiceKsefDto.builder()

@@ -3,6 +3,7 @@ package net.focik.homeoffice.finance.infrastructure.mapper;
 import net.focik.homeoffice.finance.domain.purchase.Purchase;
 import net.focik.homeoffice.finance.infrastructure.dto.PurchaseDbDto;
 import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -18,6 +19,7 @@ class JpaPurchaseMapperTest {
     private final JpaPurchaseMapper mapper = new JpaPurchaseMapper();
 
     @Test
+    @DisplayName("should map idLoan from the domain object to the JPA DTO")
     void toDto_ShouldMapIdLoan() {
         Purchase purchase = Purchase.builder()
                 .id(1)
@@ -35,6 +37,7 @@ class JpaPurchaseMapperTest {
     }
 
     @Test
+    @DisplayName("should map idLoan from the JPA DTO back to the domain object")
     void toDomain_ShouldMapIdLoan() {
         PurchaseDbDto dto = PurchaseDbDto.builder()
                 .id(1)

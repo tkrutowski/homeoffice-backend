@@ -7,6 +7,7 @@ import net.focik.homeoffice.userservice.domain.UserFacade;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -72,6 +73,7 @@ class FeeFacadeTest {
     // ---- getFeeById (READ) ----
 
     @Test
+    @DisplayName("getFeeById should return the fee without an ownership check when there is no authentication context")
     void getFeeById_ShouldReturnFee_WhenNoAuthenticationContext() {
         Fee fee = Fee.builder().id(1).idUser(5).build();
         when(feeService.findFeeById(1, true)).thenReturn(fee);
@@ -83,6 +85,7 @@ class FeeFacadeTest {
     }
 
     @Test
+    @DisplayName("getFeeById should return the fee when the requesting user is its owner")
     void getFeeById_ShouldReturnFee_WhenRequestingUserIsOwner() {
         authenticateAs("john", "ROLE_FINANCE");
         Fee fee = Fee.builder().id(1).idUser(7).build();
@@ -95,6 +98,7 @@ class FeeFacadeTest {
     }
 
     @Test
+    @DisplayName("getFeeById should throw access denied when the requesting user is not the owner and lacks READ_ALL")
     void getFeeById_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoReadAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         Fee fee = Fee.builder().id(1).idUser(7).build();
@@ -106,6 +110,7 @@ class FeeFacadeTest {
     }
 
     @Test
+    @DisplayName("getFeeById should return any fee, even someone else's, when the user has the READ_ALL authority")
     void getFeeById_ShouldReturnAnyFee_WhenUserHasReadAllAuthority() {
         authenticateAs("admin", "FINANCE_FEE_READ_ALL");
         Fee fee = Fee.builder().id(1).idUser(7).build();
@@ -118,6 +123,7 @@ class FeeFacadeTest {
     }
 
     @Test
+    @DisplayName("getFeeById should throw access denied when the user has only the WRITE_ALL authority")
     void getFeeById_ShouldThrowAccessDenied_WhenUserHasOnlyWriteAllAuthority() {
         // READ_ALL i WRITE_ALL to celowo osobne uprawnienia
         authenticateAs("john", "FINANCE_FEE_WRITE_ALL");
@@ -132,6 +138,7 @@ class FeeFacadeTest {
     // ---- getFeesByUser (endpoint /{idUser}/status) ----
 
     @Test
+    @DisplayName("getFeesByUser should throw access denied when requesting another user's fees without READ_ALL")
     void getFeesByUser_ShouldThrowAccessDenied_WhenRequestingOtherUsersDataWithoutReadAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
@@ -143,6 +150,7 @@ class FeeFacadeTest {
     }
 
     @Test
+    @DisplayName("getFeesByUser should return the caller's own data when requesting their own id")
     void getFeesByUser_ShouldReturnOwnData_WhenRequestingOwnId() {
         authenticateAs("john", "ROLE_FINANCE");
         when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
@@ -154,6 +162,7 @@ class FeeFacadeTest {
     }
 
     @Test
+    @DisplayName("getFeesByUser should return another user's data when the requester has ROLE_ADMIN")
     void getFeesByUser_ShouldReturnAnyUsersData_WhenUserHasReadAllAuthority() {
         authenticateAs("admin", "ROLE_ADMIN");
         when(feeService.findFeesByUser(999, PaymentStatus.TO_PAY, true)).thenReturn(List.of());
@@ -167,6 +176,7 @@ class FeeFacadeTest {
     // ---- findFeesPageableWithFilters (/page) ----
 
     @Test
+    @DisplayName("findFeesPageableWithFilters should override the requested idUser filter with the caller's own id when they lack READ_ALL")
     void findFeesPageableWithFilters_ShouldOverrideRequestedIdUser_WhenUserHasNoReadAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
@@ -186,6 +196,7 @@ class FeeFacadeTest {
     // ---- addFee (WRITE) ----
 
     @Test
+    @DisplayName("addFee should override the requested idUser with the caller's own id when they lack WRITE_ALL")
     void addFee_ShouldOverrideRequestedIdUser_WhenUserHasNoWriteAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
@@ -198,6 +209,7 @@ class FeeFacadeTest {
     }
 
     @Test
+    @DisplayName("addFee should keep the requested idUser when the user has the WRITE_ALL authority")
     void addFee_ShouldKeepRequestedIdUser_WhenUserHasWriteAllAuthority() {
         authenticateAs("admin", "FINANCE_FEE_WRITE_ALL");
         Fee feeToAdd = Fee.builder().idUser(999).build();
@@ -212,6 +224,7 @@ class FeeFacadeTest {
     // ---- updateFee / updateFeeStatus (WRITE) ----
 
     @Test
+    @DisplayName("updateFee should throw access denied when the requesting user is not the owner and lacks WRITE_ALL")
     void updateFee_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoWriteAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         Fee existingFee = Fee.builder().id(1).idUser(7).build();
@@ -227,6 +240,7 @@ class FeeFacadeTest {
     }
 
     @Test
+    @DisplayName("updateFee should override the idUser back to the owner when the owner tries to reassign the fee to someone else")
     void updateFee_ShouldOverrideRequestedIdUser_WhenOwnerTriesToReassignFeeToSomeoneElse() {
         authenticateAs("john", "ROLE_FINANCE");
         Fee existingFee = Fee.builder().id(1).idUser(7).build();
@@ -244,6 +258,7 @@ class FeeFacadeTest {
     }
 
     @Test
+    @DisplayName("updateFeeStatus should throw access denied when the requesting user is not the owner and lacks WRITE_ALL")
     void updateFeeStatus_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoWriteAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         Fee existingFee = Fee.builder().id(1).idUser(7).build();
@@ -257,6 +272,7 @@ class FeeFacadeTest {
     }
 
     @Test
+    @DisplayName("updateFeeStatus should update the status of another user's fee when the user has the WRITE_ALL authority")
     void updateFeeStatus_ShouldUpdateStatus_WhenUserHasWriteAllAuthority() {
         authenticateAs("admin", "FINANCE_FEE_WRITE_ALL");
         Fee existingFee = Fee.builder().id(1).idUser(7).feeStatus(PaymentStatus.TO_PAY).build();
@@ -273,6 +289,7 @@ class FeeFacadeTest {
     // ---- deleteFeeById / deleteFeeInstallmentById (DELETE) ----
 
     @Test
+    @DisplayName("deleteFeeById should throw access denied when the requesting user is not the owner and lacks DELETE_ALL")
     void deleteFeeById_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoDeleteAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         when(feeService.findFeeById(99, false)).thenReturn(Fee.builder().id(99).idUser(7).build());
@@ -285,6 +302,7 @@ class FeeFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteFeeById should throw access denied when the user has only the WRITE_ALL authority, not DELETE_ALL")
     void deleteFeeById_ShouldThrowAccessDenied_WhenUserHasOnlyWriteAllAuthority() {
         authenticateAs("john", "FINANCE_FEE_WRITE_ALL");
         when(feeService.findFeeById(99, false)).thenReturn(Fee.builder().id(99).idUser(7).build());
@@ -297,6 +315,7 @@ class FeeFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteFeeById should delete the fee when the requesting user is its owner")
     void deleteFeeById_ShouldDeleteOwnFee_WhenRequestingUserIsOwner() {
         authenticateAs("john", "ROLE_FINANCE");
         when(feeService.findFeeById(99, false)).thenReturn(Fee.builder().id(99).idUser(7).build());
@@ -308,6 +327,7 @@ class FeeFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteFeeById should delete any fee, even someone else's, when the user has the DELETE_ALL authority")
     void deleteFeeById_ShouldDeleteAnyFee_WhenUserHasDeleteAllAuthority() {
         authenticateAs("admin", "FINANCE_FEE_DELETE_ALL");
         when(feeService.findFeeById(99, false)).thenReturn(Fee.builder().id(99).idUser(7).build());
@@ -319,6 +339,7 @@ class FeeFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteFeeInstallmentById should throw access denied when the requesting user does not own the parent fee and lacks DELETE_ALL")
     void deleteFeeInstallmentById_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoDeleteAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         FeeInstallment installment = FeeInstallment.builder().idFeeInstallment(5).idFee(99).build();
@@ -333,6 +354,7 @@ class FeeFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteFeeInstallmentById should delete the installment when the user has the DELETE_ALL authority")
     void deleteFeeInstallmentById_ShouldDelete_WhenUserHasDeleteAllAuthority() {
         authenticateAs("admin", "FINANCE_FEE_DELETE_ALL");
         FeeInstallment installment = FeeInstallment.builder().idFeeInstallment(5).idFee(99).build();

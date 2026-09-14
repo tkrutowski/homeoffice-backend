@@ -1,6 +1,7 @@
 package net.focik.homeoffice.finance.api;
 
 import net.focik.homeoffice.finance.domain.payment.PaymentReminderService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,6 +23,7 @@ class PaymentReminderTestControllerTest {
     private PaymentReminderTestController paymentReminderTestController;
 
     @Test
+    @DisplayName("should trigger payment reminder processing and return 200 OK")
     void shouldTriggerPaymentReminderProcessing() {
         // When
         ResponseEntity<String> response = paymentReminderTestController.triggerPaymentReminderProcessing();
@@ -33,6 +35,7 @@ class PaymentReminderTestControllerTest {
     }
 
     @Test
+    @DisplayName("should return 500 with an error message when processing reminders throws")
     void shouldHandleErrorWhenProcessingReminders() {
         // Given
         doThrow(new RuntimeException("Email service error")).when(paymentReminderService).processPaymentReminders();
@@ -47,6 +50,7 @@ class PaymentReminderTestControllerTest {
     }
 
     @Test
+    @DisplayName("should send a test fee reminder and return 200 OK")
     void shouldSendTestReminder() {
         // When
         ResponseEntity<String> response = paymentReminderTestController.sendTestReminder(1, "FEE", 1, 1);
@@ -58,6 +62,7 @@ class PaymentReminderTestControllerTest {
     }
 
     @Test
+    @DisplayName("should return 500 with an error message when sending a test reminder throws")
     void shouldHandleErrorWhenSendingTestReminder() {
         // Given
         doThrow(new RuntimeException("User not found")).when(paymentReminderService)
@@ -73,6 +78,7 @@ class PaymentReminderTestControllerTest {
     }
 
     @Test
+    @DisplayName("should send a test loan reminder and return 200 OK")
     void shouldSendTestReminderForLoan() {
         // When
         ResponseEntity<String> response = paymentReminderTestController.sendTestReminder(1, "LOAN", 1, 1);

@@ -15,6 +15,7 @@ import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.javamoney.moneta.Money;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -108,6 +109,7 @@ class PurchaseLoanConversionFacadeTest {
     // ---------- suggestLoanFromPurchases ----------
 
     @Test
+    @DisplayName("suggest should sum the purchase amounts and pick the latest purchase date")
     void suggest_ShouldSumAmountsAndPickLatestPurchaseDate() {
         Purchase p1 = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.of(2026, 1, 5), null);
         Purchase p2 = purchase(2, 10, 1, 1, new BigDecimal("50.50"), PaymentStatus.TO_PAY, LocalDate.of(2026, 2, 10), null);
@@ -122,12 +124,14 @@ class PurchaseLoanConversionFacadeTest {
     }
 
     @Test
+    @DisplayName("suggest should throw when the list of purchase ids is empty")
     void suggest_ShouldThrow_WhenPurchaseIdsEmpty() {
         assertThatThrownBy(() -> facade.suggestLoanFromPurchases(List.of()))
                 .isInstanceOf(PurchaseNotValidException.class);
     }
 
     @Test
+    @DisplayName("suggest should report warnings without blocking when the selected purchases look risky")
     void suggest_ShouldReportWarnings_WithoutBlocking_WhenSelectionIsRisky() {
         Purchase differentCard = purchase(1, 10, 1, 1, new BigDecimal("10.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
         Purchase alreadyPaid = purchase(2, 10, 2, 1, new BigDecimal("20.00"), PaymentStatus.PAID, LocalDate.now(), null);
@@ -141,6 +145,7 @@ class PurchaseLoanConversionFacadeTest {
     // ---------- convertPurchasesToLoan ----------
 
     @Test
+    @DisplayName("convert should create the loan and link a single purchase to it, as with PayPo")
     void convert_ShouldCreateLoanAndLinkSinglePurchase_LikePayPo() {
         Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("300.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
         Loan loanData = loanData(10, new BigDecimal("300.00"));
@@ -161,6 +166,7 @@ class PurchaseLoanConversionFacadeTest {
     }
 
     @Test
+    @DisplayName("convert should create the loan and link all purchases to it, as with Allegro installments")
     void convert_ShouldCreateLoanAndLinkAllPurchases_LikeAllegroInstallments() {
         Purchase p1 = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
         Purchase p2 = purchase(2, 10, 2, 1, new BigDecimal("200.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
@@ -177,6 +183,7 @@ class PurchaseLoanConversionFacadeTest {
     }
 
     @Test
+    @DisplayName("convert should accept a one-grosz rounding tolerance between purchase total and loan amount")
     void convert_ShouldAcceptRoundingTolerance_OfOneGrosz() {
         Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
         Loan loanData = loanData(10, new BigDecimal("100.01"));
@@ -188,6 +195,7 @@ class PurchaseLoanConversionFacadeTest {
     }
 
     @Test
+    @DisplayName("convert should throw and save nothing when the purchase total does not match the loan amount")
     void convert_ShouldThrow_WhenAmountsDontMatch() {
         Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
         Loan loanData = loanData(10, new BigDecimal("150.00"));
@@ -201,6 +209,7 @@ class PurchaseLoanConversionFacadeTest {
     }
 
     @Test
+    @DisplayName("convert should throw when a purchase is already linked to another loan")
     void convert_ShouldThrow_WhenPurchaseAlreadyLinkedToAnotherLoan() {
         Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), 5);
         Loan loanData = loanData(10, new BigDecimal("100.00"));
@@ -213,6 +222,7 @@ class PurchaseLoanConversionFacadeTest {
     }
 
     @Test
+    @DisplayName("convert should throw when a purchase is already paid")
     void convert_ShouldThrow_WhenPurchaseAlreadyPaid() {
         Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.PAID, LocalDate.now(), null);
         Loan loanData = loanData(10, new BigDecimal("100.00"));
@@ -225,6 +235,7 @@ class PurchaseLoanConversionFacadeTest {
     }
 
     @Test
+    @DisplayName("convert should throw when the selected purchases belong to different users")
     void convert_ShouldThrow_WhenPurchasesBelongToDifferentUsers() {
         Purchase p1 = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
         Purchase p2 = purchase(2, 11, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
@@ -238,6 +249,7 @@ class PurchaseLoanConversionFacadeTest {
     }
 
     @Test
+    @DisplayName("convert should throw when the loan's user differs from the purchases' user")
     void convert_ShouldThrow_WhenLoanUserDiffersFromPurchasesUser() {
         Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
         Loan loanData = loanData(99, new BigDecimal("100.00"));
@@ -248,6 +260,7 @@ class PurchaseLoanConversionFacadeTest {
     }
 
     @Test
+    @DisplayName("convert should throw when one of the requested purchase ids does not exist")
     void convert_ShouldThrow_WhenPurchaseIdDoesNotExist() {
         Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
         Loan loanData = loanData(10, new BigDecimal("200.00"));
@@ -258,6 +271,7 @@ class PurchaseLoanConversionFacadeTest {
     }
 
     @Test
+    @DisplayName("convert should throw and never fetch purchases when the list of purchase ids is empty")
     void convert_ShouldThrow_WhenPurchaseIdsEmpty() {
         Loan loanData = loanData(10, BigDecimal.ZERO);
 
@@ -270,6 +284,7 @@ class PurchaseLoanConversionFacadeTest {
     // ---------- kontrola wlasnosci zakupow (na wzor LoanFacadeTest/PurchaseFacadeTest) ----------
 
     @Test
+    @DisplayName("suggest should throw access denied when the requesting user does not own all the selected purchases")
     void suggest_ShouldThrowAccessDenied_WhenRequestingUserDoesNotOwnAllPurchases() {
         authenticateAs("john", "ROLE_FINANCE");
         Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
@@ -281,6 +296,7 @@ class PurchaseLoanConversionFacadeTest {
     }
 
     @Test
+    @DisplayName("suggest should succeed when the requesting user owns all the selected purchases")
     void suggest_ShouldSucceed_WhenRequestingUserOwnsAllPurchases() {
         authenticateAs("john", "ROLE_FINANCE");
         Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
@@ -291,6 +307,7 @@ class PurchaseLoanConversionFacadeTest {
     }
 
     @Test
+    @DisplayName("suggest should succeed for purchases the user does not own when they have the READ_ALL authority")
     void suggest_ShouldSucceed_WhenUserHasReadAllAuthority_EvenIfNotOwner() {
         authenticateAs("admin", "FINANCE_PURCHASE_READ_ALL");
         Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
@@ -300,6 +317,7 @@ class PurchaseLoanConversionFacadeTest {
     }
 
     @Test
+    @DisplayName("convert should throw access denied and save nothing when the requesting user does not own all the purchases")
     void convert_ShouldThrowAccessDenied_WhenRequestingUserDoesNotOwnAllPurchases() {
         authenticateAs("john", "ROLE_FINANCE");
         Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
@@ -314,6 +332,7 @@ class PurchaseLoanConversionFacadeTest {
     }
 
     @Test
+    @DisplayName("convert should throw access denied when the user has only READ_ALL, since READ_ALL and WRITE_ALL are separate")
     void convert_ShouldThrowAccessDenied_WhenUserHasOnlyReadAllAuthority_NotWriteAll() {
         // READ_ALL i WRITE_ALL to celowo osobne uprawnienia
         authenticateAs("john", "FINANCE_PURCHASE_READ_ALL");
@@ -329,6 +348,7 @@ class PurchaseLoanConversionFacadeTest {
     }
 
     @Test
+    @DisplayName("convert should succeed when the requesting user owns all the purchases")
     void convert_ShouldSucceed_WhenRequestingUserOwnsAllPurchases() {
         authenticateAs("john", "ROLE_FINANCE");
         Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);
@@ -341,6 +361,7 @@ class PurchaseLoanConversionFacadeTest {
     }
 
     @Test
+    @DisplayName("convert should succeed for purchases the user does not own when they have the WRITE_ALL authority")
     void convert_ShouldSucceed_WhenUserHasWriteAllAuthority_EvenIfNotOwner() {
         authenticateAs("admin", "FINANCE_PURCHASE_WRITE_ALL");
         Purchase purchase = purchase(1, 10, 1, 1, new BigDecimal("100.00"), PaymentStatus.TO_PAY, LocalDate.now(), null);

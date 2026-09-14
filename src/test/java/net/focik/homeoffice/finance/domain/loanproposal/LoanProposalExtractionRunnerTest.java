@@ -2,6 +2,7 @@ package net.focik.homeoffice.finance.domain.loanproposal;
 
 import net.focik.homeoffice.finance.domain.loanproposal.port.secondary.LoanProposalRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -31,6 +32,7 @@ class LoanProposalExtractionRunnerTest {
     }
 
     @Test
+    @DisplayName("should mark the proposal extracted with both candidates when loan and purchase are recognized")
     void runAsync_ShouldMarkExtractedWithBothCandidates_WhenLoanAndPurchaseRecognized() {
         LoanProposal proposal = LoanProposal.builder().id(1).status(LoanProposalStatus.NEW).build();
         when(loanProposalRepository.findById(1)).thenReturn(Optional.of(proposal));
@@ -49,6 +51,7 @@ class LoanProposalExtractionRunnerTest {
     }
 
     @Test
+    @DisplayName("should mark the proposal extracted with the loan candidate only when the purchase is not applicable")
     void runAsync_ShouldMarkExtractedWithLoanOnly_WhenPurchaseNotApplicable() {
         LoanProposal proposal = LoanProposal.builder().id(1).status(LoanProposalStatus.NEW).build();
         when(loanProposalRepository.findById(1)).thenReturn(Optional.of(proposal));
@@ -66,6 +69,7 @@ class LoanProposalExtractionRunnerTest {
     }
 
     @Test
+    @DisplayName("should mark the proposal failed when nothing is recognized in the message")
     void runAsync_ShouldMarkFailed_WhenNothingRecognized() {
         LoanProposal proposal = LoanProposal.builder().id(1).status(LoanProposalStatus.NEW).build();
         when(loanProposalRepository.findById(1)).thenReturn(Optional.of(proposal));

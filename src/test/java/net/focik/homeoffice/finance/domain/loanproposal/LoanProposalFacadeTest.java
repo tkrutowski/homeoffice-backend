@@ -9,6 +9,7 @@ import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.UserFacade;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -81,6 +82,7 @@ class LoanProposalFacadeTest {
     // ---- ingest: dopasowanie idUser po adresie nadawcy ----
 
     @Test
+    @DisplayName("ingest should set idUser when the sender's email matches an existing user")
     void ingest_ShouldSetIdUser_WhenSenderEmailMatchesExistingUser() {
         when(loanProposalRepository.findBySourceMessageId("msg-1")).thenReturn(Optional.empty());
         when(loanEmailArchivePort.store(any(), any())).thenReturn(Optional.empty());
@@ -96,6 +98,7 @@ class LoanProposalFacadeTest {
     }
 
     @Test
+    @DisplayName("ingest should extract the sender's email from the \"Name <email>\" angle-brackets format")
     void ingest_ShouldExtractEmailFromAngleBracketsFormat() {
         when(loanProposalRepository.findBySourceMessageId("msg-2")).thenReturn(Optional.empty());
         when(loanEmailArchivePort.store(any(), any())).thenReturn(Optional.empty());
@@ -111,6 +114,7 @@ class LoanProposalFacadeTest {
     }
 
     @Test
+    @DisplayName("ingest should leave idUser null when the sender does not match any user")
     void ingest_ShouldLeaveIdUserNull_WhenSenderDoesNotMatchAnyUser() {
         when(loanProposalRepository.findBySourceMessageId("msg-3")).thenReturn(Optional.empty());
         when(loanEmailArchivePort.store(any(), any())).thenReturn(Optional.empty());
@@ -128,6 +132,7 @@ class LoanProposalFacadeTest {
     // ---- getLoanProposalById ----
 
     @Test
+    @DisplayName("should return the proposal without an ownership check when there is no authentication context")
     void getLoanProposalById_ShouldReturnProposal_WhenNoAuthenticationContext() {
         LoanProposal proposal = proposal(1, 7, LoanProposalStatus.EXTRACTED);
         when(loanProposalRepository.findById(1)).thenReturn(Optional.of(proposal));
@@ -139,6 +144,7 @@ class LoanProposalFacadeTest {
     }
 
     @Test
+    @DisplayName("should return the proposal when the requesting user is its assigned owner")
     void getLoanProposalById_ShouldReturnProposal_WhenRequestingUserIsAssignedOwner() {
         authenticateAs("john", "ROLE_FINANCE");
         LoanProposal proposal = proposal(1, 7, LoanProposalStatus.EXTRACTED);
@@ -151,6 +157,7 @@ class LoanProposalFacadeTest {
     }
 
     @Test
+    @DisplayName("should throw access denied when the requesting user is not the assigned owner")
     void getLoanProposalById_ShouldThrowAccessDenied_WhenRequestingUserIsNotAssignedOwner() {
         authenticateAs("john", "ROLE_FINANCE");
         LoanProposal proposal = proposal(1, 7, LoanProposalStatus.EXTRACTED);
@@ -162,6 +169,7 @@ class LoanProposalFacadeTest {
     }
 
     @Test
+    @DisplayName("should throw access denied when the proposal is unassigned and the user has no privileged authority")
     void getLoanProposalById_ShouldThrowAccessDenied_WhenProposalIsUnassignedAndUserHasNoPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         LoanProposal proposal = proposal(1, null, LoanProposalStatus.EXTRACTED);
@@ -174,6 +182,7 @@ class LoanProposalFacadeTest {
     }
 
     @Test
+    @DisplayName("should return an unassigned proposal when the user has the READ_ALL authority")
     void getLoanProposalById_ShouldReturnUnassignedProposal_WhenUserHasReadAllAuthority() {
         authenticateAs("admin", "FINANCE_LOAN_READ_ALL");
         LoanProposal proposal = proposal(1, null, LoanProposalStatus.EXTRACTED);
@@ -186,6 +195,7 @@ class LoanProposalFacadeTest {
     }
 
     @Test
+    @DisplayName("should return any proposal, even one owned by another user, when the user has the purchase WRITE_ALL authority")
     void getLoanProposalById_ShouldReturnAnyProposal_WhenUserHasPurchaseWriteAllAuthority() {
         authenticateAs("admin", "FINANCE_PURCHASE_WRITE_ALL");
         LoanProposal proposal = proposal(1, 7, LoanProposalStatus.EXTRACTED);
@@ -199,6 +209,7 @@ class LoanProposalFacadeTest {
     // ---- getLoanProposalsByStatus (filtrowanie listy) ----
 
     @Test
+    @DisplayName("should filter the list to only the user's own assigned proposals when the user has no privileged authority")
     void getLoanProposalsByStatus_ShouldFilterToOwnAssignedProposals_WhenUserHasNoPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         LoanProposal own = proposal(1, 7, LoanProposalStatus.EXTRACTED);
@@ -214,6 +225,7 @@ class LoanProposalFacadeTest {
     }
 
     @Test
+    @DisplayName("should return every proposal, including others' and unassigned ones, when the user has ROLE_ADMIN")
     void getLoanProposalsByStatus_ShouldReturnEverything_WhenUserHasReadAllAuthority() {
         authenticateAs("admin", "ROLE_ADMIN");
         LoanProposal own = proposal(1, 7, LoanProposalStatus.EXTRACTED);
@@ -231,6 +243,7 @@ class LoanProposalFacadeTest {
     // ---- accept / acceptAsPurchase / ignore / delete dziedzicza kontrole z getLoanProposalById ----
 
     @Test
+    @DisplayName("accept should throw access denied and not create a loan when the requesting user is not the assigned owner")
     void accept_ShouldThrowAccessDenied_WhenRequestingUserIsNotAssignedOwner() {
         authenticateAs("john", "ROLE_FINANCE");
         LoanProposal proposal = proposal(1, 7, LoanProposalStatus.EXTRACTED);
@@ -244,6 +257,7 @@ class LoanProposalFacadeTest {
     }
 
     @Test
+    @DisplayName("delete should throw access denied and not delete anything when the requesting user is not the assigned owner")
     void delete_ShouldThrowAccessDenied_WhenRequestingUserIsNotAssignedOwner() {
         authenticateAs("john", "ROLE_FINANCE");
         LoanProposal proposal = proposal(1, 7, LoanProposalStatus.EXTRACTED);

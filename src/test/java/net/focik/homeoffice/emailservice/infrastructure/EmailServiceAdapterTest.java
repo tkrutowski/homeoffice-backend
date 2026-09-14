@@ -2,6 +2,7 @@ package net.focik.homeoffice.emailservice.infrastructure;
 
 import net.focik.homeoffice.emailservice.domain.EmailRequest;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -55,6 +56,7 @@ class EmailServiceAdapterTest {
     }
 
     @Test
+    @DisplayName("should send the HTML email on the first attempt when there is no error")
     void sendHtmlEmail_ShouldSendOnFirstAttempt_WhenNoError() {
         when(mailSender.createMimeMessage()).thenReturn(newMimeMessage());
 
@@ -64,6 +66,7 @@ class EmailServiceAdapterTest {
     }
 
     @Test
+    @DisplayName("should retry and eventually succeed when the first SMTP attempts fail transiently")
     void sendHtmlEmail_ShouldRetryAndSucceed_WhenFirstAttemptsFailTransiently() {
         when(mailSender.createMimeMessage()).thenReturn(newMimeMessage());
         doThrow(new MailSendException("timeout"))
@@ -77,6 +80,7 @@ class EmailServiceAdapterTest {
     }
 
     @Test
+    @DisplayName("should give up without throwing after all retry attempts fail")
     void sendHtmlEmail_ShouldGiveUpAndNotThrow_AfterMaxAttemptsAllFail() {
         when(mailSender.createMimeMessage()).thenReturn(newMimeMessage());
         doThrow(new MailSendException("timeout")).when(mailSender).send(any(MimeMessage.class));
@@ -88,6 +92,7 @@ class EmailServiceAdapterTest {
     }
 
     @Test
+    @DisplayName("should retry the simple email and succeed when the first attempt fails transiently")
     void sendSimpleEmail_ShouldRetryAndSucceed_WhenFirstAttemptFailsTransiently() {
         doThrow(new MailSendException("timeout"))
                 .doNothing()
@@ -99,6 +104,7 @@ class EmailServiceAdapterTest {
     }
 
     @Test
+    @DisplayName("should send the templated email successfully when the template renders and sending succeeds")
     void sendTemplatedEmail_ShouldSendSuccessfully_WhenTemplateRendersAndSendSucceeds() {
         when(templateEngine.process(eq("emails/report.html"), any(Context.class))).thenReturn("<p>Report</p>");
         when(mailSender.createMimeMessage()).thenReturn(newMimeMessage());
@@ -110,6 +116,7 @@ class EmailServiceAdapterTest {
     }
 
     @Test
+    @DisplayName("should not throw when sending the templated email fails after all retries")
     void sendTemplatedEmail_ShouldNotThrow_WhenSendingFailsAfterAllRetries() {
         when(templateEngine.process(anyString(), any(Context.class))).thenReturn("<p>Report</p>");
         when(mailSender.createMimeMessage()).thenReturn(newMimeMessage());

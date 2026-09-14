@@ -11,6 +11,7 @@ import net.focik.homeoffice.finance.domain.loanproposal.ProposedLoanData;
 import net.focik.homeoffice.finance.domain.loanproposal.ProposedPurchaseData;
 import net.focik.homeoffice.finance.infrastructure.dto.LoanProposalDbDto;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -32,6 +33,7 @@ class JpaLoanProposalMapperTest {
     }
 
     @Test
+    @DisplayName("should round-trip both proposed loan and proposed purchase candidates through toDto/toDomain when both are present")
     void toDto_and_toDomain_ShouldRoundTripBothCandidates_WhenBothPresent() {
         LoanProposal proposal = LoanProposal.builder()
                 .id(1)
@@ -62,6 +64,7 @@ class JpaLoanProposalMapperTest {
     }
 
     @Test
+    @DisplayName("should leave the proposed purchase null through toDto/toDomain when it is not applicable")
     void toDto_and_toDomain_ShouldLeaveProposedPurchaseNull_WhenNotApplicable() {
         LoanProposal proposal = LoanProposal.builder()
                 .id(1)
@@ -79,6 +82,7 @@ class JpaLoanProposalMapperTest {
     }
 
     @Test
+    @DisplayName("should map and round-trip the created purchase id")
     void toDto_ShouldMapCreatedPurchaseId() {
         LoanProposal proposal = LoanProposal.builder()
                 .id(1)

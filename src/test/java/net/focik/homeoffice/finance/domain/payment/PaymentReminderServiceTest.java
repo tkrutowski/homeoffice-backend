@@ -12,6 +12,7 @@ import net.focik.homeoffice.userservice.domain.UserFacade;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.javamoney.moneta.Money;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -71,6 +72,7 @@ class PaymentReminderServiceTest {
     }
 
     @Test
+    @DisplayName("should send a reminder for a fee installment seven days before its deadline")
     void shouldSendReminderSevenDaysBeforeDeadline() {
         // Given
         LocalDate today = LocalDate.now();
@@ -98,6 +100,7 @@ class PaymentReminderServiceTest {
     }
 
     @Test
+    @DisplayName("should send a reminder for a fee installment three days before its deadline")
     void shouldSendReminderThreeDaysBeforeDeadline() {
         // Given
         LocalDate today = LocalDate.now();
@@ -125,6 +128,7 @@ class PaymentReminderServiceTest {
     }
 
     @Test
+    @DisplayName("should send a reminder for a fee installment one day before its deadline")
     void shouldSendReminderOneDayBeforeDeadline() {
         // Given
         LocalDate today = LocalDate.now();
@@ -152,6 +156,7 @@ class PaymentReminderServiceTest {
     }
 
     @Test
+    @DisplayName("should send a reminder for a fee installment one day after its deadline")
     void shouldSendReminderOneDayAfterDeadline() {
         // Given - 1 dzień po terminie
         LocalDate today = LocalDate.now();
@@ -179,6 +184,7 @@ class PaymentReminderServiceTest {
     }
 
     @Test
+    @DisplayName("should send a reminder for a fee installment three days after its deadline")
     void shouldSendReminderThreeDaysAfterDeadline() {
         // Given - 3 dni po terminie
         LocalDate today = LocalDate.now();
@@ -206,6 +212,7 @@ class PaymentReminderServiceTest {
     }
 
     @Test
+    @DisplayName("should send a reminder for a fee installment seven days after its deadline")
     void shouldSendReminderSevenDaysAfterDeadline() {
         // Given - 7 dni po terminie
         LocalDate today = LocalDate.now();
@@ -233,6 +240,7 @@ class PaymentReminderServiceTest {
     }
 
     @Test
+    @DisplayName("should send the weekly overdue reminder fourteen days after the deadline")
     void shouldSendReminderFourteenDaysAfterDeadline() {
         // Given - 14 dni po terminie (pierwsze cotygodniowe przypomnienie po pierwszym tygodniu)
         LocalDate today = LocalDate.now();
@@ -260,6 +268,7 @@ class PaymentReminderServiceTest {
     }
 
     @Test
+    @DisplayName("should not send a reminder for an installment that has already been paid")
     void shouldNotSendReminderForPaidInstallment() {
         // Given
         LocalDate today = LocalDate.now();
@@ -286,6 +295,7 @@ class PaymentReminderServiceTest {
     }
 
     @Test
+    @DisplayName("should not send a reminder two days before the deadline, since that offset is not one of the reminder days")
     void shouldNotSendReminderTwoDaysBeforeDeadline() {
         // Given
         LocalDate today = LocalDate.now();
@@ -312,6 +322,7 @@ class PaymentReminderServiceTest {
     }
 
     @Test
+    @DisplayName("should not send a reminder eight days after the deadline, since it falls outside 1/3/7 and the weekly cycle")
     void shouldNotSendReminderEightDaysAfterDeadline() {
         // Given - 8 dni po terminie (poza 1/3/7 i nie jest wielokrotnością 7 od terminu)
         LocalDate today = LocalDate.now();
@@ -338,6 +349,7 @@ class PaymentReminderServiceTest {
     }
 
     @Test
+    @DisplayName("should send a reminder for an overdue loan installment one day after its deadline")
     void shouldSendReminderForLoanInstallmentAfterDeadline() {
         // Given - 1 dzień po terminie
         LocalDate today = LocalDate.now();
@@ -365,6 +377,7 @@ class PaymentReminderServiceTest {
     }
 
     @Test
+    @DisplayName("should send a reminder for a loan installment seven days before its deadline")
     void shouldSendReminderForLoanInstallmentBeforeDeadline() {
         // Given - 7 dni przed terminem
         LocalDate today = LocalDate.now();
@@ -392,6 +405,7 @@ class PaymentReminderServiceTest {
     }
 
     @Test
+    @DisplayName("should not send a reminder when the user has no email address")
     void shouldNotSendReminderForNullEmail() {
         // Given - 1 dzień po terminie, ale email jest null
         LocalDate today = LocalDate.now();

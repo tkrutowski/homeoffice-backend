@@ -10,6 +10,7 @@ import net.focik.homeoffice.userservice.domain.UserFacade;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -94,6 +95,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteLoanById should unlink and revert converted purchases before deleting the loan")
     void deleteLoanById_ShouldUnlinkAndRevertConvertedPurchases_BeforeDeletingLoan() {
         when(loanService.findLoanById(99, false)).thenReturn(Loan.builder().id(99).idUser(7).build());
         Purchase p1 = convertedPurchase(1, 99);
@@ -115,6 +117,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteLoanById should not touch any purchases when none are linked to the loan")
     void deleteLoanById_ShouldNotTouchPurchases_WhenNoneAreLinked() {
         when(loanService.findLoanById(5, false)).thenReturn(Loan.builder().id(5).idUser(7).build());
         when(getPurchaseUseCase.findByLoan(5)).thenReturn(List.of());
@@ -126,6 +129,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteLoanById should throw access denied and not touch purchases when the requesting user is not the owner and lacks DELETE_ALL")
     void deleteLoanById_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoDeleteAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         when(loanService.findLoanById(99, false)).thenReturn(Loan.builder().id(99).idUser(7).build());
@@ -139,6 +143,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteLoanById should throw access denied when the user has only the WRITE_ALL authority, not DELETE_ALL")
     void deleteLoanById_ShouldThrowAccessDenied_WhenUserHasOnlyWriteAllAuthority() {
         // WRITE_ALL nie uprawnia do usuwania cudzych kredytow - do tego sluzy osobne DELETE_ALL
         authenticateAs("john", "FINANCE_LOAN_WRITE_ALL");
@@ -152,6 +157,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteLoanById should delete the loan when the requesting user is its owner")
     void deleteLoanById_ShouldDeleteOwnLoan_WhenRequestingUserIsOwner() {
         authenticateAs("john", "ROLE_FINANCE");
         when(loanService.findLoanById(99, false)).thenReturn(Loan.builder().id(99).idUser(7).build());
@@ -164,6 +170,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteLoanById should delete any loan, even someone else's, when the user has the DELETE_ALL authority")
     void deleteLoanById_ShouldDeleteAnyLoan_WhenUserHasDeleteAllAuthority() {
         authenticateAs("admin", "FINANCE_LOAN_DELETE_ALL");
         when(loanService.findLoanById(99, false)).thenReturn(Loan.builder().id(99).idUser(7).build());
@@ -176,6 +183,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteLoanInstallmentById should throw access denied when the requesting user does not own the parent loan and lacks DELETE_ALL")
     void deleteLoanInstallmentById_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoDeleteAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         LoanInstallment installment = LoanInstallment.builder().idLoanInstallment(5).idLoan(99).build();
@@ -190,6 +198,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteLoanInstallmentById should delete the installment when the requesting user owns the parent loan")
     void deleteLoanInstallmentById_ShouldDelete_WhenRequestingUserIsOwner() {
         authenticateAs("john", "ROLE_FINANCE");
         LoanInstallment installment = LoanInstallment.builder().idLoanInstallment(5).idLoan(99).build();
@@ -203,6 +212,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteLoanInstallmentById should delete the installment when the user has the DELETE_ALL authority")
     void deleteLoanInstallmentById_ShouldDelete_WhenUserHasDeleteAllAuthority() {
         authenticateAs("admin", "FINANCE_LOAN_DELETE_ALL");
         LoanInstallment installment = LoanInstallment.builder().idLoanInstallment(5).idLoan(99).build();
@@ -218,6 +228,7 @@ class LoanFacadeTest {
     // ---- Kontrola dostępu (na wzór getLoansByStatus) ----
 
     @Test
+    @DisplayName("getLoanById should return the loan without an ownership check when there is no authentication context")
     void getLoanById_ShouldReturnLoan_WhenNoAuthenticationContext() {
         // brak kontekstu security (np. zadanie schedulera) - traktowane jak pelny dostep
         Loan loan = Loan.builder().id(1).idUser(5).build();
@@ -230,6 +241,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("getLoanById should return the loan when the requesting user is its owner")
     void getLoanById_ShouldReturnLoan_WhenRequestingUserIsOwner() {
         authenticateAs("john", "ROLE_FINANCE");
         Loan loan = Loan.builder().id(1).idUser(7).build();
@@ -242,6 +254,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("getLoanById should throw access denied when the requesting user is not the owner and lacks READ_ALL")
     void getLoanById_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoReadAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         Loan loan = Loan.builder().id(1).idUser(7).build();
@@ -253,6 +266,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("getLoanById should return any loan, even someone else's, when the user has the READ_ALL authority")
     void getLoanById_ShouldReturnAnyLoan_WhenUserHasReadAllAuthority() {
         authenticateAs("admin", "FINANCE_LOAN_READ_ALL");
         Loan loan = Loan.builder().id(1).idUser(7).build();
@@ -265,6 +279,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("getLoanById should throw access denied when the user has only the WRITE_ALL authority, not READ_ALL")
     void getLoanById_ShouldThrowAccessDenied_WhenUserHasOnlyWriteAllAuthority() {
         // READ_ALL i WRITE_ALL to celowo osobne uprawnienia - samo WRITE_ALL nie daje prawa do odczytu cudzych danych
         authenticateAs("john", "FINANCE_LOAN_WRITE_ALL");
@@ -277,6 +292,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("findLoansPageableWithFilters should override the requested idUser filter with the caller's own id when they lack READ_ALL")
     void findLoansPageableWithFilters_ShouldOverrideRequestedIdUser_WhenUserHasNoReadAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
@@ -295,6 +311,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("findLoansPageableWithFilters should keep the requested idUser filter when the user has the READ_ALL authority")
     void findLoansPageableWithFilters_ShouldKeepRequestedIdUser_WhenUserHasReadAllAuthority() {
         authenticateAs("admin", "ROLE_ADMIN");
         when(loanService.findLoansPageableWithFilters(
@@ -312,6 +329,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("addLoan should override the requested idUser with the caller's own id when they lack WRITE_ALL")
     void addLoan_ShouldOverrideRequestedIdUser_WhenUserHasNoWriteAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
@@ -325,6 +343,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("addLoan should override the requested idUser when the user has only READ_ALL, since READ_ALL does not grant write access")
     void addLoan_ShouldOverrideRequestedIdUser_WhenUserHasOnlyReadAllAuthority() {
         // sam READ_ALL (bez WRITE_ALL) nie uprawnia do zakladania kredytow na cudze konto
         authenticateAs("john", "FINANCE_LOAN_READ_ALL");
@@ -338,6 +357,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("addLoan should keep the requested idUser when the user has the WRITE_ALL authority")
     void addLoan_ShouldKeepRequestedIdUser_WhenUserHasWriteAllAuthority() {
         authenticateAs("admin", "FINANCE_LOAN_WRITE_ALL");
         Loan loanToAdd = Loan.builder().idUser(999).build();
@@ -350,6 +370,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("updateLoan should throw access denied when the requesting user is not the owner and lacks WRITE_ALL")
     void updateLoan_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoWriteAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         Loan existingLoan = Loan.builder().id(1).idUser(7).build();
@@ -365,6 +386,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("updateLoan should override the idUser back to the owner when the owner tries to reassign the loan to someone else")
     void updateLoan_ShouldOverrideRequestedIdUser_WhenOwnerTriesToReassignLoanToSomeoneElse() {
         authenticateAs("john", "ROLE_FINANCE");
         Loan existingLoan = Loan.builder().id(1).idUser(7).build();
@@ -383,6 +405,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("updateLoan should keep the requested idUser when the user has the WRITE_ALL authority")
     void updateLoan_ShouldKeepRequestedIdUser_WhenUserHasWriteAllAuthority() {
         authenticateAs("admin", "FINANCE_LOAN_WRITE_ALL");
         Loan existingLoan = Loan.builder().id(1).idUser(7).build();
@@ -398,6 +421,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("updateLoan should throw access denied when the user has only READ_ALL, since it does not allow editing others' loans")
     void updateLoan_ShouldThrowAccessDenied_WhenUserHasOnlyReadAllAuthority() {
         // sam READ_ALL (bez WRITE_ALL) nie uprawnia do edycji cudzego kredytu
         authenticateAs("john", "FINANCE_LOAN_READ_ALL");
@@ -414,6 +438,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("updateLoanStatus should throw access denied when the requesting user is not the owner and lacks WRITE_ALL")
     void updateLoanStatus_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoWriteAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         Loan existingLoan = Loan.builder().id(1).idUser(7).build();
@@ -427,6 +452,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("updateLoanStatus should update the status when the requesting user is the loan's owner")
     void updateLoanStatus_ShouldUpdateStatus_WhenRequestingUserIsOwner() {
         authenticateAs("john", "ROLE_FINANCE");
         Loan existingLoan = Loan.builder().id(1).idUser(7).loanStatus(PaymentStatus.TO_PAY).build();
@@ -442,6 +468,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("updateLoanStatus should update the status of another user's loan when the user has the WRITE_ALL authority")
     void updateLoanStatus_ShouldUpdateStatus_WhenUserHasWriteAllAuthority() {
         authenticateAs("admin", "FINANCE_LOAN_WRITE_ALL");
         Loan existingLoan = Loan.builder().id(1).idUser(7).loanStatus(PaymentStatus.TO_PAY).build();
@@ -456,6 +483,7 @@ class LoanFacadeTest {
     }
 
     @Test
+    @DisplayName("updateLoanStatus should throw access denied when the user has only READ_ALL, since it does not allow changing others' loan status")
     void updateLoanStatus_ShouldThrowAccessDenied_WhenUserHasOnlyReadAllAuthority() {
         // sam READ_ALL (bez WRITE_ALL) nie uprawnia do zmiany statusu cudzego kredytu
         authenticateAs("john", "FINANCE_LOAN_READ_ALL");

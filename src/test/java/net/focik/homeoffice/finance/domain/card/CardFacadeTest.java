@@ -5,6 +5,7 @@ import net.focik.homeoffice.userservice.domain.UserFacade;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -63,6 +64,7 @@ class CardFacadeTest {
     // ---- findById (READ) ----
 
     @Test
+    @DisplayName("findById should return the card without an ownership check when there is no authentication context")
     void findById_ShouldReturnCard_WhenNoAuthenticationContext() {
         Card card = Card.builder().id(1).idUser(5).build();
         when(cardService.findCardById(1)).thenReturn(card);
@@ -74,6 +76,7 @@ class CardFacadeTest {
     }
 
     @Test
+    @DisplayName("findById should return the card when the requesting user is its owner")
     void findById_ShouldReturnCard_WhenRequestingUserIsOwner() {
         authenticateAs("john", "ROLE_FINANCE");
         Card card = Card.builder().id(1).idUser(7).build();
@@ -86,6 +89,7 @@ class CardFacadeTest {
     }
 
     @Test
+    @DisplayName("findById should throw access denied when the requesting user is not the owner and lacks READ_ALL")
     void findById_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoReadAllPrivilege() {
         authenticateAs("john", "FINANCE_READ");
         Card card = Card.builder().id(1).idUser(7).build();
@@ -97,6 +101,7 @@ class CardFacadeTest {
     }
 
     @Test
+    @DisplayName("findById should return any card, even someone else's, when the user has the READ_ALL authority")
     void findById_ShouldReturnAnyCard_WhenUserHasReadAllAuthority() {
         authenticateAs("admin", "FINANCE_READ_ALL");
         Card card = Card.builder().id(1).idUser(7).build();
@@ -109,6 +114,7 @@ class CardFacadeTest {
     }
 
     @Test
+    @DisplayName("findById should throw access denied when the user has only the WRITE_ALL authority")
     void findById_ShouldThrowAccessDenied_WhenUserHasOnlyWriteAllAuthority() {
         authenticateAs("john", "FINANCE_WRITE_ALL");
         Card card = Card.builder().id(1).idUser(7).build();
@@ -122,6 +128,7 @@ class CardFacadeTest {
     // ---- findByStatus (endpoint GET / - dziś dostepny dla kazdego ROLE_FINANCE) ----
 
     @Test
+    @DisplayName("findByStatus should filter the results to the user's own cards when they lack READ_ALL")
     void findByStatus_ShouldFilterToOwnCards_WhenUserHasNoReadAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         Card own = Card.builder().id(1).idUser(7).build();
@@ -135,6 +142,7 @@ class CardFacadeTest {
     }
 
     @Test
+    @DisplayName("findByStatus should return every card, including others', when the user has ROLE_ADMIN")
     void findByStatus_ShouldReturnEverything_WhenUserHasReadAllAuthority() {
         authenticateAs("admin", "ROLE_ADMIN");
         Card own = Card.builder().id(1).idUser(7).build();
@@ -150,6 +158,7 @@ class CardFacadeTest {
     // ---- findByUserAndStatus (endpoint /user/{userId}) ----
 
     @Test
+    @DisplayName("findByUserAndStatus should throw access denied when requesting another user's cards without READ_ALL")
     void findByUserAndStatus_ShouldThrowAccessDenied_WhenRequestingOtherUsersDataWithoutReadAllPrivilege() {
         authenticateAs("john", "FINANCE_READ");
         when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
@@ -161,6 +170,7 @@ class CardFacadeTest {
     }
 
     @Test
+    @DisplayName("findByUserAndStatus should return another user's cards when the requester has ROLE_ADMIN")
     void findByUserAndStatus_ShouldReturnAnyUsersData_WhenUserHasReadAllAuthority() {
         authenticateAs("admin", "ROLE_ADMIN");
         when(cardService.findCardsByUserAndStatus(999, ActiveStatus.ALL)).thenReturn(List.of());
@@ -173,6 +183,7 @@ class CardFacadeTest {
     // ---- addCard (WRITE) ----
 
     @Test
+    @DisplayName("addCard should override the requested idUser with the caller's own id when they lack WRITE_ALL")
     void addCard_ShouldOverrideRequestedIdUser_WhenUserHasNoWriteAllPrivilege() {
         authenticateAs("john", "FINANCE_WRITE");
         when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
@@ -185,6 +196,7 @@ class CardFacadeTest {
     }
 
     @Test
+    @DisplayName("addCard should keep the requested idUser when the user has the WRITE_ALL authority")
     void addCard_ShouldKeepRequestedIdUser_WhenUserHasWriteAllAuthority() {
         authenticateAs("admin", "FINANCE_WRITE_ALL");
         Card cardToAdd = Card.builder().idUser(999).build();
@@ -199,6 +211,7 @@ class CardFacadeTest {
     // ---- updateCard / updateCardStatus (WRITE) ----
 
     @Test
+    @DisplayName("updateCard should throw access denied when the requesting user is not the owner and lacks WRITE_ALL")
     void updateCard_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoWriteAllPrivilege() {
         authenticateAs("john", "FINANCE_WRITE");
         Card existingCard = Card.builder().id(1).idUser(7).build();
@@ -214,6 +227,7 @@ class CardFacadeTest {
     }
 
     @Test
+    @DisplayName("updateCard should override the idUser back to the owner when the owner tries to reassign the card to someone else")
     void updateCard_ShouldOverrideRequestedIdUser_WhenOwnerTriesToReassignCardToSomeoneElse() {
         authenticateAs("john", "FINANCE_WRITE");
         Card existingCard = Card.builder().id(1).idUser(7).build();
@@ -228,6 +242,7 @@ class CardFacadeTest {
     }
 
     @Test
+    @DisplayName("updateCardStatus should throw access denied when the requesting user is not the owner and lacks WRITE_ALL")
     void updateCardStatus_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoWriteAllPrivilege() {
         authenticateAs("john", "FINANCE_WRITE");
         Card existingCard = Card.builder().id(1).idUser(7).build();
@@ -243,6 +258,7 @@ class CardFacadeTest {
     // ---- deleteCard (DELETE) ----
 
     @Test
+    @DisplayName("deleteCard should throw access denied when the requesting user is not the owner and lacks DELETE_ALL")
     void deleteCard_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoDeleteAllPrivilege() {
         authenticateAs("john", "FINANCE_DELETE");
         when(cardService.findCardById(99)).thenReturn(Card.builder().id(99).idUser(7).build());
@@ -255,6 +271,7 @@ class CardFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteCard should throw access denied when the user has only the WRITE_ALL authority, not DELETE_ALL")
     void deleteCard_ShouldThrowAccessDenied_WhenUserHasOnlyWriteAllAuthority() {
         authenticateAs("john", "FINANCE_WRITE_ALL");
         when(cardService.findCardById(99)).thenReturn(Card.builder().id(99).idUser(7).build());
@@ -267,6 +284,7 @@ class CardFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteCard should delete the card when the requesting user is its owner")
     void deleteCard_ShouldDeleteOwnCard_WhenRequestingUserIsOwner() {
         authenticateAs("john", "FINANCE_DELETE");
         when(cardService.findCardById(99)).thenReturn(Card.builder().id(99).idUser(7).build());
@@ -278,6 +296,7 @@ class CardFacadeTest {
     }
 
     @Test
+    @DisplayName("deleteCard should delete any card, even someone else's, when the user has the DELETE_ALL authority")
     void deleteCard_ShouldDeleteAnyCard_WhenUserHasDeleteAllAuthority() {
         authenticateAs("admin", "FINANCE_DELETE_ALL");
         when(cardService.findCardById(99)).thenReturn(Card.builder().id(99).idUser(7).build());

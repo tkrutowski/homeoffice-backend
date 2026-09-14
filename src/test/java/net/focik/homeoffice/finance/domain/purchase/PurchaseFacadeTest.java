@@ -8,6 +8,7 @@ import net.focik.homeoffice.userservice.domain.UserFacade;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -72,6 +73,7 @@ class PurchaseFacadeTest {
     // ---- findById (READ) ----
 
     @Test
+    @DisplayName("findById should return the purchase without an ownership check when there is no authentication context")
     void findById_ShouldReturnPurchase_WhenNoAuthenticationContext() {
         Purchase purchase = Purchase.builder().id(1).idUser(5).build();
         when(purchaseService.findPurchaseById(1)).thenReturn(purchase);
@@ -83,6 +85,7 @@ class PurchaseFacadeTest {
     }
 
     @Test
+    @DisplayName("findById should return the purchase when the requesting user is its owner")
     void findById_ShouldReturnPurchase_WhenRequestingUserIsOwner() {
         authenticateAs("john", "ROLE_FINANCE");
         Purchase purchase = Purchase.builder().id(1).idUser(7).build();
@@ -95,6 +98,7 @@ class PurchaseFacadeTest {
     }
 
     @Test
+    @DisplayName("findById should throw access denied when the requesting user is not the owner and lacks READ_ALL")
     void findById_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoReadAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         Purchase purchase = Purchase.builder().id(1).idUser(7).build();
@@ -106,6 +110,7 @@ class PurchaseFacadeTest {
     }
 
     @Test
+    @DisplayName("findById should return any purchase, even someone else's, when the user has the READ_ALL authority")
     void findById_ShouldReturnAnyPurchase_WhenUserHasReadAllAuthority() {
         authenticateAs("admin", "FINANCE_PURCHASE_READ_ALL");
         Purchase purchase = Purchase.builder().id(1).idUser(7).build();
@@ -118,6 +123,7 @@ class PurchaseFacadeTest {
     }
 
     @Test
+    @DisplayName("findById should throw access denied when the user has only the WRITE_ALL authority")
     void findById_ShouldThrowAccessDenied_WhenUserHasOnlyWriteAllAuthority() {
         authenticateAs("john", "FINANCE_PURCHASE_WRITE_ALL");
         Purchase purchase = Purchase.builder().id(1).idUser(7).build();
@@ -131,6 +137,7 @@ class PurchaseFacadeTest {
     // ---- findByUserMap(Integer userId) (endpoint /user/{userId}) ----
 
     @Test
+    @DisplayName("findByUserMap should throw access denied when requesting another user's purchases without READ_ALL")
     void findByUserMapById_ShouldThrowAccessDenied_WhenRequestingOtherUsersDataWithoutReadAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
@@ -142,6 +149,7 @@ class PurchaseFacadeTest {
     }
 
     @Test
+    @DisplayName("findByUserMap should return another user's purchases when the requester has ROLE_ADMIN")
     void findByUserMapById_ShouldReturnAnyUsersData_WhenUserHasReadAllAuthority() {
         authenticateAs("admin", "ROLE_ADMIN");
         when(purchaseService.findPurchasesByUser(999, PaymentStatus.TO_PAY)).thenReturn(List.of());
@@ -155,6 +163,7 @@ class PurchaseFacadeTest {
     // ---- findCurrent(username) (endpoint /current/{username}) ----
 
     @Test
+    @DisplayName("findCurrent should throw access denied when requesting another user's current purchases without READ_ALL")
     void findCurrent_ShouldThrowAccessDenied_WhenRequestingOtherUsersUsernameWithoutReadAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
 
@@ -165,6 +174,7 @@ class PurchaseFacadeTest {
     }
 
     @Test
+    @DisplayName("findCurrent should return the caller's own data when requesting their own username")
     void findCurrent_ShouldReturnOwnData_WhenRequestingOwnUsername() {
         authenticateAs("john", "ROLE_FINANCE");
         when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
@@ -179,6 +189,7 @@ class PurchaseFacadeTest {
     // ---- addPurchase (WRITE) ----
 
     @Test
+    @DisplayName("addPurchase should override the requested idUser with the caller's own id when they lack WRITE_ALL")
     void addPurchase_ShouldOverrideRequestedIdUser_WhenUserHasNoWriteAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
@@ -191,6 +202,7 @@ class PurchaseFacadeTest {
     }
 
     @Test
+    @DisplayName("addPurchase should keep the requested idUser when the user has the WRITE_ALL authority")
     void addPurchase_ShouldKeepRequestedIdUser_WhenUserHasWriteAllAuthority() {
         authenticateAs("admin", "FINANCE_PURCHASE_WRITE_ALL");
         Purchase purchaseToAdd = Purchase.builder().idUser(999).build();
@@ -205,6 +217,7 @@ class PurchaseFacadeTest {
     // ---- updatePurchase / updatePurchaseStatus (WRITE) ----
 
     @Test
+    @DisplayName("updatePurchase should throw access denied when the requesting user is not the owner and lacks WRITE_ALL")
     void updatePurchase_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoWriteAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         Purchase existingPurchase = Purchase.builder().id(1).idUser(7).build();
@@ -220,6 +233,7 @@ class PurchaseFacadeTest {
     }
 
     @Test
+    @DisplayName("updatePurchase should override the idUser back to the owner when the owner tries to reassign the purchase to someone else")
     void updatePurchase_ShouldOverrideRequestedIdUser_WhenOwnerTriesToReassignPurchaseToSomeoneElse() {
         authenticateAs("john", "ROLE_FINANCE");
         Purchase existingPurchase = Purchase.builder().id(1).idUser(7).build();
@@ -234,6 +248,7 @@ class PurchaseFacadeTest {
     }
 
     @Test
+    @DisplayName("updatePurchaseStatus should throw access denied when the requesting user is not the owner and lacks WRITE_ALL")
     void updatePurchaseStatus_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoWriteAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         Purchase existingPurchase = Purchase.builder().id(1).idUser(7).paymentStatus(PaymentStatus.TO_PAY).build();
@@ -249,6 +264,7 @@ class PurchaseFacadeTest {
     // ---- deletePurchase (DELETE) ----
 
     @Test
+    @DisplayName("deletePurchase should throw access denied when the requesting user is not the owner and lacks DELETE_ALL")
     void deletePurchase_ShouldThrowAccessDenied_WhenRequestingUserIsNotOwnerAndHasNoDeleteAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
         when(purchaseService.findPurchaseById(99)).thenReturn(Purchase.builder().id(99).idUser(7).build());
@@ -261,6 +277,7 @@ class PurchaseFacadeTest {
     }
 
     @Test
+    @DisplayName("deletePurchase should throw access denied when the user has only the WRITE_ALL authority, not DELETE_ALL")
     void deletePurchase_ShouldThrowAccessDenied_WhenUserHasOnlyWriteAllAuthority() {
         authenticateAs("john", "FINANCE_PURCHASE_WRITE_ALL");
         when(purchaseService.findPurchaseById(99)).thenReturn(Purchase.builder().id(99).idUser(7).build());
@@ -273,6 +290,7 @@ class PurchaseFacadeTest {
     }
 
     @Test
+    @DisplayName("deletePurchase should delete the purchase when the requesting user is its owner")
     void deletePurchase_ShouldDeleteOwnPurchase_WhenRequestingUserIsOwner() {
         authenticateAs("john", "ROLE_FINANCE");
         when(purchaseService.findPurchaseById(99)).thenReturn(Purchase.builder().id(99).idUser(7).build());
@@ -284,6 +302,7 @@ class PurchaseFacadeTest {
     }
 
     @Test
+    @DisplayName("deletePurchase should delete any purchase, even someone else's, when the user has the DELETE_ALL authority")
     void deletePurchase_ShouldDeleteAnyPurchase_WhenUserHasDeleteAllAuthority() {
         authenticateAs("admin", "FINANCE_PURCHASE_DELETE_ALL");
         when(purchaseService.findPurchaseById(99)).thenReturn(Purchase.builder().id(99).idUser(7).build());

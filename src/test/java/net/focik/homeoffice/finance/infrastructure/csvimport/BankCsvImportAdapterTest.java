@@ -7,6 +7,7 @@ import net.focik.homeoffice.async.AsyncTaskService;
 import net.focik.homeoffice.async.AsyncTaskStatus;
 import net.focik.homeoffice.finance.api.dto.BankCsvImportResponse;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -36,6 +37,7 @@ class BankCsvImportAdapterTest {
     }
 
     @Test
+    @DisplayName("should create an async task, start the worker, and return the job id for valid input")
     void startImportAsync_ShouldCreateAsyncTaskAndReturnJobId_WhenValidInput() {
         byte[] csvContent = "test,csv,content".getBytes();
         int idUser = 123;
@@ -56,6 +58,7 @@ class BankCsvImportAdapterTest {
     }
 
     @Test
+    @DisplayName("should return the job id produced by the created async task")
     void startImportAsync_ShouldReturnJobIdFromAsyncTask_WhenTaskCreated() {
         byte[] csvContent = "test,csv,content".getBytes();
         int idUser = 123;
@@ -74,6 +77,7 @@ class BankCsvImportAdapterTest {
     }
 
     @Test
+    @DisplayName("should return null when no async task is found for the job id")
     void getImportResult_ShouldReturnNullWhenTaskNotFound() {
         when(asyncTaskService.getJobStatus("invalid-job-id")).thenReturn(null);
 
@@ -83,6 +87,7 @@ class BankCsvImportAdapterTest {
     }
 
     @Test
+    @DisplayName("should return null while the task is still RUNNING")
     void getImportResult_ShouldReturnNullWhenTaskStatusIsRunning() {
         String jobId = "job-123";
         AsyncTask runningTask = AsyncTask.builder()
@@ -98,6 +103,7 @@ class BankCsvImportAdapterTest {
     }
 
     @Test
+    @DisplayName("should return null while the task is still QUEUED")
     void getImportResult_ShouldReturnNullWhenTaskStatusIsQueued() {
         String jobId = "job-123";
         AsyncTask queuedTask = AsyncTask.builder()
@@ -113,6 +119,7 @@ class BankCsvImportAdapterTest {
     }
 
     @Test
+    @DisplayName("should deserialize the stored result JSON when the task has SUCCEEDED")
     void getImportResult_ShouldDeserializeResultWhenTaskSucceeded() {
         String jobId = "job-123";
         BankCsvImportResponse expectedResult = BankCsvImportResponse.builder()
@@ -145,6 +152,7 @@ class BankCsvImportAdapterTest {
     }
 
     @Test
+    @DisplayName("should return an error response when the task succeeded but has no result JSON")
     void getImportResult_ShouldReturnErrorResponseWhenResultJsonIsEmpty() {
         String jobId = "job-123";
         AsyncTask task = AsyncTask.builder()
@@ -162,6 +170,7 @@ class BankCsvImportAdapterTest {
     }
 
     @Test
+    @DisplayName("should return an error response when the stored result JSON fails to deserialize")
     void getImportResult_ShouldReturnErrorResponseWhenDeserializationFails() {
         String jobId = "job-123";
         AsyncTask task = AsyncTask.builder()
@@ -180,6 +189,7 @@ class BankCsvImportAdapterTest {
     }
 
     @Test
+    @DisplayName("should surface the task's error messages when the task has FAILED")
     void getImportResult_ShouldReturnErrorsWhenTaskFailed() {
         String jobId = "job-123";
 

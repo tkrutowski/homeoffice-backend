@@ -1,5 +1,6 @@
 package net.focik.homeoffice.utils;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
@@ -10,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class StringHelperTest {
 
     @Test
+    @DisplayName("should extract text between colon and parenthesis, returning empty string when there is no match")
     void extractTextBetweenColonAndParenthesis() {
         //given
         String input1 = "Cykl: HAJMDAL (tom 1)";
@@ -34,6 +36,7 @@ class StringHelperTest {
     }
 
     @Test
+    @DisplayName("should extract number from parentheses, returning the first match or empty string when absent")
     void extractNumberFromParentheses() {
         //given
         String input1 = "Cykl: HAJMDAL (tom 1)";
@@ -64,6 +67,7 @@ class StringHelperTest {
     }
 
     @Test
+    @DisplayName("should extract file extension from a URL, returning empty string when missing or input is null")
     void testExtractFileExtension() {
         // given
         String url1 = "https://s.lubimyczytac.pl/upload/books/4802000/4802688/589738-352x500.jpg";
@@ -94,6 +98,7 @@ class StringHelperTest {
     }
 
     @Test
+    @DisplayName("should convert a map to a JSON-formatted string")
     void testMapToString() {
         Map<String, String> map = new LinkedHashMap<>();
         map.put("key1", "value1");
@@ -108,6 +113,7 @@ class StringHelperTest {
     }
 
     @Test
+    @DisplayName("should return an empty string when converting an empty map")
     void testMapToStringEmptyMap() {
         Map<String, String> map = Map.of();
         String result = StringHelper.mapToString(map, ";;");
@@ -115,6 +121,7 @@ class StringHelperTest {
     }
 
     @Test
+    @DisplayName("should round-trip a map containing special characters through mapToString and stringToMap")
     void testMapToStringWithSpecialCharacters() {
         Map<String, String> map = new LinkedHashMap<>();
         map.put("color", "red");
@@ -128,6 +135,7 @@ class StringHelperTest {
     }
 
     @Test
+    @DisplayName("should parse a JSON-formatted string back into a map")
     void testStringToMapJsonFormat() {
         String input = "{\"key1\":\"value1\",\"key2\":\"value2\",\"key3\":\"value3\"}";
         Map<String, String> expected = Map.of(
@@ -139,6 +147,7 @@ class StringHelperTest {
     }
 
     @Test
+    @DisplayName("should parse the legacy key=value string format into a map for backward compatibility")
     void testStringToMapLegacyFormat() {
         // Test backward compatibility with old format
         String input = "key1=value1;;key2=value2;;key3=value3";
@@ -151,6 +160,7 @@ class StringHelperTest {
     }
 
     @Test
+    @DisplayName("should return an empty map when parsing an empty string")
     void testStringToMapEmptyString() {
         String input = "";
         Map<String, String> expected = Map.of();
@@ -158,6 +168,7 @@ class StringHelperTest {
     }
 
     @Test
+    @DisplayName("should correctly split a legacy-format value that itself contains an equals sign")
     void testStringToMapLegacyWithEquals() {
         // Old format didn't handle "=" in values, but new split("=", 2) handles it
         String input = "key1=value1;;key2=Cost=500PLN";
@@ -166,6 +177,7 @@ class StringHelperTest {
     }
 
     @Test
+    @DisplayName("should preserve map contents through a round trip of mapToString and stringToMap")
     void testBothConversions() {
         Map<String, String> originalMap = new LinkedHashMap<>();
         originalMap.put("key1", "value1");
@@ -178,6 +190,7 @@ class StringHelperTest {
     }
 
     @Test
+    @DisplayName("should preserve special characters through a round trip of mapToString and stringToMap")
     void testBothConversionsWithSpecialCharacters() {
         Map<String, String> originalMap = new LinkedHashMap<>();
         originalMap.put("color", "red");

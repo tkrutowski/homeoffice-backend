@@ -8,6 +8,7 @@ import net.focik.homeoffice.finance.domain.purchase.port.primary.GetPurchaseUseC
 import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.UserFacade;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -74,6 +75,7 @@ class PurchaseReportServiceTest {
     }
 
     @Test
+    @DisplayName("should send a monthly report email when there are purchases from the previous month")
     void shouldProcessMonthlyReportsWithPurchases() {
         // Given
         List<Purchase> purchases = List.of(testPurchase);
@@ -90,6 +92,7 @@ class PurchaseReportServiceTest {
     }
 
     @Test
+    @DisplayName("should build a report email that groups multiple purchases by card")
     void shouldGroupPurchasesByCard() {
         // Given
         LocalDate previousMonthDate = LocalDate.now().minusMonths(1).withDayOfMonth(20);
@@ -119,6 +122,7 @@ class PurchaseReportServiceTest {
     }
 
     @Test
+    @DisplayName("should not send any report email when there are no purchases")
     void shouldNotSendReportWhenNoPurchases() {
         // Given
         when(getPurchaseUseCase.findByUser(anyString(), any(), any())).thenReturn(new ArrayList<>());
@@ -132,6 +136,7 @@ class PurchaseReportServiceTest {
     }
 
     @Test
+    @DisplayName("should send a weekly report email for a purchase that falls in the previous week")
     void shouldProcessWeeklyReportsWithPurchases() {
         // Given - use a purchase date guaranteed to fall inside the [previousMonday, lastSunday]
         // window computed by PurchaseReportService#processWeeklyReports. `now().minusWeeks(1)` is
@@ -165,6 +170,7 @@ class PurchaseReportServiceTest {
     }
 
     @Test
+    @DisplayName("should skip sending the report to a user who has no email address")
     void shouldNotSendToUserWithoutEmail() {
         // Given
         testUser.setEmail(null);
@@ -181,6 +187,7 @@ class PurchaseReportServiceTest {
     }
 
     @Test
+    @DisplayName("should send a separate report email to each of multiple users")
     void shouldSendToMultipleUsers() {
         // Given
         AppUser user2 = AppUser.builder()
@@ -205,6 +212,7 @@ class PurchaseReportServiceTest {
     }
 
     @Test
+    @DisplayName("should aggregate correctly and send one report when purchases span multiple cards")
     void shouldHandleMultiplePurchasesFromMultipleCards() {
         // Given
         LocalDate previousMonthDate = LocalDate.now().minusMonths(1).withDayOfMonth(10);
@@ -238,6 +246,7 @@ class PurchaseReportServiceTest {
     }
 
     @Test
+    @DisplayName("should filter out purchases older than the previous month before reporting")
     void shouldFilterPurchasesToOnlyPreviousMonth() {
         // Given
         // Old purchase from 2+ months ago should be filtered out
@@ -264,6 +273,7 @@ class PurchaseReportServiceTest {
     }
 
     @Test
+    @DisplayName("should not send any email when fetching purchases fails with an error")
     void shouldHandleErrorDuringProcessing() {
         // Given
         when(getPurchaseUseCase.findByUser(anyString(), any(), any()))

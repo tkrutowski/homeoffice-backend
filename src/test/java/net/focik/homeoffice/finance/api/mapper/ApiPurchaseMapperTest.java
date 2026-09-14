@@ -3,6 +3,7 @@ package net.focik.homeoffice.finance.api.mapper;
 import net.focik.homeoffice.finance.api.dto.PurchaseDto;
 import net.focik.homeoffice.finance.domain.purchase.Purchase;
 import net.focik.homeoffice.utils.share.PaymentStatus;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -19,6 +20,7 @@ class ApiPurchaseMapperTest {
     private final ApiPurchaseMapper mapper = new ApiPurchaseMapper();
 
     @Test
+    @DisplayName("should map idLoan to the DTO when the purchase has been converted to a loan")
     void toDto_ShouldMapIdLoan_WhenPurchaseIsConverted() {
         Purchase purchase = Purchase.builder()
                 .id(1)
@@ -38,6 +40,7 @@ class ApiPurchaseMapperTest {
     }
 
     @Test
+    @DisplayName("should leave idLoan null in the DTO when the purchase has not been converted")
     void toDto_ShouldLeaveIdLoanNull_WhenPurchaseIsNotConverted() {
         Purchase purchase = Purchase.builder()
                 .id(1)
@@ -54,6 +57,7 @@ class ApiPurchaseMapperTest {
     }
 
     @Test
+    @DisplayName("should map idLoan from the DTO back to the domain object")
     void toDomain_ShouldMapIdLoan() {
         PurchaseDto dto = PurchaseDto.builder()
                 .id(1)

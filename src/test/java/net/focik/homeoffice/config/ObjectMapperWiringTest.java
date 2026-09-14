@@ -1,6 +1,7 @@
 package net.focik.homeoffice.config;
 
 import net.focik.homeoffice.userservice.domain.port.secondary.IAppUserRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
@@ -32,6 +33,7 @@ class ObjectMapperWiringTest {
             .withConfiguration(AutoConfigurations.of(JacksonAutoConfiguration.class));
 
     @Test
+    @DisplayName("should expose exactly one JsonMapper bean, our custom one, and correctly parse an ISO datetime into LocalDate")
     void shouldExposeExactlyOneJsonMapperBean_OurCustomOne() {
         contextRunner.run(context -> {
             assertThat(context).hasSingleBean(JsonMapper.class);
@@ -46,6 +48,7 @@ class ObjectMapperWiringTest {
     }
 
     @Test
+    @DisplayName("should map an explicit JSON null to zero for a primitive int field")
     void shouldMapExplicitNullToZero_ForPrimitiveIntField() {
         contextRunner.run(context -> {
             JsonMapper jsonMapper = context.getBean(JsonMapper.class);

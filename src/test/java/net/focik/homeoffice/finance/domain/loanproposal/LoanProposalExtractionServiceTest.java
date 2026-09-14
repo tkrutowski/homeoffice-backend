@@ -4,6 +4,7 @@ import net.focik.homeoffice.finance.domain.bank.Bank;
 import net.focik.homeoffice.finance.domain.bank.port.primary.GetBankUseCase;
 import net.focik.homeoffice.finance.domain.loanproposal.port.secondary.LoanExtractorPort;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -33,6 +34,7 @@ class LoanProposalExtractionServiceTest {
     }
 
     @Test
+    @DisplayName("should return an empty result when the email is not recognized as a loan document")
     void extract_ShouldReturnEmpty_WhenEmailIsNotRecognizedAsLoanDocument() {
         when(loanExtractorPort.extract("newsletter")).thenReturn(
                 LoanExtractionResult.builder().isLoanDocument(false).build());
@@ -45,6 +47,7 @@ class LoanProposalExtractionServiceTest {
     }
 
     @Test
+    @DisplayName("should map extracted fields and resolve the bank id by name when it matches an existing bank")
     void extract_ShouldMapFieldsAndResolveBankByName_WhenBankMatchesExistingOne() {
         when(loanExtractorPort.extract("mail")).thenReturn(LoanExtractionResult.builder()
                 .isLoanDocument(true)
@@ -76,6 +79,7 @@ class LoanProposalExtractionServiceTest {
     }
 
     @Test
+    @DisplayName("should leave the bank id null when no existing bank matches the extracted name")
     void extract_ShouldLeaveBankIdNull_WhenNoExistingBankMatchesName() {
         when(loanExtractorPort.extract("mail")).thenReturn(LoanExtractionResult.builder()
                 .isLoanDocument(true)
@@ -91,6 +95,7 @@ class LoanProposalExtractionServiceTest {
     }
 
     @Test
+    @DisplayName("should return a null amount when the extracted amount text cannot be parsed")
     void extract_ShouldReturnNullAmount_WhenAmountIsUnparseable() {
         when(loanExtractorPort.extract("mail")).thenReturn(LoanExtractionResult.builder()
                 .isLoanDocument(true)
@@ -106,6 +111,7 @@ class LoanProposalExtractionServiceTest {
     }
 
     @Test
+    @DisplayName("should also propose a purchase when a merchant name is recognized")
     void extract_ShouldAlsoProposePurchase_WhenMerchantNameIsRecognized() {
         when(loanExtractorPort.extract("mail")).thenReturn(LoanExtractionResult.builder()
                 .isLoanDocument(true)
@@ -128,6 +134,7 @@ class LoanProposalExtractionServiceTest {
     }
 
     @Test
+    @DisplayName("should not propose a purchase when the merchant name is missing")
     void extract_ShouldNotProposePurchase_WhenMerchantNameIsMissing() {
         when(loanExtractorPort.extract("mail")).thenReturn(LoanExtractionResult.builder()
                 .isLoanDocument(true)

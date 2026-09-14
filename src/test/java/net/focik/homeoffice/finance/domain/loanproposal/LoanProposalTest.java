@@ -1,5 +1,6 @@
 package net.focik.homeoffice.finance.domain.loanproposal;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -7,6 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LoanProposalTest {
 
     @Test
+    @DisplayName("should set both proposed candidates and move to EXTRACTED when both are present")
     void markExtracted_ShouldSetBothCandidates_WhenBothPresent() {
         LoanProposal proposal = LoanProposal.builder().status(LoanProposalStatus.NEW).build();
         ProposedLoanData loan = ProposedLoanData.builder().bankName("PayPo").build();
@@ -20,6 +22,7 @@ class LoanProposalTest {
     }
 
     @Test
+    @DisplayName("should allow a null purchase candidate when only the loan is recognized")
     void markExtracted_ShouldAllowNullPurchase_WhenOnlyLoanRecognized() {
         LoanProposal proposal = LoanProposal.builder().status(LoanProposalStatus.NEW).build();
         ProposedLoanData loan = ProposedLoanData.builder().bankName("mBank").build();
@@ -32,6 +35,7 @@ class LoanProposalTest {
     }
 
     @Test
+    @DisplayName("should set the created purchase id and ACCEPTED status while leaving created loan id null")
     void markAcceptedAsPurchase_ShouldSetCreatedPurchaseIdAndStatus_AndLeaveCreatedLoanIdNull() {
         LoanProposal proposal = LoanProposal.builder().status(LoanProposalStatus.EXTRACTED).build();
 
@@ -45,6 +49,7 @@ class LoanProposalTest {
     }
 
     @Test
+    @DisplayName("should leave the created purchase id null when the proposal is accepted as a loan")
     void markAccepted_ShouldLeaveCreatedPurchaseIdNull_WhenAcceptedAsLoan() {
         LoanProposal proposal = LoanProposal.builder().status(LoanProposalStatus.EXTRACTED).build();
 

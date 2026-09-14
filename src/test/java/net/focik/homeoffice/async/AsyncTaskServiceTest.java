@@ -1,6 +1,7 @@
 package net.focik.homeoffice.async;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -25,6 +26,7 @@ class AsyncTaskServiceTest {
     }
 
     @Test
+    @DisplayName("should return the status and updated-at timestamp when a task exists for the job type")
     void getLatestTaskStatus_ShouldReturnStatusAndUpdatedAt_WhenTaskExists() {
         String jobType = "ZUS_DRA";
         LocalDateTime updatedAt = LocalDateTime.of(2026, 5, 24, 10, 30);
@@ -45,6 +47,7 @@ class AsyncTaskServiceTest {
     }
 
     @Test
+    @DisplayName("should return null when no task exists for the job type")
     void getLatestTaskStatus_ShouldReturnNull_WhenTaskDoesNotExist() {
         String jobType = "NONEXISTENT";
 
