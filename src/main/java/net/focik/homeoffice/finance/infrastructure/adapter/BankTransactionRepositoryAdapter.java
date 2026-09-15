@@ -72,4 +72,14 @@ class BankTransactionRepositoryAdapter implements BankTransactionRepository {
     public boolean existsByTransactionDateAndAmountAndIdUser(java.time.LocalDate transactionDate, java.math.BigDecimal amount, int idUser) {
         return bankTransactionDtoRepository.existsByTransactionDateAndAmountAndIdUser(transactionDate, amount, idUser);
     }
+
+    @Override
+    public boolean existsByTransactionCategory(int idTransactionCategory) {
+        return bankTransactionDtoRepository.existsByTransactionCategoryId(idTransactionCategory);
+    }
+
+    @Override
+    public boolean existsByTransactionLabel(int idTransactionLabel) {
+        return bankTransactionDtoRepository.existsByTransactionLabelIdsContaining(idTransactionLabel);
+    }
 }

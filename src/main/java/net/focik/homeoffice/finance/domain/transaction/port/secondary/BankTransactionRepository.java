@@ -15,4 +15,8 @@ public interface BankTransactionRepository {
     void deleteBankTransactionById(int id);
     List<BankTransaction> findAll();
     boolean existsByTransactionDateAndAmountAndIdUser(LocalDate transactionDate, BigDecimal amount, int idUser);
+
+    boolean existsByTransactionCategory(int idTransactionCategory);
+
+    boolean existsByTransactionLabel(int idTransactionLabel);
 }

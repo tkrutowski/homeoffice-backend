@@ -17,4 +17,8 @@ public interface BankTransactionDtoRepository extends JpaRepository<BankTransact
     List<BankTransactionDbDto> findByUserAndDateRange(Integer idUser, LocalDate dateFrom, LocalDate dateTo);
 
     boolean existsByTransactionDateAndAmountAndIdUser(LocalDate transactionDate, BigDecimal amount, Integer idUser);
+
+    boolean existsByTransactionCategoryId(Integer transactionCategoryId);
+
+    boolean existsByTransactionLabelIdsContaining(Integer labelId);
 }
