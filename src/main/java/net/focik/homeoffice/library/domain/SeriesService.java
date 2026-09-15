@@ -3,8 +3,11 @@ package net.focik.homeoffice.library.domain;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.exception.SeriesAlreadyExistException;
+import net.focik.homeoffice.library.domain.exception.SeriesCanNotBeDeletedException;
 import net.focik.homeoffice.library.domain.exception.SeriesNotFoundException;
+import net.focik.homeoffice.library.domain.model.Book;
 import net.focik.homeoffice.library.domain.model.Series;
+import net.focik.homeoffice.library.domain.port.secondary.BookRepository;
 import net.focik.homeoffice.library.domain.port.secondary.SeriesRepository;
 import net.focik.homeoffice.utils.exceptions.ObjectNotSavedException;
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +25,7 @@ import java.util.stream.Collectors;
 public class SeriesService {
 
     private final SeriesRepository seriesRepository;
+    private final BookRepository bookRepository;
 
     public Series addSeries(Series series) {
         Optional<Series> optionalSeries = seriesRepository.findByTitle(series.getTitle());
@@ -47,6 +51,13 @@ public class SeriesService {
     }
 
     public void deleteSeries(Integer id) {
+        Series series = new Series();
+        series.setId(id);
+        List<Book> booksBySeries = bookRepository.findAllBySeries(series);
+        if (!booksBySeries.isEmpty()) {
+            log.warn("Series with ID {} cannot be deleted — associated books found (count: {}).", id, booksBySeries.size());
+            throw new SeriesCanNotBeDeletedException("książki. (" + booksBySeries.size() + ")");
+        }
         seriesRepository.delete(id);
     }
 

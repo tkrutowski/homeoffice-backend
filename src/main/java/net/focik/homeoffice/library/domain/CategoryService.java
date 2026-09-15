@@ -3,8 +3,10 @@ package net.focik.homeoffice.library.domain;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.exception.CategoryAlreadyExistException;
+import net.focik.homeoffice.library.domain.exception.CategoryCanNotBeDeletedException;
 import net.focik.homeoffice.library.domain.exception.CategoryNotFoundException;
 import net.focik.homeoffice.library.domain.model.Category;
+import net.focik.homeoffice.library.domain.port.secondary.BookRepository;
 import net.focik.homeoffice.library.domain.port.secondary.CategoryRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final BookRepository bookRepository;
 
     public Category addCategory(Category category) {
         Optional<Category> optionalCategory = categoryRepository.findByName(category.getName());
@@ -38,6 +41,11 @@ class CategoryService {
     }
 
     public void deleteCategory(Integer id) {
+        Long booksByCategory = bookRepository.countBooksByCategoryId(id);
+        if (booksByCategory > 0) {
+            log.warn("Category with ID {} cannot be deleted — associated books found (count: {}).", id, booksByCategory);
+            throw new CategoryCanNotBeDeletedException("książki. (" + booksByCategory + ")");
+        }
         categoryRepository.delete(id);
     }
 

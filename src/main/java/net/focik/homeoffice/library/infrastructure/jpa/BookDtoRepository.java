@@ -54,4 +54,7 @@ interface BookDtoRepository extends JpaRepository<BookDbDto, Integer> {
     @Query("SELECT COUNT(DISTINCT b) FROM BookDbDto b JOIN b.authors a WHERE a.id = :authorId")
     Long countBooksByAuthorId(Integer authorId);
 
+    @Query("SELECT COUNT(DISTINCT b) FROM BookDbDto b JOIN b.categories c WHERE c.id = :categoryId")
+    Long countBooksByCategoryId(Integer categoryId);
+
 }

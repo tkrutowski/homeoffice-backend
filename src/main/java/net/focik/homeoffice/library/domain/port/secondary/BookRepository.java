@@ -42,4 +42,6 @@ public interface BookRepository {
     Long countBooksByAuthorId(Integer authorId);
 
     List<Book> findAllByAuthor(Integer authorId);
+
+    Long countBooksByCategoryId(Integer categoryId);
 }

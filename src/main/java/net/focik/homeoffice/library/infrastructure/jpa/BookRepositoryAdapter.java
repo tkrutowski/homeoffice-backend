@@ -110,4 +110,9 @@ public class BookRepositoryAdapter implements BookRepository {
                 .forEachRemaining(dto -> books.add(bookMapper.toDomain(dto)));
         return books;
     }
+
+    @Override
+    public Long countBooksByCategoryId(Integer categoryId) {
+        return bookDtoRepository.countBooksByCategoryId(categoryId);
+    }
 }

@@ -1,10 +1,13 @@
 package net.focik.homeoffice.library.domain;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.exception.AuthorAlreadyExistException;
+import net.focik.homeoffice.library.domain.exception.AuthorCanNotBeDeletedException;
 import net.focik.homeoffice.library.domain.exception.AuthorNotFoundException;
 import net.focik.homeoffice.library.domain.model.Author;
 import net.focik.homeoffice.library.domain.port.secondary.AuthorRepository;
+import net.focik.homeoffice.library.domain.port.secondary.BookRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,11 +19,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 class AuthorService {
 
     private final AuthorRepository authorRepository;
+    private final BookRepository bookRepository;
 
     public Author addAuthor(Author author) {
         Optional<Author> optionalAuthor = authorRepository.findByFirstNameAndLastName(author.getFirstName(), author.getLastName());
@@ -35,6 +40,11 @@ class AuthorService {
     }
 
     public void deleteAuthor(Integer id) {
+        Long booksByAuthor = bookRepository.countBooksByAuthorId(id);
+        if (booksByAuthor > 0) {
+            log.warn("Author with ID {} cannot be deleted — associated books found (count: {}).", id, booksByAuthor);
+            throw new AuthorCanNotBeDeletedException("książki. (" + booksByAuthor + ")");
+        }
         authorRepository.delete(id);
     }
 
