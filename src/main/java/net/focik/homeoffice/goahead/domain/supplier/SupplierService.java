@@ -2,9 +2,12 @@ package net.focik.homeoffice.goahead.domain.supplier;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.goahead.domain.cost.port.secondary.CostRepository;
 import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 import net.focik.homeoffice.goahead.domain.exception.CustomerAlreadyExistException;
 import net.focik.homeoffice.goahead.domain.exception.CustomerNotFoundException;
+import net.focik.homeoffice.goahead.domain.exception.SupplierCanNotBeDeletedException;
 import net.focik.homeoffice.goahead.domain.supplier.port.secondary.SupplierRepository;
 import org.springframework.stereotype.Service;
 
@@ -12,11 +15,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 class SupplierService implements ISupplierService {
 
     private final SupplierRepository supplierRepository;
+    // Port sekundarny modułu cost wstrzykniety bezposrednio (z pominieciem CostFacade), bo
+    // CostFacade zalezy od SupplierFacade - wstrzykniecie CostFacade tutaj tworzyloby cykl.
+    private final CostRepository costRepository;
 
     @Transactional
     public Supplier addSupplier(Supplier supplier) {
@@ -38,6 +45,10 @@ class SupplierService implements ISupplierService {
 
     @Transactional
     public void deleteSupplier(Integer id) {
+        if (costRepository.existsBySupplier(id)) {
+            log.warn("Supplier with ID {} cannot be deleted — associated costs found.", id);
+            throw new SupplierCanNotBeDeletedException("koszty.");
+        }
         supplierRepository.delete(id);
     }
 

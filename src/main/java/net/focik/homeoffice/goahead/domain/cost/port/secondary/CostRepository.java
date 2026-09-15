@@ -33,4 +33,6 @@ public interface CostRepository {
                        PaymentStatus status);
 
     boolean existsByKsefNumber(String ksefNumber);
+
+    boolean existsBySupplier(Integer idSupplier);
 }

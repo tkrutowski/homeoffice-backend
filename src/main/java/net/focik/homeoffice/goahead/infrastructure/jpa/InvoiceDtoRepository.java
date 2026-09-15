@@ -14,6 +14,8 @@ interface InvoiceDtoRepository extends JpaRepository<InvoiceDbDto, Integer>, Jpa
 
     List<InvoiceDbDto> findAllByCustomer_Id(Integer customerId);
 
+    boolean existsByCustomer_Id(Integer customerId);
+
     List<InvoiceDbDto> findBySellDateBetween(LocalDate from, LocalDate to);
 
     Optional<InvoiceDbDto> findByNumber(String number);

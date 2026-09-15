@@ -36,4 +36,6 @@ public interface InvoiceRepository {
     Map<Integer, List<BigDecimal>> getStatistic();
 
     Map<Integer, List<BigDecimal>> getMonthlyStatisticsByYearAndCustomer(Integer year);
+
+    boolean existsByCustomer(Integer idCustomer);
 }

@@ -117,4 +117,12 @@ public class InMemoryInvoiceRepositoryAdapter implements InvoiceRepository {
     public Map<Integer, List<BigDecimal>> getMonthlyStatisticsByYearAndCustomer(Integer year) {
         return Map.of();
     }
+
+    @Override
+    public boolean existsByCustomer(Integer idCustomer) {
+        return DataBaseInvoice.getInvoiceDbDtoHashMap()
+                .values()
+                .stream()
+                .anyMatch(dto -> dto.getCustomer() != null && dto.getCustomer().getId().equals(idCustomer));
+    }
 }

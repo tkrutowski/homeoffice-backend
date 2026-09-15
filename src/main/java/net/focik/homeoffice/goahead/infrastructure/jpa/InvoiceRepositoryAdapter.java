@@ -169,6 +169,11 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
         return result;
     }
 
+    @Override
+    public boolean existsByCustomer(Integer idCustomer) {
+        return invoiceDtoRepository.existsByCustomer_Id(idCustomer);
+    }
+
     private Invoice mapToDomain(InvoiceDbDto dbDto) {
         Invoice invoice = mapper.map(dbDto, Invoice.class);
         if (dbDto.getInvoiceItems() != null) {

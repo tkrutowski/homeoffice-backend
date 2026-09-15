@@ -128,4 +128,9 @@ public class CostRepositoryAdapter implements CostRepository {
     public boolean existsByKsefNumber(String ksefNumber) {
         return costDtoRepository.existsByKsefNumber(ksefNumber);
     }
+
+    @Override
+    public boolean existsBySupplier(Integer idSupplier) {
+        return costDtoRepository.existsBySupplierId(idSupplier);
+    }
 }

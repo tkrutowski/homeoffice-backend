@@ -2,20 +2,25 @@ package net.focik.homeoffice.goahead.domain.customer;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.goahead.domain.customer.port.secondary.CustomerRepository;
 import net.focik.homeoffice.goahead.domain.exception.CustomerAlreadyExistException;
+import net.focik.homeoffice.goahead.domain.exception.CustomerCanNotBeDeletedException;
 import net.focik.homeoffice.goahead.domain.exception.CustomerNotFoundException;
+import net.focik.homeoffice.goahead.domain.invoice.port.secondary.InvoiceRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 class CustomerService implements ICustomerService {
 
     private final CustomerRepository customerRepository;
+    private final InvoiceRepository invoiceRepository;
 
     @Transactional
     public Customer addCustomer(Customer customer) {
@@ -39,6 +44,10 @@ class CustomerService implements ICustomerService {
 
     @Transactional
     public void deleteCustomer(Integer id) {
+        if (invoiceRepository.existsByCustomer(id)) {
+            log.warn("Customer with ID {} cannot be deleted — associated invoices found.", id);
+            throw new CustomerCanNotBeDeletedException("faktury.");
+        }
         customerRepository.delete(id);
     }
 

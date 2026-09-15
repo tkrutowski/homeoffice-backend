@@ -13,4 +13,5 @@ interface CostDtoRepository extends JpaRepository<CostDbDto, Integer>, JpaSpecif
     List<CostDbDto> findByInvoiceDate(LocalDate date);
     List<CostDbDto> findBySellDateBetween(LocalDate from, LocalDate to);
     boolean existsByKsefNumber(String ksefNumber);
+    boolean existsBySupplierId(Integer idSupplier);
 }
