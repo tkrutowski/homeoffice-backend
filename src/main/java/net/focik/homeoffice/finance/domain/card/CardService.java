@@ -6,10 +6,14 @@ import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.fileService.domain.port.secondary.FileRepository;
 import net.focik.homeoffice.finance.domain.card.port.secondary.CardRepository;
 import net.focik.homeoffice.finance.domain.exception.CardAlreadyExistException;
+import net.focik.homeoffice.finance.domain.exception.CardCanNotBeDeletedException;
 import net.focik.homeoffice.finance.domain.exception.CardNotFoundException;
 import net.focik.homeoffice.finance.domain.exception.CardNotValidException;
+import net.focik.homeoffice.finance.domain.purchase.Purchase;
+import net.focik.homeoffice.finance.domain.purchase.port.primary.GetPurchaseUseCase;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 import net.focik.homeoffice.utils.share.Module;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +27,10 @@ class CardService {
 
     private final CardRepository cardRepository;
     private final FileRepository fileRepository;
+    // @Lazy przerywa cykl zależności: PurchaseFacade (implementacja GetPurchaseUseCase)
+    // zależy od CardFacade, a ta od CardService - bez leniwego proxy Spring nie złoży kontekstu.
+    @Lazy
+    private final GetPurchaseUseCase getPurchaseUseCase;
 
 
     Card addCard(Card card) {
@@ -83,6 +91,11 @@ class CardService {
     @Transactional
     public void deleteCard(Integer idCard) {
         log.debug("Deleting card {}", idCard);
+        List<Purchase> purchases = getPurchaseUseCase.findByCard(idCard);
+        if (!purchases.isEmpty()) {
+            log.warn("Card with ID {} cannot be deleted — associated purchases found (count: {}).", idCard, purchases.size());
+            throw new CardCanNotBeDeletedException("zakupy. (" + purchases.size() + ")");
+        }
         cardRepository.deleteCardById(idCard);
         log.debug("Card with id {} deleted", idCard);
     }
