@@ -2,12 +2,14 @@ package net.focik.homeoffice.userservice.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.userservice.api.dto.UpdateProfileRequest;
 import net.focik.homeoffice.userservice.api.dto.UserDto;
 import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.exceptions.EmailAlreadyExistsException;
 import net.focik.homeoffice.userservice.domain.exceptions.UserAlreadyExistsException;
 import net.focik.homeoffice.userservice.domain.exceptions.UserNotFoundException;
 import net.focik.homeoffice.userservice.domain.port.primary.*;
+import net.focik.homeoffice.utils.UserHelper;
 import net.focik.homeoffice.utils.exceptions.ExceptionHandling;
 import net.focik.homeoffice.utils.exceptions.HttpResponse;
 import org.modelmapper.ModelMapper;
@@ -35,6 +37,20 @@ public class UserController extends ExceptionHandling {
     private final IUpdateUserUseCase updateUserUseCase;
     private final IDeleteUserUseCase deleteUserUseCase;
     private final IChangePasswordUseCase changePasswordUseCase;
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDto> getMyProfile() {
+        AppUser currentUser = getUserUseCase.findUserById(UserHelper.getUser().getId());
+        return new ResponseEntity<>(mapper.map(currentUser, UserDto.class), HttpStatus.OK);
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserDto> updateMyProfile(@RequestBody UpdateProfileRequest request) {
+        AppUser currentUser = UserHelper.getUser();
+        AppUser updatedUser = updateUserUseCase.updateUser(currentUser.getId(), request.getFirstName(),
+                request.getLastName(), currentUser.getUsername(), request.getEmail());
+        return new ResponseEntity<>(mapper.map(updatedUser, UserDto.class), HttpStatus.OK);
+    }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
