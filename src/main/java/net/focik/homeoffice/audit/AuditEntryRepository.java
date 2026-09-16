@@ -13,4 +13,8 @@ public interface AuditEntryRepository extends JpaRepository<AuditEntry, Long> {
     @Query(value = "SELECT * FROM audit_log WHERE entity_type = :entityType ORDER BY changed_at DESC LIMIT :limit",
            nativeQuery = true)
     List<AuditEntry> findLatestByEntityType(@Param("entityType") String entityType, @Param("limit") int limit);
+
+    @Query(value = "SELECT * FROM audit_log WHERE changed_by = :changedBy ORDER BY changed_at DESC LIMIT :limit",
+           nativeQuery = true)
+    List<AuditEntry> findLatestByChangedBy(@Param("changedBy") String changedBy, @Param("limit") int limit);
 }

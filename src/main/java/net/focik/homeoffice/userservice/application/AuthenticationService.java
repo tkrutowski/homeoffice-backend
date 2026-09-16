@@ -16,6 +16,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -38,6 +40,9 @@ public class AuthenticationService {
             throw new BadCredentialsException("Invalid username or password", e);
         }
         AppUser loginUser = getUserUseCase.findUserByUsername(request.getUsername());
+        loginUser.setLastLoginDateDisplay(loginUser.getLastLoginDate());
+        loginUser.setLastLoginDate(new Date());
+        userRepository.save(loginUser);
         var jwtToken = jwtService.generateToken(loginUser);
         var refreshToken = jwtService.generateRefreshToken(loginUser);
         AuthenticationResponse authenticationResponse = AuthenticationResponse.builder()

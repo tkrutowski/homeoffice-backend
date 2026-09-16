@@ -34,4 +34,8 @@ public class AuditService {
     public List<AuditEntry> getLatestEntries(String entityType, int limit) {
         return auditEntryRepository.findLatestByEntityType(entityType, limit);
     }
+
+    public List<AuditEntry> getLatestEntriesByUser(String changedBy, int limit) {
+        return auditEntryRepository.findLatestByChangedBy(changedBy, limit);
+    }
 }

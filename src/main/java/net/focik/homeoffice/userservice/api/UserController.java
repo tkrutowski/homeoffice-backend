@@ -2,6 +2,8 @@ package net.focik.homeoffice.userservice.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.audit.AuditService;
+import net.focik.homeoffice.userservice.api.dto.AccountActivityResponse;
 import net.focik.homeoffice.userservice.api.dto.ChangePasswordRequest;
 import net.focik.homeoffice.userservice.api.dto.UpdateProfileRequest;
 import net.focik.homeoffice.userservice.api.dto.UserDto;
@@ -38,6 +40,8 @@ public class UserController extends ExceptionHandling {
     private final IUpdateUserUseCase updateUserUseCase;
     private final IDeleteUserUseCase deleteUserUseCase;
     private final IChangePasswordUseCase changePasswordUseCase;
+    private final AuditService auditService;
+    private final ActivityFormatter activityFormatter;
 
     @GetMapping("/me")
     public ResponseEntity<UserDto> getMyProfile() {
@@ -58,6 +62,16 @@ public class UserController extends ExceptionHandling {
         Long currentUserId = UserHelper.getUser().getId();
         changePasswordUseCase.changePassword(currentUserId, request.getOldPassword(), request.getNewPassword());
         return response(HttpStatus.OK, "Hasło zmienione.");
+    }
+
+    @GetMapping("/me/activity")
+    public ResponseEntity<AccountActivityResponse> getMyActivity(@RequestParam(defaultValue = "10") int limit) {
+        AppUser currentUser = UserHelper.getUser();
+        var recentChanges = auditService.getLatestEntriesByUser(currentUser.getUsername(), limit).stream()
+                .map(activityFormatter::format)
+                .toList();
+        var response = new AccountActivityResponse(currentUser.getLastLoginDateDisplay(), recentChanges);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
