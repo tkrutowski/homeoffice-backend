@@ -3,6 +3,7 @@ package net.focik.homeoffice.audit;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +20,7 @@ public class AuditController {
     private final ModelMapper modelMapper;
 
     @GetMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<AuditEntryDto>> getLatestEntries(
             @RequestParam String entityType,
             @RequestParam(defaultValue = "5") int limit) {

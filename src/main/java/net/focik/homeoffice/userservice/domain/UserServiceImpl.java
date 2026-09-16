@@ -80,7 +80,7 @@ public class UserServiceImpl implements IUserService {
             throw new UserNotFoundException(NO_USER_FOUND_BY_ID + idUser);
         }
 
-        if (userById.getPassword().equals(encodePassword(currentPassword))) {
+        if (passwordEncoder.matches(currentPassword, userById.getPassword())) {
             userById.setPassword(encodePassword(newPassword));
             userRepository.save(userById);
         } else {

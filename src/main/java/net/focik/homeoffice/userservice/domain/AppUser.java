@@ -1,5 +1,6 @@
 package net.focik.homeoffice.userservice.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import net.focik.homeoffice.audit.AuditableEntity;
@@ -26,6 +27,7 @@ public class AppUser extends AuditableEntity implements UserDetails {
     private String lastName;
     private String username;
     private String email;
+    @JsonIgnore
     private String password;
     private boolean enabled;
     private boolean tokenExpired;
