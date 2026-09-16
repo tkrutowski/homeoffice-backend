@@ -164,6 +164,12 @@ public class ExceptionHandling implements ErrorController {
         return createHttpResponse(BAD_REQUEST, exception.getMessage(), exception.getMessage());
     }
 
+    @ExceptionHandler(WeakPasswordException.class)
+    public ResponseEntity<HttpResponse> weakPasswordException(WeakPasswordException exception) {
+        log.error("Weak password", exception);
+        return createHttpResponse(BAD_REQUEST, exception.getMessage(), exception.getMessage());
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<HttpResponse> authenticationException(AuthenticationException exception) {
         log.error("Authentication error", exception);

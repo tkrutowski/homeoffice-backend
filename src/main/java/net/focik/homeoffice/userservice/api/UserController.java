@@ -2,6 +2,7 @@ package net.focik.homeoffice.userservice.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.userservice.api.dto.ChangePasswordRequest;
 import net.focik.homeoffice.userservice.api.dto.UpdateProfileRequest;
 import net.focik.homeoffice.userservice.api.dto.UserDto;
 import net.focik.homeoffice.userservice.domain.AppUser;
@@ -50,6 +51,13 @@ public class UserController extends ExceptionHandling {
         AppUser updatedUser = updateUserUseCase.updateUser(currentUser.getId(), request.getFirstName(),
                 request.getLastName(), currentUser.getUsername(), request.getEmail());
         return new ResponseEntity<>(mapper.map(updatedUser, UserDto.class), HttpStatus.OK);
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<HttpResponse> changeMyPassword(@RequestBody ChangePasswordRequest request) {
+        Long currentUserId = UserHelper.getUser().getId();
+        changePasswordUseCase.changePassword(currentUserId, request.getOldPassword(), request.getNewPassword());
+        return response(HttpStatus.OK, "Hasło zmienione.");
     }
 
     @GetMapping("/{id}")

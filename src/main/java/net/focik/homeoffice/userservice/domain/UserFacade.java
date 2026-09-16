@@ -3,7 +3,9 @@ package net.focik.homeoffice.userservice.domain;
 import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.audit.AuditAction;
 import net.focik.homeoffice.audit.AuditLog;
+import net.focik.homeoffice.audit.AuditService;
 import net.focik.homeoffice.userservice.domain.port.primary.IUserService;
+import net.focik.homeoffice.utils.UserHelper;
 import org.springframework.stereotype.Component;
 
 import jakarta.transaction.Transactional;
@@ -15,6 +17,7 @@ public class UserFacade {
 
     private final IUserService userService;
     private final RoleService roleService;
+    private final AuditService auditService;
 
     @AuditLog(action = AuditAction.CREATE, entityType = "User")
     public AppUser registerUser(String firstName, String lastName, String username, String password,
@@ -42,6 +45,7 @@ public class UserFacade {
 
     public void changePassword(Long id, String oldPassword, String newPassword) {
         userService.changePassword(id, oldPassword, newPassword);
+        auditService.log("User", id.toString(), AuditAction.UPDATE, null, UserHelper.getUserName());
     }
 
     public AppUser findUserById(Long id) {

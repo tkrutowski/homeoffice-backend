@@ -6,18 +6,17 @@ import net.focik.homeoffice.userservice.domain.exceptions.EmailAlreadyExistsExce
 import net.focik.homeoffice.userservice.domain.exceptions.PasswordNotFoundException;
 import net.focik.homeoffice.userservice.domain.exceptions.UserAlreadyExistsException;
 import net.focik.homeoffice.userservice.domain.exceptions.UserNotFoundException;
+import net.focik.homeoffice.userservice.domain.exceptions.WeakPasswordException;
 import net.focik.homeoffice.userservice.domain.port.primary.IUserService;
 import net.focik.homeoffice.userservice.domain.port.secondary.IAppUserRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static net.focik.homeoffice.userservice.domain.security.constant.UserConstant.*;
 
@@ -27,6 +26,9 @@ import static net.focik.homeoffice.userservice.domain.security.constant.UserCons
 @Transactional
 @Qualifier("userDetailsService")
 public class UserServiceImpl implements IUserService {
+
+    private static final Pattern PASSWORD_POLICY = Pattern.compile("^(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$");
+
     private final IAppUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -80,12 +82,16 @@ public class UserServiceImpl implements IUserService {
             throw new UserNotFoundException(NO_USER_FOUND_BY_ID + idUser);
         }
 
-        if (passwordEncoder.matches(currentPassword, userById.getPassword())) {
-            userById.setPassword(encodePassword(newPassword));
-            userRepository.save(userById);
-        } else {
+        if (!passwordEncoder.matches(currentPassword, userById.getPassword())) {
             throw new PasswordNotFoundException(PASSWORD_NOT_FOUND);
         }
+
+        if (!PASSWORD_POLICY.matcher(newPassword).matches()) {
+            throw new WeakPasswordException(WEAK_PASSWORD);
+        }
+
+        userById.setPassword(encodePassword(newPassword));
+        userRepository.save(userById);
     }
 
     @Override

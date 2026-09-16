@@ -10,7 +10,7 @@
     </parent>
     <groupId>net.focik</groupId>
     <artifactId>homeoffice</artifactId>
-    <version>4.2.0</version>
+    <version>4.3.0</version>
     <name>homeoffice</name>
     <description>HomeOfficeApp</description>
     <properties>
