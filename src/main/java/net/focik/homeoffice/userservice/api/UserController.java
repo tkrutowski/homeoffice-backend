@@ -7,6 +7,7 @@ import net.focik.homeoffice.userservice.api.dto.AccountActivityResponse;
 import net.focik.homeoffice.userservice.api.dto.ChangePasswordRequest;
 import net.focik.homeoffice.userservice.api.dto.UpdateProfileRequest;
 import net.focik.homeoffice.userservice.api.dto.UserDto;
+import net.focik.homeoffice.userservice.api.dto.UserNameDto;
 import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.exceptions.EmailAlreadyExistsException;
 import net.focik.homeoffice.userservice.domain.exceptions.UserAlreadyExistsException;
@@ -72,6 +73,15 @@ public class UserController extends ExceptionHandling {
                 .toList();
         var response = new AccountActivityResponse(currentUser.getLastLoginDateDisplay(), recentChanges);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/names")
+    public ResponseEntity<List<UserNameDto>> getUserNames() {
+        List<AppUser> allUsers = getUserUseCase.getAllUsers();
+        List<UserNameDto> userNameDtos = allUsers.stream()
+                .map(user -> mapper.map(user, UserNameDto.class))
+                .toList();
+        return new ResponseEntity<>(userNameDtos, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
