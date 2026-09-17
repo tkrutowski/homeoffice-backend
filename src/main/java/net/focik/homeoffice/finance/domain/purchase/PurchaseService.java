@@ -117,7 +117,7 @@ class PurchaseService {
         return purchaseRepository.findAllByFirm(idFirm);
     }
 
-    public Page<Purchase> findPurchasesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String username, String name, LocalDate purchaseDate, String dateComparisonType, PaymentStatus status, Integer idFirm, Integer idCard) {
+    public Page<Purchase> findPurchasesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, Integer userId, String name, LocalDate purchaseDate, String dateComparisonType, PaymentStatus status, Integer idFirm, Integer idCard) {
         String jpaField = switch (sortField) {
             case "users" -> "user.username";
             case "firms" -> "firm.name";
@@ -128,7 +128,7 @@ class PurchaseService {
         Sort.Direction direction = Sort.Direction.fromString(sortDirection);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, jpaField));
 
-        return purchaseRepository.findPurchaseWithFilters(globalFilter, username, name, purchaseDate, dateComparisonType, status, idFirm, idCard, pageable);
+        return purchaseRepository.findPurchaseWithFilters(globalFilter, userId, name, purchaseDate, dateComparisonType, status, idFirm, idCard, pageable);
     }
 
     public Number getTotalSumToPay() {

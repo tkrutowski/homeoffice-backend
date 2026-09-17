@@ -160,28 +160,29 @@ class PurchaseFacadeTest {
         verify(userFacade, never()).findUserByUsername(any());
     }
 
-    // ---- findCurrent(username) (endpoint /current/{username}) ----
+    // ---- findCurrent(userId) (endpoint /current/{userId}) ----
 
     @Test
     @DisplayName("findCurrent should throw access denied when requesting another user's current purchases without READ_ALL")
-    void findCurrent_ShouldThrowAccessDenied_WhenRequestingOtherUsersUsernameWithoutReadAllPrivilege() {
+    void findCurrent_ShouldThrowAccessDenied_WhenRequestingOtherUsersIdWithoutReadAllPrivilege() {
         authenticateAs("john", "ROLE_FINANCE");
+        when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
 
-        assertThatThrownBy(() -> purchaseFacade.findCurrent("someone-else"))
+        assertThatThrownBy(() -> purchaseFacade.findCurrent(999))
                 .isInstanceOf(AccessDeniedException.class);
 
         verify(purchaseService, never()).findCurrent(anyInt());
     }
 
     @Test
-    @DisplayName("findCurrent should return the caller's own data when requesting their own username")
-    void findCurrent_ShouldReturnOwnData_WhenRequestingOwnUsername() {
+    @DisplayName("findCurrent should return the caller's own data when requesting their own userId")
+    void findCurrent_ShouldReturnOwnData_WhenRequestingOwnUserId() {
         authenticateAs("john", "ROLE_FINANCE");
         when(userFacade.findUserByUsername("john")).thenReturn(AppUser.builder().id(7L).build());
         when(purchaseService.findCurrent(7)).thenReturn(List.of());
         when(purchaseService.convertToMapByDeadline(List.of())).thenReturn(java.util.Map.of());
 
-        purchaseFacade.findCurrent("john");
+        purchaseFacade.findCurrent(7);
 
         verify(purchaseService).findCurrent(7);
     }

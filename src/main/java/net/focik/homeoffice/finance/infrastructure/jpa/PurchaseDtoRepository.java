@@ -29,12 +29,11 @@ public interface PurchaseDtoRepository extends JpaRepository<PurchaseDbDto, Inte
     List<PurchaseDbDto> findAllByIdUserAndPaymentDeadline(Integer idUser, LocalDate deadline);
 
     @Query(value = "SELECT p FROM PurchaseDbDto p " +
-            "LEFT JOIN AppUser u ON p.idUser = u.id " +
             "LEFT JOIN FirmDbDto f ON p.idFirm = f.id " +
             "WHERE (:globalFilter IS NULL OR " +
             "LOWER(p.name) LIKE LOWER(CONCAT('%', :globalFilter, '%')) OR " +
             "LOWER(p.otherInfo) LIKE LOWER(CONCAT('%', :globalFilter, '%'))) " +
-            "AND (:username IS NULL OR LOWER(u.username) LIKE LOWER(CONCAT('%', :username, '%'))) " +
+            "AND (:userId IS NULL OR p.idUser = :userId) " +
             "AND (:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) " +
             "AND (:purchaseDate IS NULL OR " +
             "(:dateComparisonType = 'EQUALS' AND p.purchaseDate = :purchaseDate) OR " +
@@ -45,7 +44,7 @@ public interface PurchaseDtoRepository extends JpaRepository<PurchaseDbDto, Inte
             "AND (:idCard IS NULL OR p.idCard = :idCard)")
     Page<PurchaseDbDto> findPurchaseWithFilters(
             @Param("globalFilter") String globalFilter,
-            @Param("username") String username,
+            @Param("userId") Integer userId,
             @Param("name") String name,
             @Param("purchaseDate") LocalDate purchaseDate,
             @Param("dateComparisonType") String dateComparisonType,

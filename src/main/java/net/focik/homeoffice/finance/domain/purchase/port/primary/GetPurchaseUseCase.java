@@ -24,11 +24,11 @@ public interface GetPurchaseUseCase {
 
     Map<LocalDate, List<Purchase>> findByUserMap(Integer userId, PaymentStatus paymentStatus, LocalDate date);
 
-    Map<LocalDate, List<Purchase>> findCurrent(String username);
+    Map<LocalDate, List<Purchase>> findCurrent(int userId);
 
     List<Purchase> getPurchasesByFirm(Integer idFirm);
 
-    Page<Purchase> findPurchasesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String username, String name, LocalDate purchaseDate, String dateComparisonType, PaymentStatus status, Integer idFirm, Integer idCard);
+    Page<Purchase> findPurchasesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, Integer userId, String name, LocalDate purchaseDate, String dateComparisonType, PaymentStatus status, Integer idFirm, Integer idCard);
 
     Number getTotalSumToPay();
 }

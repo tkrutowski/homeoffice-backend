@@ -37,7 +37,7 @@ public interface PurchaseRepository {
 
     Page<Purchase> findPurchaseWithFilters(
             String globalFilter,
-            String username,
+            Integer userId,
             String name,
             LocalDate purchaseDate,
             String dateComparisonType,

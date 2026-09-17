@@ -83,12 +83,12 @@ public class PurchaseController extends ExceptionHandling {
         return new ResponseEntity<>(mapper.toDto(purchaseMap), OK);
     }
 
-    @GetMapping("/current/{username}")
+    @GetMapping("/current/{userId}")
     @PreAuthorize("hasAnyRole('ROLE_FINANCE', 'ROLE_ADMIN')")
-    ResponseEntity<Map<String, List<PurchaseDto>>> getCurrent(@PathVariable String username) {
-        log.info("Request to get current purchases for user: {}", username );
+    ResponseEntity<Map<String, List<PurchaseDto>>> getCurrent(@PathVariable int userId) {
+        log.info("Request to get current purchases for user: {}", userId );
 
-        Map<LocalDate, List<Purchase>> purchaseMap = getPurchaseUseCase.findCurrent(username);
+        Map<LocalDate, List<Purchase>> purchaseMap = getPurchaseUseCase.findCurrent(userId);
         log.info("Found {} purchases.", purchaseMap.size());
 
         return new ResponseEntity<>(mapper.toDto(purchaseMap), OK);
@@ -113,7 +113,7 @@ public class PurchaseController extends ExceptionHandling {
             @RequestParam(name = "sort", defaultValue = "purchaseDate") String sortField,
             @RequestParam(name = "direction", defaultValue = "DESC") String sortDirection,
             @RequestParam(name = "globalFilter", required = false) String globalFilter,
-            @RequestParam(name = "username", required = false) String username,
+            @RequestParam(name = "userId", required = false) Integer userId,
             @RequestParam(name = "name", required = false) String name,
             @RequestParam(name = "purchaseDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate purchaseDate,
             @RequestParam(name = "dateComparisonType", required = false) String dateComparisonType,
@@ -121,11 +121,11 @@ public class PurchaseController extends ExceptionHandling {
             @RequestParam(name = "firmId", required = false) Integer idFirm,
             @RequestParam(name = "cardId", required = false) Integer idCard
     ) {
-        log.info("Request to get purchases page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, username: {}, name: {}, purchaseDate: {}, dateComparisonType: {},  status: {}, firmId: {}, cardId: {}",
-                page, size, sortField, sortDirection, globalFilter, username, name, purchaseDate, dateComparisonType,  status, idFirm, idCard);
+        log.info("Request to get purchases page with page: {}, size: {}, sort: {}, direction: {}, globalFilter: {}, userId: {}, name: {}, purchaseDate: {}, dateComparisonType: {},  status: {}, firmId: {}, cardId: {}",
+                page, size, sortField, sortDirection, globalFilter, userId, name, purchaseDate, dateComparisonType,  status, idFirm, idCard);
 
         Page<Purchase> purchasesPage = getPurchaseUseCase.findPurchasesPageableWithFilters(
-                page, size, sortField, sortDirection, globalFilter, username, name, purchaseDate,dateComparisonType, status, idFirm, idCard);
+                page, size, sortField, sortDirection, globalFilter, userId, name, purchaseDate,dateComparisonType, status, idFirm, idCard);
 
         Page<PurchaseDto> dtoPage = purchasesPage.map(mapper::toDto);
 

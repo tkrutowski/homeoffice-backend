@@ -160,10 +160,9 @@ public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase
     }
 
     @Override
-    public Map<LocalDate, List<Purchase>> findCurrent(String username) {
-        assertCanReadUsername(username);
-        AppUser user = userFacade.findUserByUsername(username);
-        List<Purchase> currents = purchaseService.findCurrent(Math.toIntExact(user.getId()));
+    public Map<LocalDate, List<Purchase>> findCurrent(int userId) {
+        assertCanReadUserId(userId);
+        List<Purchase> currents = purchaseService.findCurrent(userId);
         return purchaseService.convertToMapByDeadline(currents);
     }
 
@@ -173,16 +172,17 @@ public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase
     }
 
     @Override
-    public Page<Purchase> findPurchasesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, String username, String name, LocalDate purchaseDate, String dateComparisonType, PaymentStatus status, Integer idFirm, Integer idCard) {
+    public Page<Purchase> findPurchasesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, Integer userId, String name, LocalDate purchaseDate, String dateComparisonType, PaymentStatus status, Integer idFirm, Integer idCard) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // Zwykly uzytkownik nie moze wymusic filtra username na cudze konto - nadpisujemy go
+        // Zwykly uzytkownik nie moze wymusic filtra userId na cudze konto - nadpisujemy go
         // wlasnym, niezaleznie od tego, co przyszlo z requestu.
         if (authentication != null && !canReadAllPurchases(authentication)) {
-            username = UserHelper.getUserName();
+            AppUser user = userFacade.findUserByUsername(UserHelper.getUserName());
+            userId = Math.toIntExact(user.getId());
         }
 
-        return purchaseService.findPurchasesPageableWithFilters(page, size, sortField, sortDirection, globalFilter, username, name, purchaseDate, dateComparisonType, status, idFirm, idCard);
+        return purchaseService.findPurchasesPageableWithFilters(page, size, sortField, sortDirection, globalFilter, userId, name, purchaseDate, dateComparisonType, status, idFirm, idCard);
     }
 
     @Override
