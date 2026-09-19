@@ -80,6 +80,10 @@ class InvoiceService {
 
     @Transactional
     public Page<Invoice> findInvoicesPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, Integer idCustomer, LocalDate sellDate, String sellDateComparisonType, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+        // Frontend potrafi wysłać sort=null jako tekst - defaultValue w kontrolerze tego nie łapie.
+        if (sortField == null || sortField.isBlank() || "null".equalsIgnoreCase(sortField)) {
+            sortField = "number";
+        }
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortField);
         PageRequest pageRequest = PageRequest.of(page, size, sort);
         return invoiceRepository.findAll(pageRequest, globalFilter, idCustomer, sellDate, sellDateComparisonType, amount, amountComparisonType, status);

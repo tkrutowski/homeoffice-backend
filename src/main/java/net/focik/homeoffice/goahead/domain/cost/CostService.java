@@ -45,6 +45,10 @@ class CostService {
     }
 
     public Page<Cost> findCostsPageableWithFilters(int page, int size, String sortField, String sortDirection, String globalFilter, Integer idSupplier, LocalDate sellDate, String dateComparisonType, LocalDate invoiceDate, BigDecimal amount, String amountComparisonType, PaymentStatus status) {
+        // Frontend potrafi wysłać sort=null jako tekst - defaultValue w kontrolerze tego nie łapie.
+        if (sortField == null || sortField.isBlank() || "null".equalsIgnoreCase(sortField)) {
+            sortField = "sellDate";
+        }
         Sort sort = sortDirection.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
         PageRequest pageable = PageRequest.of(page, size, sort);
         return costRepository.findAll(pageable, globalFilter, idSupplier, sellDate, dateComparisonType, invoiceDate, amount, amountComparisonType, status);

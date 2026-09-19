@@ -9,7 +9,16 @@ import net.focik.homeoffice.utils.JpaSpecificationHelper;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
+import net.focik.homeoffice.goahead.infrastructure.dto.InvoiceItemDbDto;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -98,17 +107,68 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
             spec = spec.and(JpaSpecificationHelper.byDate(sellDate, sellDateComparisonType, "sellDate"));
         }
 
-        //TODO dodać filtrowanie po kwocie
-//        if (amount != null) {
-//            spec = spec.and(JpaSpecificationHelper.byAmount(amount, amountComparisonType, "grossAmount"));
-//        }
+        if (amount != null) {
+            spec = spec.and((root, query, cb) -> {
+                Expression<BigDecimal> total = invoiceTotal(root, query, cb);
+                switch (amountComparisonType) {
+                    case "GREATER_THAN", "GREATER" -> {
+                        return cb.greaterThan(total, amount);
+                    }
+                    case "GREATER_THAN_OR_EQUAL" -> {
+                        return cb.greaterThanOrEqualTo(total, amount);
+                    }
+                    case "LESS_THAN", "LESS" -> {
+                        return cb.lessThan(total, amount);
+                    }
+                    case "LESS_THAN_OR_EQUAL" -> {
+                        return cb.lessThanOrEqualTo(total, amount);
+                    }
+                    default -> { }
+                }
+                // suma amount * quantity (Float) bywa niedokładna - równość z tolerancją grosza
+                BigDecimal tolerance = new BigDecimal("0.005");
+                return cb.between(total, amount.subtract(tolerance), amount.add(tolerance));
+            });
+        }
 
         if (status != null && status != PaymentStatus.ALL) {
             spec = spec.and((root, _, cb) -> cb.equal(root.get("paymentStatus"), status));
         }
 
+        // "amount" nie jest kolumną faktury - to suma pozycji (amount * quantity), więc sortowanie
+        // po niej trzeba zbudować ręcznie; Sort.by("amount") kończy się PropertyReferenceException.
+        if (pageable.getSort().stream().anyMatch(o -> "amount".equals(o.getProperty()))) {
+            Sort sort = pageable.getSort();
+            spec = spec.and((root, query, cb) -> {
+                if (!Long.class.equals(query.getResultType())) {
+                    List<Order> orders = new ArrayList<>();
+                    for (Sort.Order o : sort) {
+                        Expression<?> expr;
+                        if ("amount".equals(o.getProperty())) {
+                            expr = invoiceTotal(root, query, cb);
+                        } else {
+                            expr = root.get(o.getProperty());
+                        }
+                        orders.add(o.isAscending() ? cb.asc(expr) : cb.desc(expr));
+                    }
+                    query.orderBy(orders);
+                }
+                return null;
+            });
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        }
+
         return invoiceDtoRepository.findAll(spec, pageable)
                 .map(this::mapToDomain);
+    }
+
+    /** Kwota brutto faktury = suma (amount * quantity) jej pozycji, jako podzapytanie. */
+    private Expression<BigDecimal> invoiceTotal(Root<InvoiceDbDto> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+        Subquery<BigDecimal> sub = query.subquery(BigDecimal.class);
+        Root<InvoiceItemDbDto> item = sub.from(InvoiceItemDbDto.class);
+        sub.select(cb.sum(cb.prod(item.get("amount"), item.get("quantity"))).as(BigDecimal.class))
+                .where(cb.equal(item.get("invoice"), root));
+        return sub;
     }
 
     @Override

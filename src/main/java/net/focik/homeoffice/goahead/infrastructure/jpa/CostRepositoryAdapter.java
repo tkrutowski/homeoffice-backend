@@ -8,12 +8,22 @@ import net.focik.homeoffice.goahead.infrastructure.mapper.JpaCostMapper;
 import net.focik.homeoffice.utils.JpaSpecificationHelper;
 import net.focik.homeoffice.utils.share.PaymentStatus;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
+import net.focik.homeoffice.goahead.infrastructure.dto.CostItemDbDto;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -111,17 +121,63 @@ public class CostRepositoryAdapter implements CostRepository {
         if (invoiceDate != null) {
             spec = spec.and(JpaSpecificationHelper.byDate(invoiceDate, dateComparisonType, "invoiceDate"));
         }
-        //TODO dodać filtrowanie po kwocie
-//        if (amount != null) {
-//            spec = spec.and(JpaSpecificationHelper.byAmount(amount, amountComparisonType, "amount"));
-//        }
+        if (amount != null) {
+            spec = spec.and((root, query, cb) -> {
+                Expression<BigDecimal> total = costTotal(root, query, cb);
+                switch (amountComparisonType) {
+                    case "GREATER_THAN", "GREATER" -> {
+                        return cb.greaterThan(total, amount);
+                    }
+                    case "GREATER_THAN_OR_EQUAL" -> {
+                        return cb.greaterThanOrEqualTo(total, amount);
+                    }
+                    case "LESS_THAN", "LESS" -> {
+                        return cb.lessThan(total, amount);
+                    }
+                    case "LESS_THAN_OR_EQUAL" -> {
+                        return cb.lessThanOrEqualTo(total, amount);
+                    }
+                    default -> { }
+                }
+                BigDecimal tolerance = new BigDecimal("0.005");
+                return cb.between(total, amount.subtract(tolerance), amount.add(tolerance));
+            });
+        }
 
         if (status != null && status != PaymentStatus.ALL) {
             spec = spec.and((root, _, cb) -> cb.equal(root.get("paymentStatus"), status));
         }
 
+        // "amount" nie jest kolumną kosztu - to suma amountGross pozycji, więc sortowanie budujemy ręcznie.
+        if (pageable.getSort().stream().anyMatch(o -> "amount".equals(o.getProperty()))) {
+            Sort sort = pageable.getSort();
+            spec = spec.and((root, query, cb) -> {
+                if (!Long.class.equals(query.getResultType())) {
+                    List<Order> orders = new ArrayList<>();
+                    for (Sort.Order o : sort) {
+                        Expression<?> expr = "amount".equals(o.getProperty())
+                                ? costTotal(root, query, cb)
+                                : root.get(o.getProperty());
+                        orders.add(o.isAscending() ? cb.asc(expr) : cb.desc(expr));
+                    }
+                    query.orderBy(orders);
+                }
+                return null;
+            });
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        }
+
         return costDtoRepository.findAll(spec, pageable)
                 .map(mapper::toDomain);
+    }
+
+    /** Kwota brutto kosztu = suma amountGross jego pozycji, jako podzapytanie. */
+    private Expression<BigDecimal> costTotal(Root<CostDbDto> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+        Subquery<BigDecimal> sub = query.subquery(BigDecimal.class);
+        Root<CostItemDbDto> item = sub.from(CostItemDbDto.class);
+        sub.select(cb.sum(item.get("amountGross")))
+                .where(cb.equal(item.get("cost"), root));
+        return sub;
     }
 
     @Override
