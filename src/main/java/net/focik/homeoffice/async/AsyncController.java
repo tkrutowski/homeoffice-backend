@@ -16,7 +16,7 @@ public class AsyncController {
     private final AsyncTaskService asyncTaskService;
 
     @GetMapping("/latest")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     public ResponseEntity<AsyncTaskStatusResponse> getLatestTaskStatus(@RequestParam String jobType) {
         AsyncTaskStatusResponse response = asyncTaskService.getLatestTaskStatus(jobType);
         if (response == null) {

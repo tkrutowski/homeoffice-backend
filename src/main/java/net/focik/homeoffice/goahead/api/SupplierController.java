@@ -39,7 +39,7 @@ public class SupplierController extends ExceptionHandling {
 
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     ResponseEntity<SupplierDto> getById(@PathVariable int id) {
         log.info("Request to get supplier by id: {}", id);
 
@@ -57,7 +57,7 @@ public class SupplierController extends ExceptionHandling {
     }
 
     @GetMapping()
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     ResponseEntity<List<SupplierDto>> getAllSuppliers(@RequestParam(required = false) ActiveStatus status) {
         log.info("Request to find all suppliers with status: {}", status);
 
@@ -72,7 +72,7 @@ public class SupplierController extends ExceptionHandling {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public ResponseEntity<SupplierDto> addSupplier(@RequestBody SupplierDto supplierDto) {
         log.info("Request to add a new supplier received with data: {}", supplierDto);
 
@@ -88,7 +88,7 @@ public class SupplierController extends ExceptionHandling {
     }
 
     @PutMapping
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public ResponseEntity<SupplierDto> updateSupplier(@RequestBody SupplierDto supplierDto) {
         log.info("Request to edit a supplier received with data: {}", supplierDto);
 
@@ -104,7 +104,7 @@ public class SupplierController extends ExceptionHandling {
     }
 
     @DeleteMapping("/{idSupplier}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_DELETE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_DELETE')")
     public void deleteSupplier(@PathVariable int idSupplier) {
         log.info("Request to delete supplier with id: {}", idSupplier);
         deleteSupplierUseCase.deleteSupplier(idSupplier);
@@ -112,7 +112,7 @@ public class SupplierController extends ExceptionHandling {
     }
 
     @PutMapping("/supplierstatus/{id}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public void updateSupplierStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
         log.info("Request to update supplier status for supplier with id: {} from status: {}", id, basicDto.getValue());
         updateSupplierUseCase.updateSupplierStatus(id, ActiveStatus.valueOf(basicDto.getValue()));

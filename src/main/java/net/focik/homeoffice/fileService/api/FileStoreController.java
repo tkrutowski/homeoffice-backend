@@ -70,7 +70,7 @@ public class FileStoreController {
     }
 
     @PostMapping("/upload-url")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public ResponseEntity<UploadUrlResponse> generateUploadUrl(@RequestBody UploadUrlRequest request) {
         String contentType = request.contentType();
         if (!MediaType.APPLICATION_PDF_VALUE.equals(contentType)
@@ -83,7 +83,7 @@ public class FileStoreController {
     }
 
         @PostMapping("/upload/confirm")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public ResponseEntity<AsyncTaskStartResponse> confirmUpload(@RequestBody ConfirmUploadRequest request) {
         log.info("Potwierdzenie uploadu: objectKey={}", request.objectKey());
         if (request.objectKey() == null || request.objectKey().isBlank()) {
@@ -95,7 +95,7 @@ public class FileStoreController {
     }
 
     @DeleteMapping("/{module}/{fileName:.+}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public ResponseEntity<Void> deleteFile(@PathVariable String module, @PathVariable String fileName) {
         log.info("Attempting to delete file: module={}, fileName={}", module, fileName);
         if (fileName == null || fileName.isBlank()) {

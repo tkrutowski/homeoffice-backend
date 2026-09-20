@@ -31,7 +31,7 @@ public class CompanyController extends ExceptionHandling {
     private final ApiLookupMapper lookupMapper;
 
     @GetMapping()
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ') or hasRole('ROLE_ADMIN')")
     ResponseEntity<Company> getCompanyDetails() {
         log.info("Request to get company details");
         Company company = getCompanyUseCase.get();
@@ -46,7 +46,7 @@ public class CompanyController extends ExceptionHandling {
 
 
     @PutMapping
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<Company> updateCompany(@RequestBody Company company) {
         log.info("Request to edit a company with data: {}", company);
 
@@ -57,7 +57,7 @@ public class CompanyController extends ExceptionHandling {
     }
 
     @GetMapping("/lookup")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<LookupResponseDto> lookupCompanyByNip(@RequestParam String nip) {
         log.info("Request to lookup company by NIP: {}", nip);
         String decodedNip = URLDecoder.decode(nip, StandardCharsets.UTF_8);

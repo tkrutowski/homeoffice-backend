@@ -51,7 +51,7 @@ public class CostController extends ExceptionHandling {
     private final ObjectMapper objectMapper;
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     public ResponseEntity<CostDto> getCost(@PathVariable int id) {
         log.info("Request to get cost by id: {}", id);
         Cost cost = getCostUseCase.getCost(id);
@@ -59,7 +59,7 @@ public class CostController extends ExceptionHandling {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     public ResponseEntity<List<CostDto>> getAllCosts() {
         log.info("Request to get all costs");
         List<Cost> costs = getCostUseCase.getAllCosts();
@@ -70,7 +70,7 @@ public class CostController extends ExceptionHandling {
     }
 
     @GetMapping("/page")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     public ResponseEntity<Page<CostDto>> getCostsPage(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
@@ -103,7 +103,7 @@ public class CostController extends ExceptionHandling {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public ResponseEntity<CostDto> addCost(@RequestBody CostDto costDto) {
         log.info("Request to add cost: {}", costDto);
         Cost cost = mapper.toDomain(costDto);
@@ -112,7 +112,7 @@ public class CostController extends ExceptionHandling {
     }
 
     @PostMapping("/pdf")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     public ResponseEntity<AsyncTaskStartResponse> generateAndSavePdfById(@RequestBody List<Integer> costIds) {
         log.info("Request to generate PDF and save to S3 for {} costs", costIds.size());
         
@@ -122,7 +122,7 @@ public class CostController extends ExceptionHandling {
     }
     
     @GetMapping("/pdf/jobs/{jobId}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     public ResponseEntity<AsyncTask> getPdfJobStatus(@PathVariable String jobId) {
         log.info("Request to get PDF job status for jobId: {}", jobId);
         
@@ -136,7 +136,7 @@ public class CostController extends ExceptionHandling {
     }
 
     @PutMapping
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public ResponseEntity<CostDto> updateCost(@RequestBody CostDto costDto) {
         log.info("Request to update cost: {}", costDto);
         Cost cost = mapper.toDomain(costDto);
@@ -145,7 +145,7 @@ public class CostController extends ExceptionHandling {
     }
 
     @PutMapping("/paymentstatus/{id}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public void updatePaymentStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
         log.info("Request to update payment status for cost with id: {}", id);
         updateCostUseCase.updatePaymentStatus(id, PaymentStatus.valueOf(basicDto.getValue()));
@@ -153,7 +153,7 @@ public class CostController extends ExceptionHandling {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_DELETE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_DELETE')")
     public ResponseEntity<Void> deleteCost(@PathVariable int id) {
         log.info("Request to delete cost by id: {}", id);
         deleteCostUseCase.deleteCost(id);
@@ -161,7 +161,7 @@ public class CostController extends ExceptionHandling {
     }
 
     @DeleteMapping("/{id}/document")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public ResponseEntity<Void> deleteCostDocument(@PathVariable int id) {
         log.info("Request to delete document for cost id: {}", id);
         deleteCostDocumentUseCase.deleteCostDocument(id);
@@ -169,7 +169,7 @@ public class CostController extends ExceptionHandling {
     }
 
     @PostMapping("/ksef")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public ResponseEntity<AsyncTaskStartResponse> findKsefCosts(@RequestBody FindKsefInvoiceRequest request )  {
         log.info("Request to start job to find KSeF costs from {} to {}", request.fromDate(), request.toDate());
         
@@ -179,7 +179,7 @@ public class CostController extends ExceptionHandling {
     }
     
     @GetMapping("/ksef/jobs/{jobId}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     public ResponseEntity<AsyncTask> getKsefCostJobStatus(@PathVariable String jobId) {
         log.info("Request to get KSeF cost job status for jobId: {}", jobId);
         
@@ -193,7 +193,7 @@ public class CostController extends ExceptionHandling {
     }
 
     @GetMapping("/upload/jobs/{jobId}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     public ResponseEntity<AsyncTask> getUploadJobStatus(@PathVariable String jobId) {
         log.info("Pobieranie statusu uploadu: jobId={}", jobId);
         AsyncTask jobStatus = asyncTaskService.getJobStatus(jobId);
@@ -204,7 +204,7 @@ public class CostController extends ExceptionHandling {
     }
 
     @GetMapping("/upload/jobs/{jobId}/result")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     public ResponseEntity<CostDto> getUploadJobResult(@PathVariable String jobId) {
         log.info("Pobieranie wyniku parsowania: jobId={}", jobId);
         AsyncTask jobStatus = asyncTaskService.getJobStatus(jobId);

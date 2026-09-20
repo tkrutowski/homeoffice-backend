@@ -39,13 +39,13 @@ public class CustomerController extends ExceptionHandling {
     private final DeleteCustomerUseCase deleteCustomerUseCase;
 
     @GetMapping("/test")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     String test() {
         return "test";
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     ResponseEntity<CustomerDto> getById(@PathVariable int id) {
         log.info("Request to get customer by id: {}", id);
 
@@ -63,7 +63,7 @@ public class CustomerController extends ExceptionHandling {
     }
 
     @GetMapping()
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     ResponseEntity<List<CustomerDto>> getAllCustomers(@RequestParam(required = false) ActiveStatus status,
                                                       @RequestParam(required = false) CustomerType type) {
         log.info("Request to find all employees with status: {} and type: {}", status, type);
@@ -79,7 +79,7 @@ public class CustomerController extends ExceptionHandling {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public ResponseEntity<CustomerDto> addCustomer(@RequestBody CustomerDto customerDto) {
         log.info("Request to add a new customer received with data: {}", customerDto);
 
@@ -95,7 +95,7 @@ public class CustomerController extends ExceptionHandling {
     }
 
     @PutMapping
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public ResponseEntity<CustomerDto> updateEmployee(@RequestBody CustomerDto customerDto) {
         log.info("Request to edit a customer received with data: {}", customerDto);
 
@@ -111,7 +111,7 @@ public class CustomerController extends ExceptionHandling {
     }
 
     @DeleteMapping("/{idCustomer}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_DELETE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_DELETE')")
     public void deleteCustomer(@PathVariable int idCustomer) {
         log.info("Request to delete customer with id: {}", idCustomer);
         deleteCustomerUseCase.deleteCustomer(idCustomer);
@@ -127,7 +127,7 @@ public class CustomerController extends ExceptionHandling {
     }
 
     @PutMapping("/status/{id}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public void updateCustomerStatus(@PathVariable int id, @RequestBody BasicDto basicDto) {
         log.info("Request to update customer status for employee with id: {} from status: {}", id, basicDto.getValue());
         updateCustomerUseCase.updateCustomerStatus(id, ActiveStatus.valueOf(basicDto.getValue()));

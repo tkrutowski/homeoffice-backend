@@ -59,7 +59,7 @@ public class InvoiceController extends ExceptionHandling {
     private final ObjectMapper objectMapper;
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     ResponseEntity<InvoiceDto> getById(@PathVariable int id) {
         log.info("Request to get invoice by id: {}", id);
         Invoice invoice = getInvoiceUseCase.findById(id);
@@ -75,7 +75,7 @@ public class InvoiceController extends ExceptionHandling {
     }
 
     @GetMapping("/page")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     ResponseEntity<Page<InvoiceDto>> getInvoicesPage(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
@@ -107,7 +107,7 @@ public class InvoiceController extends ExceptionHandling {
     }
 
     @PostMapping("/pdf")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     public ResponseEntity<AsyncTaskStartResponse> generateAndSavePdfById(@RequestBody List<Integer> invoicesIds) {
         log.info("Request to generate PDF and save to S3 for {} invoices", invoicesIds.size());
         
@@ -117,7 +117,7 @@ public class InvoiceController extends ExceptionHandling {
     }
     
     @GetMapping("/pdf/jobs/{jobId}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     public ResponseEntity<AsyncTask> getPdfJobStatus(@PathVariable String jobId) {
         log.info("Request to get PDF job status for jobId: {}", jobId);
         
@@ -131,7 +131,7 @@ public class InvoiceController extends ExceptionHandling {
     }
 
     @GetMapping("/number/{year}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     ResponseEntity<Integer> getInvoiceNumber(@PathVariable int year) {
         log.info("Request to get new invoice number for the year: {}", year);
         int newInvoiceNumber = getInvoiceUseCase.getNewInvoiceNumber(year);
@@ -141,7 +141,7 @@ public class InvoiceController extends ExceptionHandling {
     }
 
     @GetMapping("/status")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     ResponseEntity<Map<Integer, List<BigDecimal>>> getStatistics() {
         Map<Integer, List<BigDecimal>> statistic = getInvoiceUseCase.getStatistic();
 
@@ -149,7 +149,7 @@ public class InvoiceController extends ExceptionHandling {
     }
 
     @GetMapping("/status/{year}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     ResponseEntity<Map<Integer, List<BigDecimal>>> getStatisticsByCustomer(@PathVariable int year) {
         Map<Integer, List<BigDecimal>> statistic = getInvoiceUseCase.getStatisticByCustomer(year);
 
@@ -157,7 +157,7 @@ public class InvoiceController extends ExceptionHandling {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public ResponseEntity<InvoiceDto> addInvoice(@RequestBody InvoiceDto invoiceDto) {
         log.info("Request to add a new invoice received with data: {}", invoiceDto);
         Invoice invoice = mapper.toDomain(invoiceDto);
@@ -172,7 +172,7 @@ public class InvoiceController extends ExceptionHandling {
     }
 
     @PutMapping
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public ResponseEntity<?> updateInvoice(@RequestBody InvoiceDto invoiceDto) {
         log.info("Request to edit a computer received with data: {}", invoiceDto);
 
@@ -195,7 +195,7 @@ public class InvoiceController extends ExceptionHandling {
     }
 
     @DeleteMapping("/{idInvoice}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_DELETE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_DELETE')")
     public void deleteInvoice(@PathVariable int idInvoice) {
         log.info("Request to delete invoice with id: {}", idInvoice);
         deleteInvoiceUseCase.deleteInvoice(idInvoice);
@@ -203,7 +203,7 @@ public class InvoiceController extends ExceptionHandling {
     }
 
     @PutMapping("/paymentstatus/{id}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public void updatePaymentStatus(@PathVariable int id,  @RequestBody BasicDto basicDto) {
         log.info("Request to update payment status for invoice with id: {}", id);
         updateInvoiceUseCase.updatePaymentStatus(id, PaymentStatus.valueOf(basicDto.getValue()));
@@ -219,7 +219,7 @@ public class InvoiceController extends ExceptionHandling {
     }
 
     @PutMapping("/ksef")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
     public ResponseEntity<AsyncTaskStartResponse> addInvoiceToKsef(@RequestBody List<Integer> invoicesIds) {
         log.info("Request to send {} invoices to KSeF", invoicesIds.size());
         
@@ -229,7 +229,7 @@ public class InvoiceController extends ExceptionHandling {
     }
     
     @GetMapping("/ksef/jobs/{jobId}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     public ResponseEntity<AsyncTask> getKsefJobStatus(@PathVariable String jobId) {
         log.info("Request to get KSeF job status for jobId: {}", jobId);
         
@@ -250,7 +250,7 @@ public class InvoiceController extends ExceptionHandling {
      }
 
     @PostMapping("/zus-dra")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     public ResponseEntity<AsyncTaskStartResponse> prepareZusDraData(
             @RequestBody SettlementDateRequest request) {
         log.info("Request to prepare ZUS DRA data for settlement date: {}", request.getSettlementDate());
@@ -261,7 +261,7 @@ public class InvoiceController extends ExceptionHandling {
     }
 
     @GetMapping("/zus-dra/jobs/{jobId}")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     public ResponseEntity<AsyncTask> getZusDraJobStatus(@PathVariable String jobId) {
         log.info("Request to get ZUS DRA job status for jobId: {}", jobId);
 
@@ -275,7 +275,7 @@ public class InvoiceController extends ExceptionHandling {
     }
 
     @GetMapping("/zus-dra/jobs/{jobId}/result")
-    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
     public ResponseEntity<ZusDraDataDto> getZusDraJobResult(@PathVariable String jobId) {
         log.info("Request to get ZUS DRA job result for jobId: {}", jobId);
 
