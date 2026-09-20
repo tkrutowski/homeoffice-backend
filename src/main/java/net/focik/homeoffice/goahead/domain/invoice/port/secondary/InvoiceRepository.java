@@ -38,4 +38,6 @@ public interface InvoiceRepository {
     Map<Integer, List<BigDecimal>> getMonthlyStatisticsByYearAndCustomer(Integer year);
 
     boolean existsByCustomer(Integer idCustomer);
+
+    boolean existsByKsefNumber(String ksefNumber);
 }

@@ -1,6 +1,7 @@
 package net.focik.homeoffice.goahead.domain.cost;
 
 import net.focik.homeoffice.goahead.domain.supplier.Supplier;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.KsefAddressParser;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.*;
 import net.focik.homeoffice.utils.share.PaymentMethod;
 import net.focik.homeoffice.utils.share.PaymentStatus;
@@ -8,17 +9,15 @@ import net.focik.homeoffice.utils.share.Vat;
 import org.javamoney.moneta.Money;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
 public class KsefCostMapper {
-
-    private static final Pattern ZIP_CODE_PATTERN = Pattern.compile("(\\d{2}-\\d{3})");
 
     public Cost toCost(InvoiceKsefDto invoiceKsefDto) {
         if (invoiceKsefDto == null) {
@@ -119,6 +118,8 @@ public class KsefCostMapper {
             costItem.setAmountNet(Money.of(0, "PLN"));
         }
 
+        costItem.setAmountUnitNet(Money.of(unitNet(pozycja), "PLN"));
+
         if (pozycja.getKwotaBrutto() != null) {
             costItem.setAmountGross(Money.of(pozycja.getKwotaBrutto(), "PLN"));
         } else {
@@ -134,6 +135,18 @@ public class KsefCostMapper {
         return costItem;
     }
 
+    /** Cena jednostkowa netto: P_9A, a gdy jej brak (faktura podaje tylko P_9B) - kwota netto / ilość. */
+    private BigDecimal unitNet(Pozycja pozycja) {
+        if (pozycja.getCenaJednostkowaNetto() != null) {
+            return BigDecimal.valueOf(pozycja.getCenaJednostkowaNetto());
+        }
+        if (pozycja.getKwotaNetto() != null && pozycja.getIlosc() != null && pozycja.getIlosc() > 0) {
+            return BigDecimal.valueOf(pozycja.getKwotaNetto())
+                    .divide(BigDecimal.valueOf(pozycja.getIlosc()), 4, RoundingMode.HALF_UP);
+        }
+        return BigDecimal.ZERO;
+    }
+
     private Vat mapVat(String ksefVatValue) {
         if (ksefVatValue == null) {
             return Vat.VAT_23; // domyślnie
@@ -147,42 +160,7 @@ public class KsefCostMapper {
     }
 
     private void parseAndSetAddress(Supplier supplier, String adresL1, String adresL2) {
-        if (adresL1 == null || adresL1.isBlank()) {
-            return;
-        }
-
-        String street = adresL1.trim();
-        String city = null;
-        String zip = null;
-
-        Matcher zipMatcher = ZIP_CODE_PATTERN.matcher(street);
-        if (zipMatcher.find()) {
-            zip = zipMatcher.group(1);
-            int zipStart = zipMatcher.start();
-            city = street.substring(zipMatcher.end()).trim();
-            if (city.isEmpty()) {
-                city = null;
-            }
-            street = street.substring(0, zipStart).trim();
-        } else if (adresL2 != null && !adresL2.isBlank()) {
-            Matcher l2Matcher = ZIP_CODE_PATTERN.matcher(adresL2);
-            if (l2Matcher.find()) {
-                zip = l2Matcher.group(1);
-                String remaining = adresL2.substring(l2Matcher.end()).trim();
-                if (!remaining.isEmpty()) {
-                    city = remaining;
-                }
-            }
-        }
-
-        street = removeStreetPrefix(street);
-        supplier.setAddress(city, street, zip);
-    }
-
-    private String removeStreetPrefix(String street) {
-        if (street == null || street.isBlank()) {
-            return street;
-        }
-        return street.replaceAll("(?i)^(ul\\.?|ulica)\\s+", "").trim();
+        KsefAddressParser.parse(adresL1, adresL2)
+                .ifPresent(a -> supplier.setAddress(a.city(), a.street(), a.zip()));
     }
 }

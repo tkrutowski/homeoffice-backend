@@ -5,9 +5,11 @@ import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 import net.focik.homeoffice.goahead.domain.customer.CustomerType;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface GetCustomerUseCase {
     Customer findById(Integer id);
     List<Customer> findByName(String name);
     List<Customer> findByAll(ActiveStatus activeStatus, CustomerType customerType);
+    Optional<Customer> findByNip(String nip);
 }

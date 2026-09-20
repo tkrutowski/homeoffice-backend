@@ -11,6 +11,8 @@ import net.focik.homeoffice.audit.AsyncContext;
 import net.focik.homeoffice.goahead.api.dto.ZusDraDataDto;
 import net.focik.homeoffice.goahead.domain.cost.Cost;
 import net.focik.homeoffice.goahead.domain.cost.KsefCostJobService;
+import net.focik.homeoffice.goahead.domain.cost.KsefImportResult;
+import net.focik.homeoffice.goahead.domain.exception.KsefResponseException;
 import net.focik.homeoffice.goahead.domain.cost.port.primary.GetCostUseCase;
 import net.focik.homeoffice.goahead.domain.invoice.port.primary.GetInvoiceUseCase;
 import org.springframework.scheduling.annotation.Async;
@@ -65,7 +67,12 @@ public class ZusDraAsyncWorker {
 
                 if (!ksefFetched) {
                     log.info("KSeF costs not fetched, importing from KSeF for period {} to {}", from, to);
-                    getCostUseCase.findKsefCosts(from, to);
+                    KsefImportResult importResult = getCostUseCase.findKsefCosts(from, to);
+                    if (!importResult.errors().isEmpty()) {
+                        // niepelny import kosztow dalby zanizone sumy - przerywamy jak dawniej
+                        throw new KsefResponseException("Nie zaimportowano wszystkich kosztów z KSeF: "
+                                + importResult.errors().getFirst().getMessage());
+                    }
                 }
 
                 List<Cost> costs = getCostUseCase.findBySellDateBetween(from, to);

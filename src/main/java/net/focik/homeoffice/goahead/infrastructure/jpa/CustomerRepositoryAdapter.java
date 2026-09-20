@@ -52,7 +52,12 @@ public class CustomerRepositoryAdapter implements CustomerRepository {
 
     @Override
     public Optional<Customer> findByNip(String nip) {
-        return Optional.empty();
+        if (nip == null || nip.isBlank()) {
+            return Optional.empty();
+        }
+        return customerDtoRepository.findAllByNormalizedNip(nip.replace("-", "").trim()).stream()
+                .findFirst()
+                .map(mapper::toDomain);
     }
 
     @Override

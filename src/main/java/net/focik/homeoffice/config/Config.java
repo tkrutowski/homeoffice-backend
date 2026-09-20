@@ -97,8 +97,15 @@ class Config {
     // Zewnetrzny ksef-client SDK (DefaultKsefClient) jest zbudowany na Jackson 2, dlatego
     // dla CustomKsefClient potrzebny jest osobny bean w starym typie com.fasterxml.jackson.
     // Spring rozroznia go od objectMapper() po typie (tools.jackson vs com.fasterxml.jackson).
+    // Bez modulu jsr310 (ladowanego przez findAndAddModules) Jackson 2 nie deserializuje java.time.Instant,
+    // np. AuthenticationChallengeResponse.timestamp.
     public com.fasterxml.jackson.databind.ObjectMapper ksefObjectMapper() {
-        return new com.fasterxml.jackson.databind.ObjectMapper();
+        return com.fasterxml.jackson.databind.json.JsonMapper.builder()
+                .findAndAddModules()
+                .disable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                // Daty (np. filters.dateRange.from) maja isc do KSeF jako ISO-8601, a nie liczba
+                .disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .build();
     }
 
     @Bean

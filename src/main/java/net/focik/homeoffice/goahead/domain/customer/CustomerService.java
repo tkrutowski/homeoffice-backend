@@ -86,6 +86,11 @@ class CustomerService implements ICustomerService {
         return customerList;
     }
 
+    @Override
+    public Optional<Customer> findByNip(String nip) {
+        return customerRepository.findByNip(nip);
+    }
+
     public void updateCustomerStatus(Integer id, ActiveStatus status) {
         Customer customer = findById(id);
         customer.changeCustomerStatus(status);

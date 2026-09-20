@@ -12,6 +12,7 @@ import net.focik.homeoffice.goahead.api.dto.ZusDraDataDto;
 import net.focik.homeoffice.goahead.api.mapper.ApiInvoiceMapper;
 import net.focik.homeoffice.goahead.domain.invoice.Invoice;
 import net.focik.homeoffice.goahead.domain.invoice.InvoiceFacade;
+import net.focik.homeoffice.goahead.domain.invoice.KsefInvoiceImportJobService;
 import net.focik.homeoffice.goahead.domain.invoice.KsefJobService;
 import net.focik.homeoffice.goahead.domain.invoice.PdfJobService;
 import net.focik.homeoffice.goahead.domain.invoice.ZusDraJobService;
@@ -52,6 +53,7 @@ public class InvoiceController extends ExceptionHandling {
     private final UpdateInvoiceUseCase updateInvoiceUseCase;
     private final DeleteInvoiceUseCase deleteInvoiceUseCase;
     private final KsefJobService ksefJobService;
+    private final KsefInvoiceImportJobService ksefInvoiceImportJobService;
     private final PdfJobService pdfJobService;
     private final ZusDraJobService zusDraJobService;
     private final ApiInvoiceMapper mapper;
@@ -239,6 +241,30 @@ public class InvoiceController extends ExceptionHandling {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         
+        return new ResponseEntity<>(jobStatus, HttpStatus.OK);
+    }
+
+    @PostMapping("/ksef/import")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_WRITE')")
+    public ResponseEntity<AsyncTaskStartResponse> importKsefInvoices(@RequestBody FindKsefInvoiceRequest request) {
+        log.info("Request to import KSeF invoices from {} to {}", request.fromDate(), request.toDate());
+
+        String jobId = ksefInvoiceImportJobService.startJob(request.fromDate(), request.toDate());
+
+        return new ResponseEntity<>(new AsyncTaskStartResponse(jobId), HttpStatus.ACCEPTED);
+    }
+
+    @GetMapping("/ksef/import/jobs/{jobId}")
+    @PreAuthorize("hasAnyAuthority('GOAHEAD_READ')")
+    public ResponseEntity<AsyncTask> getKsefImportJobStatus(@PathVariable String jobId) {
+        log.info("Request to get KSeF invoice import job status for jobId: {}", jobId);
+
+        AsyncTask jobStatus = ksefInvoiceImportJobService.getJobStatus(jobId);
+
+        if (jobStatus == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
         return new ResponseEntity<>(jobStatus, HttpStatus.OK);
     }
 

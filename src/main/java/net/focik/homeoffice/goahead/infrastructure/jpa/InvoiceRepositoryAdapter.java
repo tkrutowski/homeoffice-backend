@@ -234,6 +234,11 @@ public class InvoiceRepositoryAdapter implements InvoiceRepository {
         return invoiceDtoRepository.existsByCustomer_Id(idCustomer);
     }
 
+    @Override
+    public boolean existsByKsefNumber(String ksefNumber) {
+        return invoiceDtoRepository.existsByKsefNumber(ksefNumber);
+    }
+
     private Invoice mapToDomain(InvoiceDbDto dbDto) {
         Invoice invoice = mapper.map(dbDto, Invoice.class);
         if (dbDto.getInvoiceItems() != null) {

@@ -43,6 +43,11 @@ public class CustomerFacade implements AddCustomerUseCase, UpdateCustomerUseCase
         return customerService.findById(id);
     }
 
+    @Override
+    public java.util.Optional<Customer> findByNip(String nip) {
+        return customerService.findByNip(nip);
+    }
+
     public List<Customer> findByName(String name) {
         return customerService.findByName(name);
     }

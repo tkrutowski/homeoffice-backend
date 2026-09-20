@@ -48,8 +48,8 @@ public class PrivilegeHelper {
     public static final String FINANCE_DELETE = "FINANCE_DELETE";
 
     public static final String GO_INVOICE_DELETE_ALL = "GO_INVOICE_DELETE_ALL";
-    public static final String GO_INVOICE_READ_ALL = "GOAHEAD_READ_ALL";
-    public static final String GO_INVOICE_WRITE_ALL = "GOAHEAD_WRITE_ALL";
+    public static final String GO_INVOICE_READ_ALL = "GOAHEAD_READ";
+    public static final String GO_INVOICE_WRITE_ALL = "GOAHEAD_WRITE";
 
     private PrivilegeHelper() {
         throw new IllegalStateException("Utility class");

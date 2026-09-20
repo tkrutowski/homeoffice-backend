@@ -119,6 +119,14 @@ public class InMemoryInvoiceRepositoryAdapter implements InvoiceRepository {
     }
 
     @Override
+    public boolean existsByKsefNumber(String ksefNumber) {
+        return DataBaseInvoice.getInvoiceDbDtoHashMap()
+                .values()
+                .stream()
+                .anyMatch(dto -> ksefNumber != null && ksefNumber.equals(dto.getKsefNumber()));
+    }
+
+    @Override
     public boolean existsByCustomer(Integer idCustomer) {
         return DataBaseInvoice.getInvoiceDbDtoHashMap()
                 .values()

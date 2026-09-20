@@ -2,6 +2,7 @@ package net.focik.homeoffice.goahead.domain.cost;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.async.AsyncTaskError;
 import net.focik.homeoffice.audit.AuditAction;
 import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.config.AwsProperties;
@@ -74,40 +75,48 @@ public class CostFacade implements AddCostUseCase, GetCostUseCase, UpdateCostUse
     public KsefImportResult findKsefCosts(LocalDate fromDate, LocalDate toDate) {
         Map<InvoiceKsefDto, String> invoices = ksefService.findInvoices(fromDate, toDate, InvoiceQuerySubjectType.SUBJECT2);
         List<Cost> newCosts = new ArrayList<>();
+        List<AsyncTaskError> errors = new ArrayList<>();
         int duplicates = 0;
 
         for (Map.Entry<InvoiceKsefDto, String> entry : invoices.entrySet()) {
             InvoiceKsefDto invoice = entry.getKey();
             String metaData = entry.getValue();
-            Cost cost = ksefCostMapper.toCost(invoice);
-            cost.setInvoiceHash(ksefService.getFromJson(metaData, "invoiceHash"));
-            cost.setKsefNumber(ksefService.getFromJson(metaData, "ksefNumber"));
-            if(cost.getPaymentMethod() == null)
-                cost.setPaymentMethod(PaymentMethod.CASH);
+            String ksefNumber = ksefService.getFromJson(metaData, "ksefNumber");
 
-            resolveSupplier(cost);
+            try {
+                if (ksefNumber != null && costService.existsByKsefNumber(ksefNumber)) {
+                    duplicates++;
+                    continue;
+                }
 
-            if (cost.getKsefNumber() != null && costService.existsByKsefNumber(cost.getKsefNumber())) {
-                duplicates++;
-                continue;
-            }
+                Cost cost = ksefCostMapper.toCost(invoice);
+                cost.setInvoiceHash(ksefService.getFromJson(metaData, "invoiceHash"));
+                cost.setKsefNumber(ksefNumber);
+                if (cost.getPaymentMethod() == null)
+                    cost.setPaymentMethod(PaymentMethod.CASH);
 
-            Cost addedCost = addCostWithCheck(cost);
-            if (addedCost != null) {
-                newCosts.add(cost);
+                resolveSupplier(cost);
+
+                if (addCostWithCheck(cost) != null) {
+                    newCosts.add(cost);
+                }
+            } catch (Exception e) {
+                String number = invoice.getFakturaCtrl() != null ? invoice.getFakturaCtrl().getNumerFaktury() : null;
+                log.error("Błąd importu kosztu {} ({}) z KSeF", number, ksefNumber, e);
+                errors.add(new AsyncTaskError(ksefNumber != null ? ksefNumber : number, e.getMessage()));
             }
         }
 
-        return new KsefImportResult(newCosts, invoices.size(), duplicates);
+        return new KsefImportResult(newCosts, invoices.size(), duplicates, errors);
     }
 
     private Cost addCostWithCheck(Cost cost) {
-        Cost addedCost = null;
+        Cost addedCost;
         try {
             addedCost = costService.addCost(cost);
         } catch (Exception e) {
             log.error("Error saving cost from KSEF: {}", e.getMessage());
-            throw new KsefResponseException("Error saving cost from KSEF");
+            throw new KsefResponseException("Error saving cost from KSEF: " + e.getMessage());
         }
         return addedCost;
     }

@@ -20,4 +20,6 @@ public interface ICustomerService {
     List<Customer> findByAll(ActiveStatus activeStatus, CustomerType customerType);
 
     void updateCustomerStatus(Integer id, ActiveStatus status);
+
+    java.util.Optional<Customer> findByNip(String nip);
 }

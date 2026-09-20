@@ -40,6 +40,10 @@ class InvoiceService {
             throw new InvoiceAlreadyExistException("Faktura o numerze " + invoice.getNumber() + " już istnieje.");
     }
 
+    public boolean existsByKsefNumber(String ksefNumber) {
+        return invoiceRepository.existsByKsefNumber(ksefNumber);
+    }
+
     @Transactional
     public Invoice findById(Integer id) {
         log.debug("Trying to find invoice with id {}", id);
@@ -70,6 +74,8 @@ class InvoiceService {
         log.info("Trying to get new invoice number for year {}", year);
         int latestNumber = invoiceRepository.findLastInvoiceNumberByYear(year).stream()
                 .map(Invoice::getNumber)
+                // numery z importu z KSeF moga miec dowolny format - liczymy tylko "rok/nr"
+                .filter(s -> s.matches("\\d+/\\d+"))
                 .map(s -> s.split("/"))
                 .filter(strings -> Integer.parseInt(strings[0]) == year)
                 .mapToInt(value -> Integer.parseInt(value[1]))
