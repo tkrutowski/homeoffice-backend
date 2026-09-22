@@ -34,11 +34,11 @@ class LoanProposalExtractionRunnerTest {
     @Test
     @DisplayName("should mark the proposal extracted with both candidates when loan and purchase are recognized")
     void runAsync_ShouldMarkExtractedWithBothCandidates_WhenLoanAndPurchaseRecognized() {
-        LoanProposal proposal = LoanProposal.builder().id(1).status(LoanProposalStatus.NEW).build();
+        LoanProposal proposal = LoanProposal.builder().id(1).idUser(7).sourceSubject("Subject").status(LoanProposalStatus.NEW).build();
         when(loanProposalRepository.findById(1)).thenReturn(Optional.of(proposal));
         ProposedLoanData loan = ProposedLoanData.builder().bankName("PayPo").build();
-        ProposedPurchaseData purchase = ProposedPurchaseData.builder().name("Sklep XYZ").build();
-        when(extractionService.extract("mail")).thenReturn(ExtractedProposals.of(loan, purchase));
+        ProposedPurchaseData purchase = ProposedPurchaseData.builder().name("Sklep XYZ").idUser(7).build();
+        when(extractionService.extract("mail", "Subject", 7)).thenReturn(ExtractedProposals.of(loan, purchase));
 
         runner.runAsync(1, "mail");
 
@@ -51,12 +51,25 @@ class LoanProposalExtractionRunnerTest {
     }
 
     @Test
+    @DisplayName("should pass the proposal's subject and idUser through to the extraction service")
+    void runAsync_ShouldPassSubjectAndIdUserToExtractionService() {
+        LoanProposal proposal = LoanProposal.builder().id(1).status(LoanProposalStatus.NEW).build();
+        when(loanProposalRepository.findById(1)).thenReturn(Optional.of(proposal));
+        ProposedLoanData loan = ProposedLoanData.builder().bankName("mBank").build();
+        when(extractionService.extract("mail", null, null)).thenReturn(ExtractedProposals.of(loan, null));
+
+        runner.runAsync(1, "mail");
+
+        verify(extractionService).extract("mail", null, null);
+    }
+
+    @Test
     @DisplayName("should mark the proposal extracted with the loan candidate only when the purchase is not applicable")
     void runAsync_ShouldMarkExtractedWithLoanOnly_WhenPurchaseNotApplicable() {
         LoanProposal proposal = LoanProposal.builder().id(1).status(LoanProposalStatus.NEW).build();
         when(loanProposalRepository.findById(1)).thenReturn(Optional.of(proposal));
         ProposedLoanData loan = ProposedLoanData.builder().bankName("mBank").build();
-        when(extractionService.extract("mail")).thenReturn(ExtractedProposals.of(loan, null));
+        when(extractionService.extract("mail", null, null)).thenReturn(ExtractedProposals.of(loan, null));
 
         runner.runAsync(1, "mail");
 
@@ -73,7 +86,7 @@ class LoanProposalExtractionRunnerTest {
     void runAsync_ShouldMarkFailed_WhenNothingRecognized() {
         LoanProposal proposal = LoanProposal.builder().id(1).status(LoanProposalStatus.NEW).build();
         when(loanProposalRepository.findById(1)).thenReturn(Optional.of(proposal));
-        when(extractionService.extract("newsletter")).thenReturn(ExtractedProposals.none());
+        when(extractionService.extract("newsletter", null, null)).thenReturn(ExtractedProposals.none());
 
         runner.runAsync(1, "newsletter");
 

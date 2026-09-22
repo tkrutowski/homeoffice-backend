@@ -25,4 +25,7 @@ public class ProposedPurchaseDataDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Europe/Warsaw")
     private LocalDate purchaseDate;
     private String otherInfo;
+    private Integer idUser;
+    private Integer idCard;
+    private Integer idFirm;
 }

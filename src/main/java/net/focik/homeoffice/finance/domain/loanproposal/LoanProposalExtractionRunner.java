@@ -28,7 +28,10 @@ public class LoanProposalExtractionRunner {
         }
 
         try {
-            ExtractedProposals extracted = extractionService.extract(emailText);
+            // sourceSubject/idUser sa juz ustalone na proposal (temat maila przy ingest, idUser przez
+            // dopasowanie nadawcy) - przekazujemy je do ekstrakcji, zeby dopasowac karte/firme/usera
+            // do draftu zakupu bez osobnego zapytania frontu.
+            ExtractedProposals extracted = extractionService.extract(emailText, proposal.getSourceSubject(), proposal.getIdUser());
             if (!extracted.isEmpty()) {
                 proposal.markExtracted(extracted.loan().orElse(null), extracted.purchase().orElse(null));
                 log.info("LoanProposal id={} extracted successfully (loan={}, purchase={})",

@@ -2,7 +2,12 @@ package net.focik.homeoffice.finance.domain.loanproposal;
 
 import net.focik.homeoffice.finance.domain.bank.Bank;
 import net.focik.homeoffice.finance.domain.bank.port.primary.GetBankUseCase;
+import net.focik.homeoffice.finance.domain.card.Card;
+import net.focik.homeoffice.finance.domain.card.port.primary.GetCardUseCase;
+import net.focik.homeoffice.finance.domain.firm.Firm;
+import net.focik.homeoffice.finance.domain.firm.port.primary.GetFirmUseCase;
 import net.focik.homeoffice.finance.domain.loanproposal.port.secondary.LoanExtractorPort;
+import net.focik.homeoffice.utils.share.ActiveStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,11 +31,17 @@ class LoanProposalExtractionServiceTest {
     @Mock
     private GetBankUseCase getBankUseCase;
 
+    @Mock
+    private GetCardUseCase getCardUseCase;
+
+    @Mock
+    private GetFirmUseCase getFirmUseCase;
+
     private LoanProposalExtractionService service;
 
     @BeforeEach
     void setUp() {
-        service = new LoanProposalExtractionService(loanExtractorPort, getBankUseCase);
+        service = new LoanProposalExtractionService(loanExtractorPort, getBankUseCase, getCardUseCase, getFirmUseCase);
     }
 
     @Test
@@ -39,7 +50,7 @@ class LoanProposalExtractionServiceTest {
         when(loanExtractorPort.extract("newsletter")).thenReturn(
                 LoanExtractionResult.builder().isLoanDocument(false).build());
 
-        ExtractedProposals result = service.extract("newsletter");
+        ExtractedProposals result = service.extract("newsletter", null, null);
 
         assertThat(result.isEmpty()).isTrue();
         assertThat(result.loan()).isEmpty();
@@ -64,7 +75,7 @@ class LoanProposalExtractionServiceTest {
                 bank(2, "PayPo Sp. z o.o.")
         ));
 
-        ExtractedProposals result = service.extract("mail");
+        ExtractedProposals result = service.extract("mail", null, null);
 
         assertThat(result.loan()).isPresent();
         ProposedLoanData data = result.loan().get();
@@ -87,7 +98,7 @@ class LoanProposalExtractionServiceTest {
                 .build());
         when(getBankUseCase.findByAll()).thenReturn(List.of(bank(1, "mBank")));
 
-        ExtractedProposals result = service.extract("mail");
+        ExtractedProposals result = service.extract("mail", null, null);
 
         assertThat(result.loan()).isPresent();
         assertThat(result.loan().get().getBankId()).isNull();
@@ -104,7 +115,7 @@ class LoanProposalExtractionServiceTest {
                 .build());
         when(getBankUseCase.findByAll()).thenReturn(List.of());
 
-        ExtractedProposals result = service.extract("mail");
+        ExtractedProposals result = service.extract("mail", null, null);
 
         assertThat(result.loan()).isPresent();
         assertThat(result.loan().get().getAmount()).isNull();
@@ -123,7 +134,7 @@ class LoanProposalExtractionServiceTest {
                 .build());
         when(getBankUseCase.findByAll()).thenReturn(List.of());
 
-        ExtractedProposals result = service.extract("mail");
+        ExtractedProposals result = service.extract("mail", null, null);
 
         assertThat(result.purchase()).isPresent();
         ProposedPurchaseData purchase = result.purchase().get();
@@ -131,6 +142,9 @@ class LoanProposalExtractionServiceTest {
         assertThat(purchase.getAmount()).isEqualByComparingTo(new BigDecimal("299.99"));
         assertThat(purchase.getPurchaseDate()).isEqualTo(LocalDate.now());
         assertThat(purchase.getOtherInfo()).isEqualTo("raty 0%");
+        assertThat(purchase.getIdUser()).isNull();
+        assertThat(purchase.getIdCard()).isNull();
+        assertThat(purchase.getIdFirm()).isNull();
     }
 
     @Test
@@ -143,13 +157,147 @@ class LoanProposalExtractionServiceTest {
                 .build());
         when(getBankUseCase.findByAll()).thenReturn(List.of());
 
-        ExtractedProposals result = service.extract("mail");
+        ExtractedProposals result = service.extract("mail", null, null);
 
         assertThat(result.loan()).isPresent();
         assertThat(result.purchase()).isEmpty();
     }
 
+    @Test
+    @DisplayName("should copy the given idUser onto the purchase draft")
+    void extract_ShouldCopyIdUserOntoPurchaseDraft() {
+        when(loanExtractorPort.extract("mail")).thenReturn(LoanExtractionResult.builder()
+                .isLoanDocument(true)
+                .bankOrCreditor("PayPo")
+                .merchantName("Sklep XYZ")
+                .amount("50")
+                .build());
+        when(getBankUseCase.findByAll()).thenReturn(List.of());
+
+        ExtractedProposals result = service.extract("mail", null, 7);
+
+        assertThat(result.purchase()).isPresent();
+        assertThat(result.purchase().get().getIdUser()).isEqualTo(7);
+    }
+
+    @Test
+    @DisplayName("should resolve the card id from the email subject when its name matches an active card")
+    void extract_ShouldResolveCardIdFromSubject_WhenNameMatchesActiveCard() {
+        when(loanExtractorPort.extract("mail")).thenReturn(LoanExtractionResult.builder()
+                .isLoanDocument(true)
+                .bankOrCreditor("Allegro Pay")
+                .merchantName("Sklep XYZ")
+                .amount("100")
+                .build());
+        when(getBankUseCase.findByAll()).thenReturn(List.of());
+        when(getCardUseCase.findByStatus(ActiveStatus.ACTIVE)).thenReturn(List.of(
+                card(1, "Allegro Pay"), card(2, "mBank Debit")));
+
+        ExtractedProposals result = service.extract("mail", "Potwierdzenie płatności kartą Allegro Pay", null);
+
+        assertThat(result.purchase()).isPresent();
+        assertThat(result.purchase().get().getIdCard()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("should scope card matching to the resolved user's cards when idUser is known")
+    void extract_ShouldScopeCardMatchingToUser_WhenIdUserIsKnown() {
+        when(loanExtractorPort.extract("mail")).thenReturn(LoanExtractionResult.builder()
+                .isLoanDocument(true)
+                .bankOrCreditor("PayPo")
+                .merchantName("Sklep XYZ")
+                .amount("50")
+                .build());
+        when(getBankUseCase.findByAll()).thenReturn(List.of());
+        when(getCardUseCase.findByUserAndStatus(7, ActiveStatus.ACTIVE)).thenReturn(List.of(card(3, "PayPo")));
+
+        ExtractedProposals result = service.extract("mail", "Transakcja 2609161504034 w PayPo.pl", 7);
+
+        assertThat(result.purchase()).isPresent();
+        assertThat(result.purchase().get().getIdCard()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("should leave the card id null when the subject matches no active card")
+    void extract_ShouldLeaveCardIdNull_WhenSubjectMatchesNoCard() {
+        when(loanExtractorPort.extract("mail")).thenReturn(LoanExtractionResult.builder()
+                .isLoanDocument(true)
+                .bankOrCreditor("PayPo")
+                .merchantName("Sklep XYZ")
+                .amount("50")
+                .build());
+        when(getBankUseCase.findByAll()).thenReturn(List.of());
+        when(getCardUseCase.findByStatus(ActiveStatus.ACTIVE)).thenReturn(List.of(card(1, "Allegro Pay")));
+
+        ExtractedProposals result = service.extract("mail", "Potwierdzenie zamowienia", null);
+
+        assertThat(result.purchase()).isPresent();
+        assertThat(result.purchase().get().getIdCard()).isNull();
+    }
+
+    @Test
+    @DisplayName("should resolve the firm id from the merchant name when it matches an existing firm")
+    void extract_ShouldResolveFirmIdFromMerchantName_WhenItMatchesExistingFirm() {
+        when(loanExtractorPort.extract("mail")).thenReturn(LoanExtractionResult.builder()
+                .isLoanDocument(true)
+                .bankOrCreditor("PayPo")
+                .merchantName("JMP S.A. BIEDRONKA 4948")
+                .amount("20.08")
+                .build());
+        when(getBankUseCase.findByAll()).thenReturn(List.of());
+        when(getFirmUseCase.findByAll()).thenReturn(List.of(firm(9, "Biedronka")));
+
+        ExtractedProposals result = service.extract("mail", "Transakcja w PayPo.pl", null);
+
+        assertThat(result.purchase()).isPresent();
+        assertThat(result.purchase().get().getIdFirm()).isEqualTo(9);
+    }
+
+    @Test
+    @DisplayName("should fall back to the email subject for firm matching when the merchant name does not match")
+    void extract_ShouldFallBackToSubjectForFirmMatching_WhenMerchantNameDoesNotMatch() {
+        when(loanExtractorPort.extract("mail")).thenReturn(LoanExtractionResult.builder()
+                .isLoanDocument(true)
+                .bankOrCreditor("Allegro Pay")
+                .merchantName("Zamowienie nr 123")
+                .amount("50")
+                .build());
+        when(getBankUseCase.findByAll()).thenReturn(List.of());
+        when(getFirmUseCase.findByAll()).thenReturn(List.of(firm(4, "Allegro")));
+
+        ExtractedProposals result = service.extract("mail", "Potwierdzenie platnosci karta Allegro Pay", null);
+
+        assertThat(result.purchase()).isPresent();
+        assertThat(result.purchase().get().getIdFirm()).isEqualTo(4);
+    }
+
+    @Test
+    @DisplayName("should leave the firm id null when neither the merchant name nor the subject match any firm")
+    void extract_ShouldLeaveFirmIdNull_WhenNeitherMerchantNameNorSubjectMatchAnyFirm() {
+        when(loanExtractorPort.extract("mail")).thenReturn(LoanExtractionResult.builder()
+                .isLoanDocument(true)
+                .bankOrCreditor("PayPo")
+                .merchantName("Nieznany sklep")
+                .amount("10")
+                .build());
+        when(getBankUseCase.findByAll()).thenReturn(List.of());
+        when(getFirmUseCase.findByAll()).thenReturn(List.of(firm(4, "Allegro")));
+
+        ExtractedProposals result = service.extract("mail", "Transakcja w PayPo.pl", null);
+
+        assertThat(result.purchase()).isPresent();
+        assertThat(result.purchase().get().getIdFirm()).isNull();
+    }
+
     private Bank bank(int id, String name) {
         return Bank.builder().id(id).name(name).build();
+    }
+
+    private Card card(int id, String cardName) {
+        return Card.builder().id(id).cardName(cardName).build();
+    }
+
+    private Firm firm(int id, String name) {
+        return Firm.builder().id(id).name(name).build();
     }
 }

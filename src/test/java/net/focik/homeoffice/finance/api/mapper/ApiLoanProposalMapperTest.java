@@ -28,6 +28,9 @@ class ApiLoanProposalMapperTest {
                         .name("Sklep XYZ")
                         .amount(new BigDecimal("299.99"))
                         .purchaseDate(LocalDate.of(2026, 9, 9))
+                        .idUser(7)
+                        .idCard(3)
+                        .idFirm(9)
                         .build())
                 .build();
 
@@ -37,6 +40,9 @@ class ApiLoanProposalMapperTest {
         assertThat(dto.getProposedPurchase()).isNotNull();
         assertThat(dto.getProposedPurchase().getName()).isEqualTo("Sklep XYZ");
         assertThat(dto.getProposedPurchase().getPurchaseDate()).isEqualTo(LocalDate.of(2026, 9, 9));
+        assertThat(dto.getProposedPurchase().getIdUser()).isEqualTo(7);
+        assertThat(dto.getProposedPurchase().getIdCard()).isEqualTo(3);
+        assertThat(dto.getProposedPurchase().getIdFirm()).isEqualTo(9);
     }
 
     @Test
