@@ -10,7 +10,7 @@
     </parent>
     <groupId>net.focik</groupId>
     <artifactId>homeoffice</artifactId>
-    <version>5.1.0</version>
+    <version>5.2.0</version>
     <name>homeoffice</name>
     <description>HomeOfficeApp</description>
     <properties>
@@ -225,6 +225,13 @@
             <groupId>pl.akmf.ksef-sdk</groupId>
             <artifactId>ksef-client</artifactId>
             <version>3.0.19</version>
+        </dependency>
+        <!-- bcprov musi miec te sama wersje co bcpkix/bcutil - ksef-client ciagnie starsze bcprov (1.82),
+             co konczy sie NoSuchMethodError: ASN1Integer.valueOf(int) przy logowaniu certyfikatem -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.84</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>

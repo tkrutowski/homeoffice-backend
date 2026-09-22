@@ -1,8 +1,10 @@
 package net.focik.homeoffice.goahead.domain.invoice;
 
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.FakturaCtrl;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.KsefAddressParser;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.InvoiceKsefDto;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.Platnosc;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.model.Podmiot2;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.Pozycja;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.TerminPlatnosci;
 import net.focik.homeoffice.utils.share.PaymentMethod;
@@ -10,6 +12,7 @@ import net.focik.homeoffice.utils.share.PaymentStatus;
 import net.focik.homeoffice.utils.share.Vat;
 import org.javamoney.moneta.Money;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -25,6 +28,8 @@ import java.util.List;
 class KsefInvoiceImportMapper {
 
     private static final String CURRENCY = "PLN";
+    private static final int VAT_GROUP_FLAG = 1;
+    private static final int VAT_GROUP_MEMBER_ROLE = 10;
 
     Invoice toInvoice(InvoiceKsefDto dto) {
         FakturaCtrl fa = dto.getFakturaCtrl();
@@ -39,7 +44,42 @@ class KsefInvoiceImportMapper {
         invoice.setInvoiceItems(fa.getPozycje() == null ? List.of() : fa.getPozycje().stream().map(this::toItem).toList());
 
         mapPayment(invoice, fa.getPlatnosc());
+        mapBuyerDetails(invoice, dto);
         return invoice;
+    }
+
+    /**
+     * Faktura grupowa: nabywcą (Podmiot2) jest grupa VAT (GV=1), a faktycznym odbiorcą - jej członek
+     * podany w Podmiot3 z rolą 10 (członek grupy VAT - odbiorca).
+     */
+    private void mapBuyerDetails(Invoice invoice, InvoiceKsefDto dto) {
+        Podmiot2 buyer = dto.getPodmiot2();
+        if (buyer == null) {
+            return;
+        }
+        if (buyer.getDaneKontaktowe() != null && StringUtils.hasText(buyer.getDaneKontaktowe().getEmail())) {
+            invoice.setBuyerContactEmail(buyer.getDaneKontaktowe().getEmail());
+        }
+        if (buyer.getGv() == null || buyer.getGv() != VAT_GROUP_FLAG || dto.getPodmiot3() == null) {
+            return;
+        }
+
+        dto.getPodmiot3().stream()
+                .filter(p -> p.getRola() != null && p.getRola() == VAT_GROUP_MEMBER_ROLE)
+                .filter(p -> p.getDaneIdentyfikacyjne() != null && StringUtils.hasText(p.getDaneIdentyfikacyjne().getNip()))
+                .findFirst()
+                .ifPresent(member -> {
+                    invoice.setVatGroupRecipientNip(member.getDaneIdentyfikacyjne().getNip());
+                    invoice.setVatGroupRecipientName(member.getDaneIdentyfikacyjne().getNazwa());
+                    if (member.getAdres() != null) {
+                        KsefAddressParser.parse(member.getAdres().getAdresL1(), member.getAdres().getAdresL2())
+                                .ifPresent(address -> {
+                                    invoice.setVatGroupRecipientStreet(address.street());
+                                    invoice.setVatGroupRecipientZip(address.zip());
+                                    invoice.setVatGroupRecipientCity(address.city());
+                                });
+                    }
+                });
     }
 
     private void mapPayment(Invoice invoice, Platnosc platnosc) {

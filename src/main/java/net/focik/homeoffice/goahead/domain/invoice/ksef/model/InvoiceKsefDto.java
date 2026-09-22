@@ -6,6 +6,8 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.*;
 
+import java.util.List;
+
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -26,7 +28,7 @@ public class InvoiceKsefDto {
     private Podmiot2 podmiot2; // Nabywca
 
     @XmlElement(name = "Podmiot3")
-    private Podmiot3 podmiot3;
+    private List<Podmiot3> podmiot3; // Podmioty trzecie (np. członek grupy VAT) - schemat dopuszcza kilka
 
     @XmlElement(name = "Fa")
     private FakturaCtrl fakturaCtrl;

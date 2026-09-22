@@ -33,7 +33,7 @@ public final class KsefAddressParser {
             if (city.isEmpty()) {
                 city = null;
             }
-            street = street.substring(0, zipStart).trim();
+            street = street.substring(0, zipStart).replaceAll("[,;\\s]+$", "");
         } else if (adresL2 != null && !adresL2.isBlank()) {
             Matcher l2Matcher = ZIP_CODE_PATTERN.matcher(adresL2);
             if (l2Matcher.find()) {

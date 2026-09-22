@@ -43,7 +43,7 @@ public class KsefInvoiceMapper {
                 .fakturaCtrl(buildFakturaCtrl(invoice, pozycje, platnosc));
 
         if (isVatGroup) {
-            builder.podmiot3(buildPodmiot3(invoice));
+            builder.podmiot3(Collections.singletonList(buildPodmiot3(invoice)));
         }
 
         return builder.build();
