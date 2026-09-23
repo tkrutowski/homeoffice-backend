@@ -9,6 +9,8 @@ public interface GetUserUseCase {
 
     AppUser findUserById(Long id);
 
+    AppUser findUserByEmail(String email);
+
     List<AppUser> getAllUsers();
 
 }

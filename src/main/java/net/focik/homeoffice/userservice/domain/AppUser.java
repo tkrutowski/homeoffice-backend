@@ -29,6 +29,9 @@ public class AppUser extends AuditableEntity implements UserDetails {
     private String email;
     @JsonIgnore
     private String password;
+    //id konta Google (sub z ID tokena) powiazane z tym userem przy logowaniu "Zaloguj przez Google";
+    //logowanie Google nigdy nie zaklada nowego konta - tylko wiaze/loguje juz istniejace
+    private String googleSub;
     private boolean enabled;
     private boolean tokenExpired;
     private Date joinDate;

@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.userservice.api.dto.AuthenticationRequest;
 import net.focik.homeoffice.userservice.api.dto.AuthenticationResponse;
+import net.focik.homeoffice.userservice.api.dto.GoogleLoginRequest;
 import net.focik.homeoffice.userservice.api.dto.RefreshRequest;
 import net.focik.homeoffice.userservice.application.AuthenticationService;
+import net.focik.homeoffice.userservice.application.GoogleAuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,11 +21,18 @@ import java.io.IOException;
 public class AuthController {
 
     private final AuthenticationService authenticationService;
+    private final GoogleAuthService googleAuthService;
 
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest authenticationRequest) {
         log.info("Login attempt for user: {}", authenticationRequest.getUsername());
         return ResponseEntity.ok(authenticationService.authenticate(authenticationRequest));
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<AuthenticationResponse> loginWithGoogle(@RequestBody GoogleLoginRequest googleLoginRequest) {
+        log.info("Google login attempt");
+        return ResponseEntity.ok(googleAuthService.authenticate(googleLoginRequest));
     }
 
     @PostMapping("/refresh")

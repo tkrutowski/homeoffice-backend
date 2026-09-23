@@ -26,6 +26,11 @@ public class UserAppService implements GetUserUseCase, IAddNewUserUseCase, IUpda
     }
 
     @Override
+    public AppUser findUserByEmail(String email) {
+        return userFacade.findUserByEmail(email);
+    }
+
+    @Override
     public List<AppUser> getAllUsers() {
         return userFacade.getAllUsers();
     }
