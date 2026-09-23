@@ -8,6 +8,7 @@ import net.focik.homeoffice.userservice.domain.security.filter.JwtAuthentication
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
@@ -37,7 +38,11 @@ public class SecurityConfig {
     @Value("#{'${cors.public-url}'.split(',')}")
     private String[] publicUrl;
 
+    //Order(2): laczy sie z anyRequest() - musi byc oceniany PO wezszym lancuchu WebAuthnSecurityConfig
+    //(Order(1), dopasowuje tylko /webauthn/** i /login/webauthn). Wiecej niz jeden SecurityFilterChain
+    //bean wymaga jawnego Order, inaczej Spring odmawia startu.
     @Bean
+    @Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
                 .cors(Customizer.withDefaults())

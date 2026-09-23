@@ -10,7 +10,7 @@
     </parent>
     <groupId>net.focik</groupId>
     <artifactId>homeoffice</artifactId>
-    <version>5.7.0</version>
+    <version>5.9.1</version>
     <name>homeoffice</name>
     <description>HomeOfficeApp</description>
     <properties>
@@ -156,6 +156,12 @@
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
             <version>1.17.2</version>
+        </dependency>
+
+        <!-- Passkeys/WebAuthn (Faza 2 logowania) - wersja dociagana z BOM Spring Boota -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-webauthn</artifactId>
         </dependency>
 
         <!-- Weryfikacja ID tokena logowania "Zaloguj przez Google" (GoogleIdTokenVerifier) -->
