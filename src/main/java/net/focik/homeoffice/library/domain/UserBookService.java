@@ -2,6 +2,7 @@ package net.focik.homeoffice.library.domain;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.library.domain.exception.UserBookAlreadyExistException;
 import net.focik.homeoffice.library.domain.exception.UserBookNotFoundException;
 import net.focik.homeoffice.library.domain.model.*;
 import net.focik.homeoffice.library.domain.port.secondary.UserBookRepository;
@@ -17,6 +18,15 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 class UserBookService {
 
+    /**
+     * Statusy uznawane za "aktywną" pozycję na półce (książka nieukończona).
+     * Dla danej książki i użytkownika może istnieć co najwyżej jedna pozycja
+     * w jednym z tych statusów - status READ (Przeczytane) może się powtarzać
+     * dowolną liczbę razy (np. wielokrotne czytanie tej samej książki).
+     */
+    private static final Set<ReadingStatus> ACTIVE_READING_STATUSES =
+            EnumSet.of(ReadingStatus.NOT_READ, ReadingStatus.READ_NOW);
+
     private final UserBookRepository userBookRepository;
 
     public List<UserBook> findUserBooksForBookId(Integer idBook, Integer idUser) {
@@ -27,6 +37,9 @@ class UserBookService {
     }
 
     public UserBook addUserBook(UserBook userBook) {
+        if (ACTIVE_READING_STATUSES.contains(userBook.getReadingStatus())) {
+            assertNoActiveDuplicate(userBook.getBook(), userBook.getUser().getId(), null);
+        }
         return userBookRepository.add(userBook);
     }
 
@@ -38,6 +51,11 @@ class UserBookService {
             throw new UserBookNotFoundException(userBook.getId());
         }
 
+        if (ACTIVE_READING_STATUSES.contains(userBook.getReadingStatus())) {
+            assertNoActiveDuplicate(userBookById.get().getBook(), userBookById.get().getUser().getId(),
+                    userBookById.get().getId());
+        }
+
         userBookById.get().setBookstore(userBook.getBookstore());
         userBookById.get().setReadingStatus(userBook.getReadingStatus());
         userBookById.get().setEditionType(userBook.getEditionType());
@@ -47,6 +65,26 @@ class UserBookService {
         userBookById.get().setInfo(userBook.getInfo());
 
         return userBookRepository.edit(userBookById.get());
+    }
+
+    /**
+     * Sprawdza, czy użytkownik ma już inną pozycję tej samej książki w statusie
+     * "W poczekalni" lub "Czytana" (patrz {@link #ACTIVE_READING_STATUSES}).
+     * Jeśli tak, dodanie/edycja jest odrzucana - taka sama książka nie może
+     * jednocześnie "czekać" i być "czytana" (to prowadzi do duplikatów na półce).
+     *
+     * @param excludeUserBookId id pozycji do pominięcia przy sprawdzaniu (przy edycji - sama siebie), albo null przy dodawaniu nowej
+     */
+    private void assertNoActiveDuplicate(Book book, Long idUser, Integer excludeUserBookId) {
+        boolean duplicateExists = userBookRepository.findAllByIdBook(book.getId()).stream()
+                .filter(ub -> !ub.getId().equals(excludeUserBookId))
+                .filter(ub -> idUser.equals(ub.getUser().getId()))
+                .anyMatch(ub -> ACTIVE_READING_STATUSES.contains(ub.getReadingStatus()));
+
+        if (duplicateExists) {
+            log.warn("UserBook duplicate rejected: book {} already on shelf for user {} in an active status", book.getId(), idUser);
+            throw new UserBookAlreadyExistException(book);
+        }
     }
 
     public void deleteUserBook(Integer id) {
