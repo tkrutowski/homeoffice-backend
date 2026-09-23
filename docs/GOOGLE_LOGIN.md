@@ -64,6 +64,13 @@ Migracja: `src/main/resources/db/migration/V5__add_google_sub_to_users.sql`.
 W MySQL wartości `NULL` nie kolidują z ograniczeniem `UNIQUE`, więc konta bez logowania
 Google współistnieją bez problemu.
 
+`AppUser.avatarUrl` → kolumna `users.avatar_url` (`VARCHAR(512)`, `NULL`).
+Migracja: `src/main/resources/db/migration/V6__add_avatar_url_to_users.sql`. Wypełniane/odświeżane
+wyłącznie przy logowaniu przez Google (pole `picture` z ID tokena — bezpośredni URL do CDN
+Google, `lh3.googleusercontent.com`, nie pobieramy/nie hostujemy obrazka u siebie). Wystawione
+we froncie przez `GET /api/v1/user/me` (`UserDto.avatarUrl`). `NULL` dla userów, którzy nigdy
+nie logowali się przez Google — front pokazuje wtedy avatar z inicjałów jak dziś.
+
 ## Konfiguracja
 
 Property `google.oauth.client-ids` (lista Client ID dozwolonych jako `audience` tokena,
@@ -110,10 +117,12 @@ do tej samej, rozdzielonej przecinkami wartości `GOOGLE_OAUTH_CLIENT_IDS`.
 | `userservice/application/GoogleAuthService.java` | logika: weryfikacja tokena, dopasowanie po e-mailu, wystawienie JWT |
 | `userservice/domain/security/config/GoogleAuthConfig.java` | bean `GoogleIdTokenVerifier` z listą dozwolonych `audience` |
 | `userservice/api/AuthController.java` | nowy endpoint `POST /api/v1/auth/google` |
-| `userservice/domain/AppUser.java` | pole `googleSub` |
+| `userservice/domain/AppUser.java` | pola `googleSub`, `avatarUrl` |
 | `userservice/domain/port/primary/GetUserUseCase.java` | nowa metoda `findUserByEmail` |
 | `userservice/application/UserAppService.java` | implementacja `findUserByEmail` (delegacja do `UserFacade`) |
+| `userservice/api/dto/UserDto.java` | pole `avatarUrl` (wystawiane przez `GET /api/v1/user/me`) |
 | `db/migration/V5__add_google_sub_to_users.sql` | kolumna `google_sub` |
+| `db/migration/V6__add_avatar_url_to_users.sql` | kolumna `avatar_url` |
 | `application.properties` | `google.oauth.client-ids`, dopisany publiczny URL |
 | `pom.xml` | zależność `com.google.api-client:google-api-client` |
 

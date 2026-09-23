@@ -25,5 +25,6 @@ public class UserDto {
     //    private boolean isNotLocked;
     private boolean notLocked;
     private Integer idEmployee;
+    private String avatarUrl;
 
 }

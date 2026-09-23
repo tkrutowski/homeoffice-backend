@@ -32,6 +32,9 @@ public class AppUser extends AuditableEntity implements UserDetails {
     //id konta Google (sub z ID tokena) powiazane z tym userem przy logowaniu "Zaloguj przez Google";
     //logowanie Google nigdy nie zaklada nowego konta - tylko wiaze/loguje juz istniejace
     private String googleSub;
+    //URL zdjecia profilowego z konta Google (pole "picture" z ID tokena), odswiezany przy kazdym
+    //logowaniu Google; null dla userow, ktorzy nigdy nie zalogowali sie przez Google
+    private String avatarUrl;
     private boolean enabled;
     private boolean tokenExpired;
     private Date joinDate;

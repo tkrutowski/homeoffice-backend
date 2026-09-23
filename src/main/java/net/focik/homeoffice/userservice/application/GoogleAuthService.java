@@ -69,6 +69,13 @@ public class GoogleAuthService {
             throw new BadCredentialsException("Google account mismatch");
         }
 
+        //zdjecie profilowe z Google - odswiezane przy kazdym logowaniu, zeby nadazac za zmianami
+        //po stronie Google; pole opcjonalne w tokenie, wiec moze nie wystapic
+        Object picture = payload.get("picture");
+        if (picture != null) {
+            user.setAvatarUrl(picture.toString());
+        }
+
         user.setLastLoginDateDisplay(user.getLastLoginDate());
         user.setLastLoginDate(new Date());
         userRepository.save(user);

@@ -128,7 +128,7 @@ nie zostało wypchnięte.**
 
 Ryzyko jest więc inne niż "wyciek" — to ryzyko **przyszłego przypadkowego commita** (`git add .`
 / `git commit -a` bez przejrzenia diffa) tego pliku z prawdziwymi sekretami w środku. Dodatkowo
-`src/main/resources/application-dev.properties` i `application-prod.properties` są dziś
+`../src/main/resources/application-dev.properties` i `application-prod.properties` są dziś
 **untracked** (nowe pliki, jeszcze nigdy niecommitowane) i **nie są objęte `.gitignore`** — więc
 też mogą trafić do repo przy nieuważnym `git add .`, jeśli zawierają realne dane (nie
 sprawdzałem ich zawartości w ramach tego przeglądu).
@@ -137,13 +137,13 @@ sprawdzałem ich zawartości w ramach tego przeglądu).
 
 1. Nie zostawiać prawdziwych sekretów jako wartości domyślnych nawet lokalnie — zamiast
    `${JWT_SECRET_KEY:404E63...}` w wersjonowanym pliku, trzymać lokalne wartości w mechanizmie,
-   który i tak jest już w `.gitignore` (`.env`, `.env.local` — sekcja `### Env ###` w
+   który i tak jest już w `../.gitignore` (`.env`, `.env.local` — sekcja `### Env ###` w
    `.gitignore` już to pokrywa) i ładować je stamtąd, albo po prostu eksportować jako zmienne
    środowiskowe przed uruchomieniem (`SPRING_PROFILES_ACTIVE=dev` + reszta already opisane w
    CLAUDE.md pod "Required env vars").
 2. Przed każdym `git add`/`git commit` obejmującym `application.properties` — świadomie sprawdzić
    `git diff --staged`, żeby nie wynieść tych wartości do historii przez pomyłkę.
-3. Dodać `application-dev.properties` i `application-prod.properties` do `.gitignore` (albo
+3. Dodać `application-dev.properties` i `application-prod.properties` do `../.gitignore` (albo
    upewnić się, że nie zawierają sekretów, zanim się je kiedyś doda do repo) — dziś nic nie
    chroni przed ich przypadkowym scommitowaniem.
 4. Rozważyć git hook (`pre-commit`) albo narzędzie typu `gitleaks`/`git-secrets`, które blokuje
