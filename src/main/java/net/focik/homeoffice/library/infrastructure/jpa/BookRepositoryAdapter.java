@@ -14,7 +14,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -62,10 +65,17 @@ public class BookRepositoryAdapter implements BookRepository {
 
     @Override
     public Page<Book> findBooksWithFilters(String globalFilter, String title, String author, String category, String series, Pageable pageable) {
-        Page<BookDbDto> booksPage = bookDtoRepository.findBooksWithFilters(
+        Page<Integer> idsPage = bookDtoRepository.findBookIdsWithFilters(
                 globalFilter, title, author, category, series, pageable
         );
-        return booksPage.map(bookMapper::toDomain);
+        List<Integer> ids = idsPage.getContent();
+        if (ids.isEmpty()) {
+            return idsPage.map(id -> null);
+        }
+        Map<Integer, BookDbDto> booksById = bookDtoRepository.findAllWithDetailsByIdIn(ids).stream()
+                .collect(Collectors.toMap(BookDbDto::getId, Function.identity()));
+        // kolejność stron z kroku 1 (sortowanie) musi zostać zachowana
+        return idsPage.map(id -> bookMapper.toDomain(booksById.get(id)));
     }
 
     @Override
