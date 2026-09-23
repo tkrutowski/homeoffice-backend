@@ -125,6 +125,18 @@ Skip the bump when the commit touches only non-shippable files with no effect on
 
 Bump exactly one level per commit, and fold the `pom.xml` change into the same commit as the rest of the diff — never a separate "bump version" commit. When unsure which level applies (e.g. a change could read as either MINOR or PATCH), ask rather than guessing.
 
+## Documentation upkeep
+
+After a non-trivial change (new dependency, new config/env var, new architectural pattern, a new
+gotcha worth remembering, or a fix to something this file already claims incorrectly), check
+whether `CLAUDE.md` (or the relevant file under `docs/`) needs updating too, and fold that into
+the same commit — don't wait to be asked. Stale docs that confidently state the wrong thing
+(wrong versions, wrong class locations, invented behavior — see the `AGENTS.md` cleanup) are
+worse than no docs, since they actively mislead the next session instead of just staying silent.
+Routine CRUD additions, internal refactors, and bug fixes with no behavior change visible outside
+the code don't need a doc update — this is for changes that shift what a future Claude session
+needs to know to work in this repo correctly.
+
 ## Git commits
 
 Never stage or commit untracked files (new files git doesn't already know about) without the user explicitly naming each one first — this applies even to files Claude itself created earlier in the same session (new source files, new docs, new migrations). When asked to commit, only add already-tracked (modified) files by default; call out any untracked files that logically belong with the change and ask before including them, rather than assuming "commit the changes" covers them. `git add -A`/`git add .` are unsafe here for exactly this reason — this repo's working tree routinely carries unrelated untracked local files (scratch docs, debug scripts, local-only property files with real secrets) that must never end up in a commit.
