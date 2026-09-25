@@ -64,6 +64,6 @@ public class LogParser {
         String logger = matcher.group(4);
         String message = matcher.group(5);
 
-        return new LogEntry(timestamp, level, thread, logger, message);
+        return new LogEntry(timestamp, level, thread, logger, message, null);
     }
 }

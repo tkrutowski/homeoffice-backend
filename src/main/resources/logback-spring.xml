@@ -33,6 +33,7 @@
             </encoder>
             <bucketName>${aws.bucket.name:-focik-home}</bucketName>
             <keyPrefix>logs/</keyPrefix>
+            <instance>${APP_INSTANCE:-unknown}</instance>
             <awsRegion>${aws.region:-eu-central-1}</awsRegion>
             <batchSize>100</batchSize>
             <flushIntervalSeconds>300</flushIntervalSeconds>

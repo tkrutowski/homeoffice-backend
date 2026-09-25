@@ -26,6 +26,8 @@ public class S3LogAppender extends AppenderBase<ILoggingEvent> {
     private String bucketName;
     private String keyPrefix = "logs/";
     private String awsRegion = "eu-central-1";
+    // nazwa instancji (np. ec2, synology, local) dopisywana do klucza obiektu - rozroznia logi z wielu instancji
+    private String instance = "unknown";
     private int batchSize = 100;
     private int flushIntervalSeconds = 60;
 
@@ -139,7 +141,7 @@ public class S3LogAppender extends AppenderBase<ILoggingEvent> {
         try {
             String date = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
             String timestamp = String.valueOf(System.currentTimeMillis());
-            String key = keyPrefix + "homeoffice-" + date + "-" + timestamp + ".log";
+            String key = keyPrefix + "homeoffice-" + date + "-" + timestamp + "-" + safeInstance() + ".log";
 
             byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
 
@@ -160,6 +162,12 @@ public class S3LogAppender extends AppenderBase<ILoggingEvent> {
             e.printStackTrace();
             addError("Failed to upload logs to S3: " + e.getMessage(), e);
         }
+    }
+
+    // Klucz S3 jest parsowany przez S3LogsRepositoryAdapter - dozwolone tylko [A-Za-z0-9_.-]
+    private String safeInstance() {
+        String sanitized = instance == null ? "" : instance.trim().replaceAll("[^A-Za-z0-9_.-]", "_");
+        return sanitized.isEmpty() ? "unknown" : sanitized;
     }
 
     @Override

@@ -17,4 +17,6 @@ public class LogEntry {
     private String thread;
     private String logger;
     private String message;
+    /** Instancja aplikacji, z ktorej pochodzi wpis (np. ec2, synology, local); null gdy nieznana (odczyt z pliku). */
+    private String instance;
 }

@@ -1,10 +1,14 @@
 package net.focik.homeoffice.logservice.infrastructure.file;
 
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.logservice.domain.exceptions.LogsReadException;
 import net.focik.homeoffice.logservice.domain.model.LogEntry;
+import net.focik.homeoffice.logservice.domain.model.LogQuery;
+import net.focik.homeoffice.logservice.domain.model.LogResult;
 import net.focik.homeoffice.logservice.domain.port.secondary.LogsRepository;
 import net.focik.homeoffice.logservice.infrastructure.LogParser;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -16,84 +20,66 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
+/**
+ * Czyta lokalne pliki logow (biezacy {@code homeoffice.log} i archiwa {@code homeoffice.log.YYYY-MM-DD.gz}).
+ * Uzywany tylko na profilu {@code dev}, gdzie nie dziala {@code S3LogAppender}; lokalne pliki sa nietrwale
+ * (brak wolumenu w kontenerze) i trzymane tylko 7 dni.
+ */
 @Slf4j
 @Component
+@Profile("dev")
 public class FileLogsRepositoryAdapter implements LogsRepository {
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-    private static final DateTimeFormatter fileNameDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-    @Value("${logging.file.name}")
-    private String filePath;
+    private static final Pattern ARCHIVE_PATTERN = Pattern.compile("^homeoffice\\.log\\.(\\d{4}-\\d{2}-\\d{2})\\.gz$");
 
     @Value("${logging.file.path}")
     private String logDirectory;
 
     @Override
-    public List<LogEntry> getLogsByDate(LocalDateTime from, LocalDateTime to) {
-        List<LogEntry> logEntries = new ArrayList<>();
+    public LogResult find(LogQuery query) {
+        List<LogEntry> entries = new ArrayList<>();
 
-        try {
-            Files.list(Paths.get(logDirectory))
-                    .filter(path -> path.toString().endsWith(".log") || path.toString().endsWith(".gz"))
-                    .forEach(path -> {
-                        try {
-                            if (path.toString().endsWith(".gz") && path.toString().contains("homeoffice.log.")) {
-                                String fileName = path.getFileName().toString();
-                                // Wyodrębnij datę z nazwy pliku
-                                String datePart = fileName.substring(15, 25); // Format "2024-09-19"
-                                LocalDate fileDate = LocalDate.parse(datePart, fileNameDateFormatter);
-                                if (!fileDate.isBefore(from.toLocalDate()) && !fileDate.isAfter(to.toLocalDate())) {
-                                    readGzLogFile(path, logEntries, from, to);
-                                }
-                            } else {
-                                readLogFile(path, logEntries, from, to);
-                            }
-                        } catch (IOException | RuntimeException e) {
-                            log.error("Nie udalo sie odczytac pliku logow {}: {}", path, e.getMessage(), e);
-                        }
-                    });
+        try (Stream<Path> files = Files.list(Paths.get(logDirectory))) {
+            files.filter(path -> shouldRead(path, query)).forEach(path -> readFile(path, query, entries));
         } catch (IOException e) {
-            log.error(e.getMessage(), e);
+            throw new LogsReadException("Nie udalo sie odczytac katalogu logow " + logDirectory + ": " + e.getMessage(), e);
         }
 
-        return logEntries;
+        entries.sort(Comparator.comparing(LogEntry::getTimestamp));
+        return LogResult.limited(entries, query.limit());
     }
 
-    @Override
-    public List<LogEntry> getTodayLogs() {
-        List<LogEntry> logEntries = new ArrayList<>();
+    private boolean shouldRead(Path path, LogQuery query) {
+        String fileName = path.getFileName().toString();
+        Matcher archive = ARCHIVE_PATTERN.matcher(fileName);
+        if (archive.matches()) {
+            LocalDate fileDate = LocalDate.parse(archive.group(1));
+            return !fileDate.isBefore(query.from().toLocalDate()) && !fileDate.isAfter(query.to().toLocalDate());
+        }
+        return fileName.endsWith(".log");
+    }
 
-        try (BufferedReader br = Files.newBufferedReader(Paths.get(filePath), StandardCharsets.UTF_8)) {
-            logEntries.addAll(LogParser.parseLogs(br.lines()::iterator));
+    private void readFile(Path path, LogQuery query, List<LogEntry> entries) {
+        try (BufferedReader br = open(path)) {
+            LogParser.parseLogs(br.lines()::iterator).stream()
+                    .filter(query::matches)
+                    .forEach(entries::add);
         } catch (IOException | UncheckedIOException e) {
-            log.error(e.getMessage(), e);
-        }
-
-        return logEntries;
-    }
-
-    private void readLogFile(Path path, List<LogEntry> logEntries, LocalDateTime from, LocalDateTime to) throws IOException {
-        try (BufferedReader br = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-            addInRange(br, logEntries, from, to);
+            log.error("Nie udalo sie odczytac pliku logow {}: {}", path, e.getMessage(), e);
         }
     }
 
-    private void readGzLogFile(Path path, List<LogEntry> logEntries, LocalDateTime from, LocalDateTime to) throws IOException {
-        try (GZIPInputStream gzipInputStream = new GZIPInputStream(Files.newInputStream(path));
-             BufferedReader br = new BufferedReader(new InputStreamReader(gzipInputStream, StandardCharsets.UTF_8))) {
-            addInRange(br, logEntries, from, to);
+    private BufferedReader open(Path path) throws IOException {
+        if (path.getFileName().toString().endsWith(".gz")) {
+            return new BufferedReader(new InputStreamReader(new GZIPInputStream(Files.newInputStream(path)), StandardCharsets.UTF_8));
         }
-    }
-
-    private void addInRange(BufferedReader br, List<LogEntry> logEntries, LocalDateTime from, LocalDateTime to) {
-        LogParser.parseLogs(br.lines()::iterator).stream()
-                .filter(entry -> entry.getTimestamp().isAfter(from) && entry.getTimestamp().isBefore(to))
-                .forEach(logEntries::add);
+        return Files.newBufferedReader(path, StandardCharsets.UTF_8);
     }
 }

@@ -47,6 +47,8 @@ services:
       - PAYMENT_REMINDER=${PAYMENT_REMINDER:-true}
       - TRANSACTION_REMINDER=${TRANSACTION_REMINDER:-true}
       - PURCHASE_REPORT=${PURCHASE_REPORT:-true}
+      # Nazwa instancji w kluczach logow w S3 (logs/homeoffice-<data>-<epoch>-<instance>.log)
+      - APP_INSTANCE=${APP_INSTANCE:-local}
     networks:
       - homeoffice-network
     restart: unless-stopped

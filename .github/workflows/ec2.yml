@@ -123,4 +123,5 @@ jobs:
               -e PAYMENT_REMINDER=true \
               -e TRANSACTION_REMINDER=false \
               -e PURCHASE_REPORT=false \
+              -e APP_INSTANCE=ec2 \
               homeoffice:${{ steps.get_version.outputs.version }}

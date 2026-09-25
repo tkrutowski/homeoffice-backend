@@ -2,8 +2,8 @@ package net.focik.homeoffice.logservice.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.focik.homeoffice.logservice.domain.model.LogEntry;
 import net.focik.homeoffice.logservice.domain.model.LogLevel;
+import net.focik.homeoffice.logservice.domain.model.LogResult;
 import net.focik.homeoffice.logservice.domain.port.primary.GetLogsUseCase;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
 @Slf4j
@@ -27,30 +26,27 @@ public class LogsController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('LOGS_READ_ALL','LOGS_READ') or hasRole('ROLE_ADMIN')")
-    ResponseEntity<List<LogEntry>> getTodayLogs(@RequestParam(value = "levels", required = false) Set<LogLevel> levels) {
-        log.info("Request to get today's logs: levels = {}", levels);
-        List<LogEntry> logs = getLogsUseCase.getLogs(levels);
-        if (logs.isEmpty()) {
-            log.info("No logs found.");
-        } else {
-            log.info("Found {} logs.", logs.size());
-        }
-        return new ResponseEntity<>(logs, HttpStatus.OK);
+    ResponseEntity<LogResult> getTodayLogs(
+            @RequestParam(value = "levels", required = false) Set<LogLevel> levels,
+            @RequestParam(value = "limit", required = false) Integer limit,
+            @RequestParam(value = "instance", required = false) String instance) {
+        log.info("Request to get today's logs: levels = {}, limit = {}, instance = {}", levels, limit, instance);
+        LogResult result = getLogsUseCase.getTodayLogs(levels, limit, instance);
+        log.info("Found {} logs (truncated = {}).", result.entries().size(), result.truncated());
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @GetMapping("/date")
     @PreAuthorize("hasAnyAuthority('LOGS_READ_ALL','LOGS_READ') or hasRole('ROLE_ADMIN')")
-    ResponseEntity<List<LogEntry>> getTodayLog(
+    ResponseEntity<LogResult> getLogsByDate(
             @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
-            @RequestParam(value = "levels", required = false) Set<LogLevel> levels) {
-        log.info("Request to get logs from {} to {}, {}", from, to, levels);
-        List<LogEntry> logs = getLogsUseCase.getLogs(from, to, levels);
-        if (logs.isEmpty()) {
-            log.info("No logs found.");
-        } else {
-            log.info("Found {} logs.", logs.size());
-        }
-        return new ResponseEntity<>(logs, HttpStatus.OK);
+            @RequestParam(value = "levels", required = false) Set<LogLevel> levels,
+            @RequestParam(value = "limit", required = false) Integer limit,
+            @RequestParam(value = "instance", required = false) String instance) {
+        log.info("Request to get logs from {} to {}, levels = {}, limit = {}, instance = {}", from, to, levels, limit, instance);
+        LogResult result = getLogsUseCase.getLogs(from, to, levels, limit, instance);
+        log.info("Found {} logs (truncated = {}).", result.entries().size(), result.truncated());
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }
