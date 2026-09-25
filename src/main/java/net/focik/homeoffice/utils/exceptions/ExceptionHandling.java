@@ -170,6 +170,12 @@ public class ExceptionHandling implements ErrorController {
         return createHttpResponse(BAD_REQUEST, exception.getMessage(), exception.getMessage());
     }
 
+    @ExceptionHandler(InvalidPasswordResetTokenException.class)
+    public ResponseEntity<HttpResponse> invalidPasswordResetTokenException(InvalidPasswordResetTokenException exception) {
+        log.error("Invalid password reset token", exception);
+        return createHttpResponse(BAD_REQUEST, exception.getMessage(), exception.getMessage());
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<HttpResponse> authenticationException(AuthenticationException exception) {
         log.error("Authentication error", exception);

@@ -4,10 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.userservice.api.dto.AuthenticationRequest;
 import net.focik.homeoffice.userservice.api.dto.AuthenticationResponse;
+import net.focik.homeoffice.userservice.api.dto.ForgotPasswordRequest;
 import net.focik.homeoffice.userservice.api.dto.GoogleLoginRequest;
 import net.focik.homeoffice.userservice.api.dto.RefreshRequest;
+import net.focik.homeoffice.userservice.api.dto.ResetPasswordRequest;
 import net.focik.homeoffice.userservice.application.AuthenticationService;
 import net.focik.homeoffice.userservice.application.GoogleAuthService;
+import net.focik.homeoffice.userservice.domain.port.primary.RequestPasswordResetUseCase;
+import net.focik.homeoffice.userservice.domain.port.primary.ResetPasswordUseCase;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +26,8 @@ public class AuthController {
 
     private final AuthenticationService authenticationService;
     private final GoogleAuthService googleAuthService;
+    private final RequestPasswordResetUseCase requestPasswordResetUseCase;
+    private final ResetPasswordUseCase resetPasswordUseCase;
 
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest authenticationRequest) {
@@ -40,6 +46,21 @@ public class AuthController {
         log.info("Attempt to refresh token");
         AuthenticationResponse refreshedToken = authenticationService.refreshToken(refreshRequest);
         return ResponseEntity.ok(refreshedToken);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        log.info("Password reset requested");
+        requestPasswordResetUseCase.requestPasswordReset(request.getEmail());
+        //zawsze 200 OK, niezaleznie czy konto o tym e-mailu istnieje - anty-enumeracja kont
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordRequest request) {
+        log.info("Password reset attempt");
+        resetPasswordUseCase.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/test")

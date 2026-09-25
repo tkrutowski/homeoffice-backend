@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import static net.focik.homeoffice.userservice.domain.security.constant.UserConstant.*;
 
@@ -26,8 +25,6 @@ import static net.focik.homeoffice.userservice.domain.security.constant.UserCons
 @Transactional
 @Qualifier("userDetailsService")
 public class UserServiceImpl implements IUserService {
-
-    private static final Pattern PASSWORD_POLICY = Pattern.compile("^(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$");
 
     private final IAppUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
