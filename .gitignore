@@ -39,3 +39,6 @@ build/
 
 ### n8n ###
 .n8n/
+
+### Logs ###
+logs/
