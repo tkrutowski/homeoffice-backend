@@ -19,9 +19,21 @@ import java.time.format.DateTimeFormatter;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Wysyla logi do S3 partiami jako obiekty {@code <keyPrefix>homeoffice-<data>-<epoch>-<instance>.log}
+ * (klucze parsuje {@code S3LogsRepositoryAdapter}).
+ * <p>
+ * Zapis do S3 wykonuje wylacznie watek schedulera (co {@code flushIntervalSeconds} albo po zebraniu
+ * {@code batchSize} wpisow), wiec {@link #append} nigdy nie czeka na siec. Partia, ktorej nie uda sie wyslac,
+ * wraca na poczatek bufora i jest ponawiana przy nastepnym flushu.
+ */
 @Setter
 public class S3LogAppender extends AppenderBase<ILoggingEvent> {
+
+    // Gorny limit bufora trzymanego mimo nieudanych uploadow (znaki); po przekroczeniu odrzucane sa najstarsze wpisy
+    private static final int MAX_BUFFERED_CHARS = 5_000_000;
 
     private String bucketName;
     private String keyPrefix = "logs/";
@@ -33,64 +45,52 @@ public class S3LogAppender extends AppenderBase<ILoggingEvent> {
 
     private LayoutWrappingEncoder<ILoggingEvent> encoder;
     private S3Client s3Client;
-    private StringBuilder logBuffer;
-    private int eventCount = 0;
     private ScheduledExecutorService scheduler;
+
+    private final StringBuilder logBuffer = new StringBuilder();
+    private final AtomicBoolean flushQueued = new AtomicBoolean(false);
+    private int eventCount = 0;
 
     @Override
     public void start() {
-        System.out.println("=== S3LogAppender START method called ===");
-
         if (bucketName == null || bucketName.isEmpty()) {
-            System.err.println("ERROR: Bucket name is required");
             addError("Bucket name is required");
             return;
         }
 
         if (encoder == null) {
-            System.err.println("ERROR: Encoder is required");
             addError("Encoder is required");
             return;
         }
 
         try {
-            System.out.println("Creating S3 client for region: " + awsRegion);
+            if (s3Client == null) {
+                String envProfile = System.getenv("AWS_PROFILE");
+                AwsCredentialsProvider provider = (envProfile != null && !envProfile.isBlank())
+                        ? ProfileCredentialsProvider.builder().profileName(envProfile).build()
+                        : DefaultCredentialsProvider.create();
 
-            String envProfile = System.getenv("AWS_PROFILE");
-            AwsCredentialsProvider provider = (envProfile != null && !envProfile.isBlank())
-                    ? ProfileCredentialsProvider.builder().profileName(envProfile).build()
-                    : DefaultCredentialsProvider.create();
-
-            if (envProfile != null && !envProfile.isBlank()) {
-                System.out.println("Using AWS profile for S3LogAppender: " + envProfile);
-            } else {
-                System.out.println("Using DefaultCredentialsProvider for S3LogAppender (no AWS_PROFILE set)");
+                s3Client = S3Client.builder()
+                        .region(Region.of(awsRegion))
+                        .credentialsProvider(provider)
+                        .build();
+                addInfo("S3LogAppender uses " + (envProfile != null && !envProfile.isBlank()
+                        ? "AWS profile " + envProfile : "DefaultCredentialsProvider"));
             }
 
-            s3Client = S3Client.builder()
-                    .region(Region.of(awsRegion))
-                    .credentialsProvider(provider)
-                    .build();
-
-            logBuffer = new StringBuilder();
-
-            System.out.println("Starting encoder...");
             encoder.start();
 
-            System.out.println("Starting scheduler (interval: " + flushIntervalSeconds + "s)...");
-            scheduler = Executors.newSingleThreadScheduledExecutor();
+            scheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
+                Thread thread = new Thread(runnable, "s3-log-appender");
+                thread.setDaemon(true);
+                return thread;
+            });
             scheduler.scheduleAtFixedRate(this::flush, flushIntervalSeconds, flushIntervalSeconds, TimeUnit.SECONDS);
 
-            System.out.println("✅ S3LogAppender started successfully!");
-            System.out.println("   Bucket: " + bucketName);
-            System.out.println("   Region: " + awsRegion);
-            System.out.println("   Batch size: " + batchSize);
-            System.out.println("   Flush interval: " + flushIntervalSeconds + "s");
-
+            addInfo("S3LogAppender started: bucket=" + bucketName + ", region=" + awsRegion + ", instance=" + safeInstance()
+                    + ", batchSize=" + batchSize + ", flushIntervalSeconds=" + flushIntervalSeconds);
             super.start();
         } catch (Exception e) {
-            System.err.println("❌ Failed to start S3LogAppender: " + e.getMessage());
-            e.printStackTrace();
             addError("Failed to start S3LogAppender", e);
         }
     }
@@ -106,61 +106,66 @@ public class S3LogAppender extends AppenderBase<ILoggingEvent> {
             Layout<ILoggingEvent> layout = encoder.getLayout();
             String formattedMessage = layout.doLayout(eventObject);
 
+            boolean batchFull;
             synchronized (logBuffer) {
                 logBuffer.append(formattedMessage);
                 eventCount++;
+                batchFull = eventCount >= batchSize;
+            }
 
-                if (eventCount >= batchSize) {
-                    System.out.println("📦 Buffer full (" + eventCount + " logs), flushing to S3...");
-                    flush();
-                }
+            if (batchFull && flushQueued.compareAndSet(false, true)) {
+                scheduler.execute(this::flush);
             }
         } catch (Exception e) {
-            System.err.println("❌ Failed to encode log event: " + e.getMessage());
             addError("Failed to encode log event", e);
         }
     }
 
-    private void flush() {
-        String content;
-        int count;
+    private synchronized void flush() {
+        flushQueued.set(false);
 
+        String content;
         synchronized (logBuffer) {
             if (logBuffer.length() == 0) {
                 return;
             }
-
             content = logBuffer.toString();
-            count = eventCount;
-
-            // Reset buffer
             logBuffer.setLength(0);
             eventCount = 0;
         }
 
         try {
-            String date = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
-            String timestamp = String.valueOf(System.currentTimeMillis());
-            String key = keyPrefix + "homeoffice-" + date + "-" + timestamp + "-" + safeInstance() + ".log";
-
-            byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
-
-            System.out.println("📤 Uploading " + count + " logs (" + bytes.length + " bytes) to S3: " + key);
-
-            PutObjectRequest putRequest = PutObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(key)
-                    .contentType("text/plain; charset=utf-8")
-                    .build();
-
-            s3Client.putObject(putRequest, RequestBody.fromBytes(bytes));
-
-            System.out.println("✅ Successfully uploaded logs to S3: s3://" + bucketName + "/" + key);
-
+            upload(content);
         } catch (Exception e) {
-            System.err.println("❌ Failed to upload logs to S3: " + e.getMessage());
-            e.printStackTrace();
-            addError("Failed to upload logs to S3: " + e.getMessage(), e);
+            requeue(content);
+            addError("Failed to upload logs to S3, will retry on next flush: " + e.getMessage(), e);
+        }
+    }
+
+    private void upload(String content) {
+        String date = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String key = keyPrefix + "homeoffice-" + date + "-" + timestamp + "-" + safeInstance() + ".log";
+
+        PutObjectRequest putRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .contentType("text/plain; charset=utf-8")
+                .build();
+
+        s3Client.putObject(putRequest, RequestBody.fromBytes(content.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    // Wraca nieudana partie na poczatek bufora. eventCount zostaje 0, zeby nie ponawiac wysylki przy kazdym wpisie
+    // (kolejna proba przy najblizszym flushu wg harmonogramu).
+    private void requeue(String content) {
+        synchronized (logBuffer) {
+            logBuffer.insert(0, content);
+            int overflow = logBuffer.length() - MAX_BUFFERED_CHARS;
+            if (overflow > 0) {
+                logBuffer.delete(0, overflow);
+                addWarn("S3 log buffer exceeded " + MAX_BUFFERED_CHARS + " chars, dropped the oldest " + overflow);
+            }
         }
     }
 
@@ -172,10 +177,8 @@ public class S3LogAppender extends AppenderBase<ILoggingEvent> {
 
     @Override
     public void stop() {
-        System.out.println("⏹️ Stopping S3LogAppender, flushing remaining logs...");
-
         if (scheduler != null) {
-            flush();
+            // najpierw dokanczamy zaplanowane flushe, potem ostatni flush pozostalego bufora
             scheduler.shutdown();
             try {
                 if (!scheduler.awaitTermination(10, TimeUnit.SECONDS)) {
@@ -185,6 +188,7 @@ public class S3LogAppender extends AppenderBase<ILoggingEvent> {
                 scheduler.shutdownNow();
                 Thread.currentThread().interrupt();
             }
+            flush();
         }
 
         if (encoder != null) {
@@ -196,6 +200,5 @@ public class S3LogAppender extends AppenderBase<ILoggingEvent> {
         }
 
         super.stop();
-        System.out.println("✅ S3LogAppender stopped");
     }
 }

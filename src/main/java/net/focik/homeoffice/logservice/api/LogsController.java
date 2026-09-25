@@ -30,9 +30,9 @@ public class LogsController {
             @RequestParam(value = "levels", required = false) Set<LogLevel> levels,
             @RequestParam(value = "limit", required = false) Integer limit,
             @RequestParam(value = "instance", required = false) String instance) {
-        log.info("Request to get today's logs: levels = {}, limit = {}, instance = {}", levels, limit, instance);
+        log.debug("Request to get today's logs: levels = {}, limit = {}, instance = {}", levels, limit, instance);
         LogResult result = getLogsUseCase.getTodayLogs(levels, limit, instance);
-        log.info("Found {} logs (truncated = {}).", result.entries().size(), result.truncated());
+        log.debug("Found {} logs (truncated = {}).", result.entries().size(), result.truncated());
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
@@ -44,9 +44,9 @@ public class LogsController {
             @RequestParam(value = "levels", required = false) Set<LogLevel> levels,
             @RequestParam(value = "limit", required = false) Integer limit,
             @RequestParam(value = "instance", required = false) String instance) {
-        log.info("Request to get logs from {} to {}, levels = {}, limit = {}, instance = {}", from, to, levels, limit, instance);
+        log.debug("Request to get logs from {} to {}, levels = {}, limit = {}, instance = {}", from, to, levels, limit, instance);
         LogResult result = getLogsUseCase.getLogs(from, to, levels, limit, instance);
-        log.info("Found {} logs (truncated = {}).", result.entries().size(), result.truncated());
+        log.debug("Found {} logs (truncated = {}).", result.entries().size(), result.truncated());
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }
