@@ -2,8 +2,10 @@ package net.focik.homeoffice.logservice.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.logservice.domain.model.LiveLogsResult;
 import net.focik.homeoffice.logservice.domain.model.LogLevel;
 import net.focik.homeoffice.logservice.domain.model.LogResult;
+import net.focik.homeoffice.logservice.domain.port.primary.GetLiveLogsUseCase;
 import net.focik.homeoffice.logservice.domain.port.primary.GetLogsUseCase;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -23,6 +25,7 @@ import java.util.Set;
 @RequestMapping("/api/v1/logs")
 public class LogsController {
     final private GetLogsUseCase getLogsUseCase;
+    final private GetLiveLogsUseCase getLiveLogsUseCase;
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('LOGS_READ_ALL','LOGS_READ') or hasRole('ROLE_ADMIN')")
@@ -34,6 +37,19 @@ public class LogsController {
         LogResult result = getLogsUseCase.getTodayLogs(levels, limit, instance);
         log.debug("Found {} logs (truncated = {}).", result.entries().size(), result.truncated());
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    /**
+     * Logi "na zywo" biezacej instancji. Pierwsze zapytanie bez {@code after} zwraca ostatnie wpisy i kursor;
+     * kolejne przekazuja {@code after=<cursor>} z poprzedniej odpowiedzi (polling co 1-2 s).
+     */
+    @GetMapping("/live")
+    @PreAuthorize("hasAnyAuthority('LOGS_READ_ALL','LOGS_READ') or hasRole('ROLE_ADMIN')")
+    ResponseEntity<LiveLogsResult> getLiveLogs(
+            @RequestParam(value = "after", required = false) Long after,
+            @RequestParam(value = "levels", required = false) Set<LogLevel> levels,
+            @RequestParam(value = "limit", required = false) Integer limit) {
+        return new ResponseEntity<>(getLiveLogsUseCase.getLiveLogs(after, levels, limit), HttpStatus.OK);
     }
 
     @GetMapping("/date")
