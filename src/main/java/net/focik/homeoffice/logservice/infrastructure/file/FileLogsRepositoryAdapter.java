@@ -7,7 +7,11 @@ import net.focik.homeoffice.logservice.infrastructure.LogParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,8 +54,8 @@ public class FileLogsRepositoryAdapter implements LogsRepository {
                             } else {
                                 readLogFile(path, logEntries, from, to);
                             }
-                        } catch (IOException e) {
-                            log.error(e.getMessage(), e);
+                        } catch (IOException | RuntimeException e) {
+                            log.error("Nie udalo sie odczytac pliku logow {}: {}", path, e.getMessage(), e);
                         }
                     });
         } catch (IOException e) {
@@ -65,15 +69,9 @@ public class FileLogsRepositoryAdapter implements LogsRepository {
     public List<LogEntry> getTodayLogs() {
         List<LogEntry> logEntries = new ArrayList<>();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                LogEntry logEntry = LogParser.parseLog(line);
-                if (logEntry != null) {
-                    logEntries.add(logEntry);
-                }
-            }
-        } catch (IOException e) {
+        try (BufferedReader br = Files.newBufferedReader(Paths.get(filePath), StandardCharsets.UTF_8)) {
+            logEntries.addAll(LogParser.parseLogs(br.lines()::iterator));
+        } catch (IOException | UncheckedIOException e) {
             log.error(e.getMessage(), e);
         }
 
@@ -81,27 +79,21 @@ public class FileLogsRepositoryAdapter implements LogsRepository {
     }
 
     private void readLogFile(Path path, List<LogEntry> logEntries, LocalDateTime from, LocalDateTime to) throws IOException {
-        try (BufferedReader br = new BufferedReader(new FileReader(path.toFile()))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                LogEntry logEntry = LogParser.parseLog(line);
-                if (logEntry != null && logEntry.getTimestamp().isAfter(from) && logEntry.getTimestamp().isBefore(to)) {
-                    logEntries.add(logEntry);
-                }
-            }
+        try (BufferedReader br = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+            addInRange(br, logEntries, from, to);
         }
     }
 
     private void readGzLogFile(Path path, List<LogEntry> logEntries, LocalDateTime from, LocalDateTime to) throws IOException {
-        try (GZIPInputStream gzipInputStream = new GZIPInputStream(new FileInputStream(path.toFile()));
-             BufferedReader br = new BufferedReader(new InputStreamReader(gzipInputStream))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                LogEntry logEntry = LogParser.parseLog(line);
-                if (logEntry != null && logEntry.getTimestamp().isAfter(from) && logEntry.getTimestamp().isBefore(to)) {
-                    logEntries.add(logEntry);
-                }
-            }
+        try (GZIPInputStream gzipInputStream = new GZIPInputStream(Files.newInputStream(path));
+             BufferedReader br = new BufferedReader(new InputStreamReader(gzipInputStream, StandardCharsets.UTF_8))) {
+            addInRange(br, logEntries, from, to);
         }
+    }
+
+    private void addInRange(BufferedReader br, List<LogEntry> logEntries, LocalDateTime from, LocalDateTime to) {
+        LogParser.parseLogs(br.lines()::iterator).stream()
+                .filter(entry -> entry.getTimestamp().isAfter(from) && entry.getTimestamp().isBefore(to))
+                .forEach(logEntries::add);
     }
 }
