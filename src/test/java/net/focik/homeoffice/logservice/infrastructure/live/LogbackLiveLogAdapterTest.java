@@ -8,6 +8,7 @@ import net.focik.homeoffice.logservice.domain.model.LiveLogsResult;
 import net.focik.homeoffice.logservice.domain.model.LogEntry;
 import net.focik.homeoffice.logservice.domain.model.LogLevel;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,7 @@ class LogbackLiveLogAdapterTest {
     }
 
     @Test
+    @DisplayName("should return the tail and the latest cursor for a first request without a cursor")
     void firstRequestWithoutCursorReturnsTailAndLatestCursor() {
         for (int i = 1; i <= 5; i++) {
             log(Level.INFO, "m" + i);
@@ -60,6 +62,7 @@ class LogbackLiveLogAdapterTest {
     }
 
     @Test
+    @DisplayName("should return an empty result with a zero cursor when the buffer is empty")
     void emptyBufferReturnsEmptyResultWithZeroCursor() {
         LiveLogsResult result = adapter.entriesAfter(null, Set.of(), 10);
 
@@ -69,6 +72,7 @@ class LogbackLiveLogAdapterTest {
     }
 
     @Test
+    @DisplayName("should return only new entries when polling with a cursor")
     void pollingWithCursorReturnsOnlyNewEntries() {
         log(Level.INFO, "a");
         log(Level.INFO, "b");
@@ -85,6 +89,7 @@ class LogbackLiveLogAdapterTest {
     }
 
     @Test
+    @DisplayName("should skip other levels with the level filter but still advance the cursor past them")
     void levelFilterSkipsOtherLevelsButCursorAdvancesPastThem() {
         log(Level.INFO, "info");
         log(Level.ERROR, "error");
@@ -102,6 +107,7 @@ class LogbackLiveLogAdapterTest {
     }
 
     @Test
+    @DisplayName("should set hasMore and place the cursor at the last returned entry when the limit is hit")
     void limitSetsHasMoreAndCursorAtLastReturnedEntry() {
         for (int i = 1; i <= 4; i++) {
             log(Level.INFO, "m" + i);
@@ -119,6 +125,7 @@ class LogbackLiveLogAdapterTest {
     }
 
     @Test
+    @DisplayName("should report a gap when entries were evicted")
     void evictedEntriesAreReportedAsGap() {
         for (int i = 1; i <= 8; i++) {
             log(Level.INFO, "m" + i);
@@ -135,6 +142,7 @@ class LogbackLiveLogAdapterTest {
     }
 
     @Test
+    @DisplayName("should return the tail and a gap for a cursor from before a restart")
     void cursorFromBeforeRestartReturnsTailAndGap() {
         log(Level.INFO, "after restart");
 
@@ -146,6 +154,7 @@ class LogbackLiveLogAdapterTest {
     }
 
     @Test
+    @DisplayName("should fill the entry fields and instance and append the throwable to the message")
     void entryHasFormattedFieldsInstanceAndThrowableAppendedToMessage() {
         adapter.doAppend(new LoggingEvent(Logger.class.getName(), logger, Level.ERROR, "boom {}",
                 new IllegalStateException("bad state"), new Object[]{"x"}));
@@ -164,6 +173,7 @@ class LogbackLiveLogAdapterTest {
     }
 
     @Test
+    @DisplayName("should exclude the controller's own logs")
     void controllerOwnLogsAreExcluded() {
         Logger controllerLogger = context.getLogger("net.focik.homeoffice.logservice.api.LogsController");
         adapter.doAppend(new LoggingEvent(Logger.class.getName(), controllerLogger, Level.INFO, "poll", null, null));
@@ -173,6 +183,7 @@ class LogbackLiveLogAdapterTest {
     }
 
     @Test
+    @DisplayName("should hook into the root logger on attach and remove itself on detach")
     void attachHooksIntoRootLoggerAndDetachRemovesIt() {
         assumeLogback();
         LogbackLiveLogAdapter attached = new LogbackLiveLogAdapter(10, "local");

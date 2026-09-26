@@ -6,6 +6,7 @@ import net.focik.homeoffice.logservice.domain.model.LogResult;
 import net.focik.homeoffice.logservice.domain.port.secondary.LogsRepository;
 import net.focik.homeoffice.utils.exceptions.ObjectNotValidException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -40,6 +41,7 @@ class LogsServiceTest {
     }
 
     @Test
+    @DisplayName("should use the default limit and all levels when none are given")
     void getLogs_usesDefaultLimitAndAllLevelsWhenNotGiven() {
         service.getLogs(FROM, TO, null, null, null);
 
@@ -51,6 +53,7 @@ class LogsServiceTest {
     }
 
     @Test
+    @DisplayName("should cap the limit at the maximum and pass the levels through")
     void getLogs_capsLimitAndPassesLevels() {
         service.getLogs(FROM, TO, Set.of(LogLevel.ERROR), 1_000_000, null);
 
@@ -60,6 +63,7 @@ class LogsServiceTest {
     }
 
     @Test
+    @DisplayName("should raise a non-positive limit to one")
     void getLogs_raisesNonPositiveLimitToOne() {
         service.getLogs(FROM, TO, null, -5, null);
 
@@ -67,6 +71,7 @@ class LogsServiceTest {
     }
 
     @Test
+    @DisplayName("should reject a range whose from is not before to")
     void getLogs_rejectsFromNotBeforeTo() {
         assertThrows(ObjectNotValidException.class, () -> service.getLogs(TO, FROM, null, null, null));
         assertThrows(ObjectNotValidException.class, () -> service.getLogs(FROM, FROM, null, null, null));
@@ -75,6 +80,7 @@ class LogsServiceTest {
     }
 
     @Test
+    @DisplayName("should reject a range longer than the maximum")
     void getLogs_rejectsRangeLongerThanMax() {
         assertThrows(ObjectNotValidException.class,
                 () -> service.getLogs(FROM, FROM.plusDays(7).plusSeconds(1), null, null, null));
@@ -82,6 +88,7 @@ class LogsServiceTest {
     }
 
     @Test
+    @DisplayName("should accept a range of exactly the maximum length")
     void getLogs_acceptsExactlyMaxRange() {
         service.getLogs(FROM, FROM.plusDays(7), null, null, null);
 
@@ -89,6 +96,7 @@ class LogsServiceTest {
     }
 
     @Test
+    @DisplayName("should trim the instance and treat a blank one as all instances")
     void getLogs_trimsInstanceAndTreatsBlankAsAll() {
         service.getLogs(FROM, TO, null, null, "  synology ");
         assertEquals("synology", capturedQuery().instance());
@@ -99,6 +107,7 @@ class LogsServiceTest {
     }
 
     @Test
+    @DisplayName("should query today's logs from the start of the day")
     void getTodayLogs_queriesFromStartOfToday() {
         service.getTodayLogs(null, null, null);
 

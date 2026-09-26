@@ -5,6 +5,7 @@ import net.focik.homeoffice.logservice.domain.model.LogLevel;
 import net.focik.homeoffice.logservice.domain.model.LogQuery;
 import net.focik.homeoffice.logservice.domain.model.LogResult;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -82,6 +83,7 @@ class S3LogsRepositoryAdapterTest {
     }
 
     @Test
+    @DisplayName("should read matching objects, filter by time and level and sort the entries")
     void find_readsMatchingObjectsFiltersByTimeAndLevelAndSorts() {
         putObject(LocalDateTime.of(2026, 9, 20, 10, 5), line("10:00:00.000", "INFO ", "a") + line("10:04:00.000", "ERROR", "b")
                 + "java.lang.IllegalStateException: boom\n\tat x.Y(Y.java:1)\n");
@@ -99,6 +101,7 @@ class S3LogsRepositoryAdapterTest {
     }
 
     @Test
+    @DisplayName("should not download objects flushed before the from time")
     void find_doesNotDownloadObjectsFlushedBeforeFrom() {
         putObject(LocalDateTime.of(2026, 9, 20, 9, 0), line("08:58:00.000", "INFO ", "too early"));
         putObject(LocalDateTime.of(2026, 9, 20, 10, 5), line("10:00:00.000", "INFO ", "in range"));
@@ -111,6 +114,7 @@ class S3LogsRepositoryAdapterTest {
     }
 
     @Test
+    @DisplayName("should include the first object flushed after the to time because it holds entries before it")
     void find_includesFirstObjectFlushedAfterToBecauseItHoldsEntriesBeforeTo() {
         putObject(LocalDateTime.of(2026, 9, 20, 10, 20), line("10:14:00.000", "INFO ", "before to")
                 + line("10:19:00.000", "INFO ", "after to"));
@@ -123,6 +127,7 @@ class S3LogsRepositoryAdapterTest {
     }
 
     @Test
+    @DisplayName("should look into the next day for objects flushed after midnight")
     void find_looksIntoNextDayForObjectsFlushedAfterMidnight() {
         LocalDateTime flush = LocalDateTime.of(2026, 9, 21, 0, 3);
         objects.put("logs/homeoffice-2026-09-21-" + epoch(flush) + ".log", line("23:58:00.000", "INFO ", "late entry"));
@@ -135,6 +140,7 @@ class S3LogsRepositoryAdapterTest {
     }
 
     @Test
+    @DisplayName("should truncate to the limit and keep the earliest entries")
     void find_truncatesToLimitAndKeepsEarliestEntries() {
         putObject(LocalDateTime.of(2026, 9, 20, 10, 5),
                 line("10:01:00.000", "INFO ", "1") + line("10:02:00.000", "INFO ", "2") + line("10:03:00.000", "INFO ", "3"));
@@ -149,6 +155,7 @@ class S3LogsRepositoryAdapterTest {
     }
 
     @Test
+    @DisplayName("should ignore unrelated keys")
     void find_ignoresUnrelatedKeys() {
         objects.put("logs/homeoffice-2026-09-20-notanumber.log", "garbage");
         objects.put("logs/homeoffice-2026-09-20-" + epoch(LocalDateTime.of(2026, 9, 20, 10, 5)) + ".txt", "garbage");
@@ -161,6 +168,7 @@ class S3LogsRepositoryAdapterTest {
     }
 
     @Test
+    @DisplayName("should set the instance from the key and unknown for legacy keys")
     void find_setsInstanceFromKeyAndUnknownForLegacyKeys() {
         putObject(LocalDateTime.of(2026, 9, 20, 10, 5), "ec2", line("10:01:00.000", "INFO ", "from ec2"));
         putObject(LocalDateTime.of(2026, 9, 20, 10, 10), "home-office.1", line("10:06:00.000", "INFO ", "from home"));
@@ -176,6 +184,7 @@ class S3LogsRepositoryAdapterTest {
     }
 
     @Test
+    @DisplayName("should filter by instance without downloading other instances' objects")
     void find_filtersByInstanceWithoutDownloadingOtherInstances() {
         putObject(LocalDateTime.of(2026, 9, 20, 10, 5), "ec2", line("10:01:00.000", "INFO ", "from ec2"));
         putObject(LocalDateTime.of(2026, 9, 20, 10, 10), "local", line("10:06:00.000", "INFO ", "from local"));
@@ -197,6 +206,7 @@ class S3LogsRepositoryAdapterTest {
     }
 
     @Test
+    @DisplayName("should wrap an S3 failure in LogsReadException")
     void find_wrapsS3FailureInLogsReadException() {
         when(s3Client.listObjectsV2(any(ListObjectsV2Request.class)))
                 .thenThrow(S3Exception.builder().message("Access Denied").statusCode(403).build());

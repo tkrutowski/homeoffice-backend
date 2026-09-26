@@ -3,6 +3,7 @@ package net.focik.homeoffice.logservice.domain;
 import net.focik.homeoffice.logservice.domain.model.LogLevelsInfo;
 import net.focik.homeoffice.logservice.domain.port.primary.ManageLogLevelsUseCase;
 import net.focik.homeoffice.logservice.domain.port.secondary.LogLevelControl;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
@@ -22,6 +23,7 @@ class LogLevelsServiceWiringTest {
             .withUserConfiguration(LogLevelsService.class);
 
     @Test
+    @DisplayName("should use the default prefixes and TTLs when nothing is configured")
     void usesDefaultsWhenNothingConfigured() {
         runner.run(context -> {
             LogLevelsInfo info = context.getBean(ManageLogLevelsUseCase.class).getLevels();
@@ -36,6 +38,7 @@ class LogLevelsServiceWiringTest {
     }
 
     @Test
+    @DisplayName("should read the configured prefixes and TTLs")
     void readsConfiguredPrefixesAndTtls() {
         runner.withPropertyValues(
                         "logs.levels.allowed-prefixes=com.example, org.foo.Bar",

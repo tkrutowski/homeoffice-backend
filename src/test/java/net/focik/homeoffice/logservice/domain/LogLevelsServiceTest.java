@@ -7,6 +7,7 @@ import net.focik.homeoffice.logservice.domain.port.secondary.LogLevelControl;
 import net.focik.homeoffice.utils.exceptions.ObjectNotFoundException;
 import net.focik.homeoffice.utils.exceptions.ObjectNotValidException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -54,6 +55,7 @@ class LogLevelsServiceTest {
     }
 
     @Test
+    @DisplayName("should apply the level, remember the previous one and schedule a revert with the default TTL")
     void setLevel_appliesLevelRemembersPreviousAndSchedulesRevertWithDefaultTtl() {
         when(control.getConfiguredLevel(PACKAGE)).thenReturn(LogLevel.WARN);
 
@@ -69,6 +71,7 @@ class LogLevelsServiceTest {
     }
 
     @Test
+    @DisplayName("should restore the previous level and remove the override when the TTL expires")
     void ttlExpiry_restoresPreviousLevelAndRemovesOverride() {
         when(control.getConfiguredLevel(PACKAGE)).thenReturn(LogLevel.WARN);
         service.setLevel(PACKAGE, LogLevel.DEBUG, 30, "admin");
@@ -80,6 +83,7 @@ class LogLevelsServiceTest {
     }
 
     @Test
+    @DisplayName("should restore an inherited level as null when the TTL expires")
     void ttlExpiry_restoresInheritedLevelAsNull() {
         when(control.getConfiguredLevel(PACKAGE)).thenReturn(null);
         service.setLevel(PACKAGE, LogLevel.DEBUG, null, "admin");
@@ -90,6 +94,7 @@ class LogLevelsServiceTest {
     }
 
     @Test
+    @DisplayName("should keep the original previous level and cancel the old timer when the level is set again")
     void setLevelAgain_keepsOriginalPreviousLevelCancelsOldTimerAndOldTimerIsNoOp() {
         when(control.getConfiguredLevel(PACKAGE)).thenReturn(LogLevel.WARN);
         service.setLevel(PACKAGE, LogLevel.DEBUG, 15, "admin");
@@ -110,6 +115,7 @@ class LogLevelsServiceTest {
     }
 
     @Test
+    @DisplayName("should restore the level immediately and cancel the timer on reset")
     void resetLevel_restoresImmediatelyAndCancelsTimer() {
         when(control.getConfiguredLevel(PACKAGE)).thenReturn(LogLevel.INFO);
         service.setLevel(PACKAGE, LogLevel.DEBUG, 15, "admin");
@@ -122,12 +128,14 @@ class LogLevelsServiceTest {
     }
 
     @Test
+    @DisplayName("should throw not found when resetting a level without an active override")
     void resetLevel_withoutActiveOverrideThrowsNotFound() {
         assertThrows(ObjectNotFoundException.class, () -> service.resetLevel(PACKAGE, "admin"));
         verify(control, never()).setLevel(any(), any());
     }
 
     @Test
+    @DisplayName("should accept only the allowed prefix itself and its subpackages")
     void setLevel_acceptsPrefixItselfAndSubpackagesOnly() {
         service.setLevel("net.focik.homeoffice", LogLevel.DEBUG, null, "admin");
         service.setLevel("org.hibernate.SQL", LogLevel.DEBUG, null, "admin");
@@ -141,6 +149,7 @@ class LogLevelsServiceTest {
     }
 
     @Test
+    @DisplayName("should reject a missing level and a TTL out of range")
     void setLevel_rejectsMissingLevelAndTtlOutOfRange() {
         assertThrows(ObjectNotValidException.class, () -> service.setLevel(PACKAGE, null, null, "admin"));
         assertThrows(ObjectNotValidException.class, () -> service.setLevel(PACKAGE, LogLevel.DEBUG, 0, "admin"));
@@ -152,6 +161,7 @@ class LogLevelsServiceTest {
     }
 
     @Test
+    @DisplayName("should return the config, the root level and the sorted overrides")
     void getLevels_returnsConfigRootLevelAndSortedOverrides() {
         service.setLevel("org.hibernate.SQL", LogLevel.DEBUG, null, "admin");
         service.setLevel(PACKAGE, LogLevel.TRACE, null, "admin");
@@ -167,6 +177,7 @@ class LogLevelsServiceTest {
     }
 
     @Test
+    @DisplayName("should restore all active overrides on shutdown")
     void shutdown_restoresAllActiveOverrides() {
         when(control.getConfiguredLevel(PACKAGE)).thenReturn(LogLevel.WARN);
         service.setLevel(PACKAGE, LogLevel.DEBUG, null, "admin");

@@ -31,6 +31,6 @@ class LiveLogsService implements GetLiveLogsUseCase {
         if (limit == null) {
             return DEFAULT_LIMIT;
         }
-        return Math.min(Math.max(limit, 1), MAX_LIMIT);
+        return Math.clamp(limit, 1, MAX_LIMIT);
     }
 }

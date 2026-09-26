@@ -1,6 +1,7 @@
 package net.focik.homeoffice.logservice.infrastructure;
 
 import net.focik.homeoffice.logservice.domain.model.LogEntry;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class LogParserTest {
 
     @Test
+    @DisplayName("should parse a standard log line")
     void parseLog_parsesStandardLine() {
         LogEntry entry = LogParser.parseLog(
                 "2026-08-14 10:19:34.704 [SpringApplicationShutdownHook] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete");
@@ -24,6 +26,7 @@ class LogParserTest {
     }
 
     @Test
+    @DisplayName("should handle WARN padding and brackets in the logger name")
     void parseLog_handlesWarnPaddingAndBracketsInLogger() {
         LogEntry warn = LogParser.parseLog(
                 "2026-08-06 07:57:27.124 [main] WARN  org.hibernate.dialect.Dialect - HHH000511: The 5.7.38 version is no longer supported");
@@ -39,6 +42,7 @@ class LogParserTest {
     }
 
     @Test
+    @DisplayName("should handle the ERROR level and a message containing the separator")
     void parseLog_handlesErrorLevelAndMessageContainingSeparator() {
         LogEntry entry = LogParser.parseLog(
                 "2026-08-06 07:58:10.314 [http-nio-8077-exec-2] ERROR o.a.c.c.C.[.[.[.[dispatcherServlet] - Servlet.service() threw exception - details: x");
@@ -51,6 +55,7 @@ class LogParserTest {
     }
 
     @Test
+    @DisplayName("should return null for continuation lines")
     void parseLog_returnsNullForContinuationLines() {
         assertNull(LogParser.parseLog("\tat io.jsonwebtoken.impl.DefaultJwtParser.parse(DefaultJwtParser.java:682)"));
         assertNull(LogParser.parseLog("io.jsonwebtoken.ExpiredJwtException: JWT expired"));
@@ -58,6 +63,7 @@ class LogParserTest {
     }
 
     @Test
+    @DisplayName("should append a stack trace to the previous entry")
     void parseLogs_appendsStackTraceToPreviousEntry() {
         List<LogEntry> entries = LogParser.parseLogs(List.of(
                 "2026-08-06 07:58:10.184 [http-nio-8077-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms",
@@ -76,6 +82,7 @@ class LogParserTest {
     }
 
     @Test
+    @DisplayName("should append a multiline message and skip leading garbage")
     void parseLogs_appendsMultilineMessageAndSkipsLeadingGarbage() {
         List<LogEntry> entries = LogParser.parseLogs(List.of(
                 "\tat orphan.Line(Foo.java:1)",
@@ -89,6 +96,7 @@ class LogParserTest {
     }
 
     @Test
+    @DisplayName("should return an empty list when there are no lines")
     void parseLogs_returnsEmptyListForNoLines() {
         assertTrue(LogParser.parseLogs(List.of()).isEmpty());
     }

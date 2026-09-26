@@ -5,6 +5,7 @@ import net.focik.homeoffice.logservice.domain.model.LogLevel;
 import net.focik.homeoffice.logservice.domain.port.secondary.LiveLogSource;
 import net.focik.homeoffice.utils.exceptions.ObjectNotValidException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -37,6 +38,7 @@ class LiveLogsServiceTest {
     }
 
     @Test
+    @DisplayName("should use the default limit and all levels when none are given")
     void usesDefaultLimitAndAllLevelsWhenNotGiven() {
         service.getLiveLogs(null, null, null);
 
@@ -44,6 +46,7 @@ class LiveLogsServiceTest {
     }
 
     @Test
+    @DisplayName("should cap the limit at the maximum and raise a non-positive limit to one")
     void capsLimitAndRaisesNonPositiveToOne() {
         service.getLiveLogs(5L, Set.of(LogLevel.ERROR), 1_000_000);
         assertEquals(LiveLogsService.MAX_LIMIT, capturedLimit());
@@ -54,6 +57,7 @@ class LiveLogsServiceTest {
     }
 
     @Test
+    @DisplayName("should pass the cursor and levels through to the live log port")
     void passesCursorAndLevelsThrough() {
         service.getLiveLogs(42L, Set.of(LogLevel.WARN), 10);
 
@@ -61,6 +65,7 @@ class LiveLogsServiceTest {
     }
 
     @Test
+    @DisplayName("should reject a negative cursor")
     void rejectsNegativeCursor() {
         assertThrows(ObjectNotValidException.class, () -> service.getLiveLogs(-1L, null, null));
         verifyNoInteractions(source);
