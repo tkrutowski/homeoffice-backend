@@ -32,7 +32,7 @@ Kod: `src/main/java/net/focik/homeoffice/logservice/` oraz `config/S3LogAppender
  odczyt (API):   GET /api/v1/logs, /logs/date  ──►  LogsRepository ──► S3LogsRepositoryAdapter (profil !dev)
                                                                     └─► FileLogsRepositoryAdapter (profil dev)
                  GET /api/v1/logs/live         ──►  LiveLogSource  ──► LogbackLiveLogAdapter (bufor w pamięci)
-                 GET/PUT/DELETE /api/v1/logs/levels ─► LogLevelControl ─► SpringLogLevelControl (LoggingSystem)
+                 GET/PUT/DELETE /api/v1/logs/levels[/loggers] ─► LogLevelControl ─► SpringLogLevelControl (LoggingSystem)
 ```
 
 ## Zapis logów
@@ -142,6 +142,10 @@ Po restarcie (kursor większy niż aktualny numer) endpoint zwraca ogon bufora z
   `prefiks.` (domyślnie `net.focik.homeoffice`, `org.springframework.security`, `org.hibernate.SQL`,
   `software.amazon.awssdk`). **`ROOT` jest wykluczony** — `DEBUG` na root zalewa bufor live i S3 oraz może ujawnić
   dane wrażliwe (treść zapytań do KSeF/Claude'a, SQL) w logach trzymanych do 90 dni.
+- **Lista loggerów do wyboru** (`GET /levels/loggers`): `SpringLogLevelControl.getLoggers()` czyta
+  `LoggingSystem.getLoggerConfigurations()`, a `LogLevelsService.getLoggers(prefix)` zostawia tylko te pod
+  dozwolonymi prefiksami (opcjonalnie zawężone do `prefix`). Logback tworzy logger dopiero przy pierwszym
+  `LoggerFactory.getLogger` (`@Slf4j` = załadowanie klasy), więc klasy jeszcze niezaładowane nie są na liście.
 - TTL: 1 min – 24 h (`logs.levels.default-ttl-minutes` = 15, `logs.levels.max-ttl-minutes` = 1440).
 - Każda zmiana i przywrócenie jest logowane na `INFO` (kto, jaki logger, jaki poziom, do kiedy).
 - Stan jest **w pamięci procesu** — restart = ustawienia domyślne; przy zamykaniu aplikacji nadpisania są cofane.
@@ -160,6 +164,7 @@ ISO-8601 z dowolną liczbą cyfr ułamka sekundy). Poziomy: `TRACE`, `DEBUG`, `I
 | `GET /logs/date` | j.w. | logi z zakresu `[from, to)` |
 | `GET /logs/live` | j.w. | logi „na żywo” bieżącej instancji (polling z kursorem) |
 | `GET /logs/levels` | `ROLE_ADMIN` | konfiguracja i aktywne nadpisania poziomów |
+| `GET /logs/levels/loggers` | `ROLE_ADMIN` | lista istniejących loggerów (pakiety/klasy) do wyboru |
 | `PUT /logs/levels` | `ROLE_ADMIN` | tymczasowa zmiana poziomu loggera |
 | `DELETE /logs/levels/{logger}` | `ROLE_ADMIN` | natychmiastowe przywrócenie poziomu |
 
@@ -232,6 +237,22 @@ Znaczenie `cursor`/`gap`/`hasMore` — patrz sekcja „Podgląd na żywo”.
 ```
 
 `previousLevel = null` oznacza, że logger dziedziczył poziom (po TTL wraca do dziedziczenia).
+
+### `GET /logs/levels/loggers?prefix=`
+
+Lista loggerów (pakietów i klas) istniejących na tej instancji, tylko pod `allowedLoggers`, posortowana po nazwie;
+`prefix` (opcjonalny) zawęża do jednego pakietu. Do podpowiedzi / drzewa w formularzu (drzewo frontend buduje, dzieląc
+nazwy po kropce).
+
+```json
+[
+  { "name": "net.focik.homeoffice.goahead", "configuredLevel": null, "effectiveLevel": "INFO" },
+  { "name": "net.focik.homeoffice.goahead.domain.invoice.KsefService", "configuredLevel": "DEBUG", "effectiveLevel": "DEBUG" }
+]
+```
+
+`configuredLevel = null` — logger dziedziczy poziom. Lista zawiera tylko loggery już utworzone (klasa pojawia się
+dopiero po pierwszym załadowaniu), więc pole tekstowe z ręczną nazwą nadal ma sens jako fallback.
 
 ### `PUT /logs/levels`
 
@@ -325,7 +346,7 @@ produkcyjnego bucketu jako instancja `local` — celowo. Uruchomienie z IDE na p
 logservice/
 ├── api/             LogsController (historia + live), LogLevelsController, dto/SetLogLevelRequest
 ├── domain/          LogsService, LiveLogsService, LogLevelsService        (implementują *UseCase bezpośrednio)
-│   ├── model/       LogEntry, LogLevel, LogQuery, LogResult, LiveLogsResult, LogLevelOverride, LogLevelsInfo
+│   ├── model/       LogEntry, LogLevel, LogQuery, LogResult, LiveLogsResult, LogLevelOverride, LogLevelsInfo, LoggerInfo
 │   ├── exceptions/  LogsReadException
 │   └── port/        primary: GetLogsUseCase, GetLiveLogsUseCase, ManageLogLevelsUseCase
 │                    secondary: LogsRepository, LiveLogSource, LogLevelControl

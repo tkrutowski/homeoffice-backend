@@ -1,10 +1,13 @@
 package net.focik.homeoffice.logservice.infrastructure.level;
 
 import net.focik.homeoffice.logservice.domain.model.LogLevel;
+import net.focik.homeoffice.logservice.domain.model.LoggerInfo;
 import net.focik.homeoffice.logservice.domain.port.secondary.LogLevelControl;
 import org.springframework.boot.logging.LoggerConfiguration;
 import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * Zmienia poziomy loggerow przez {@link LoggingSystem} Spring Boota (na produkcji: logback).
@@ -29,6 +32,14 @@ public class SpringLogLevelControl implements LogLevelControl {
     public LogLevel getRootLevel() {
         LoggerConfiguration configuration = loggingSystem.getLoggerConfiguration(LoggingSystem.ROOT_LOGGER_NAME);
         return configuration == null ? null : toDomain(configuration.getEffectiveLevel());
+    }
+
+    @Override
+    public List<LoggerInfo> getLoggers() {
+        return loggingSystem.getLoggerConfigurations().stream()
+                .map(configuration -> new LoggerInfo(configuration.getName(),
+                        toDomain(configuration.getConfiguredLevel()), toDomain(configuration.getEffectiveLevel())))
+                .toList();
     }
 
     @Override

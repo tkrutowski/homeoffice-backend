@@ -3,9 +3,20 @@ package net.focik.homeoffice.logservice.domain.port.primary;
 import net.focik.homeoffice.logservice.domain.model.LogLevel;
 import net.focik.homeoffice.logservice.domain.model.LogLevelOverride;
 import net.focik.homeoffice.logservice.domain.model.LogLevelsInfo;
+import net.focik.homeoffice.logservice.domain.model.LoggerInfo;
+
+import java.util.List;
 
 public interface ManageLogLevelsUseCase {
     LogLevelsInfo getLevels();
+
+    /**
+     * Loggery (pakiety i klasy) istniejace w aplikacji, ktorych poziom wolno zmieniac, posortowane po nazwie.
+     * Zawiera tylko loggery juz utworzone (klasy, ktore jeszcze sie nie zaladowaly, nie pojawia sie).
+     *
+     * @param prefix opcjonalny filtr - tylko loggery rowne prefiksowi albo pod nim; {@code null}/pusty = wszystkie dozwolone
+     */
+    List<LoggerInfo> getLoggers(String prefix);
 
     /**
      * Tymczasowo ustawia poziom loggera; po uplywie TTL wraca poprzedni poziom. Ponowne wywolanie dla tego samego

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.logservice.api.dto.SetLogLevelRequest;
 import net.focik.homeoffice.logservice.domain.model.LogLevelOverride;
 import net.focik.homeoffice.logservice.domain.model.LogLevelsInfo;
+import net.focik.homeoffice.logservice.domain.model.LoggerInfo;
 import net.focik.homeoffice.logservice.domain.port.primary.ManageLogLevelsUseCase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,9 +15,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
+import java.util.List;
 
 /**
  * Tymczasowa zmiana poziomow logow (np. na DEBUG) na instancji, ktora obsluzy zadanie.
@@ -31,6 +34,12 @@ public class LogLevelsController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     ResponseEntity<LogLevelsInfo> getLevels() {
         return new ResponseEntity<>(manageLogLevelsUseCase.getLevels(), HttpStatus.OK);
+    }
+
+    @GetMapping("/loggers")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    ResponseEntity<List<LoggerInfo>> getLoggers(@RequestParam(value = "prefix", required = false) String prefix) {
+        return new ResponseEntity<>(manageLogLevelsUseCase.getLoggers(prefix), HttpStatus.OK);
     }
 
     @PutMapping

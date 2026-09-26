@@ -3,6 +3,7 @@ package net.focik.homeoffice.logservice.domain;
 import net.focik.homeoffice.logservice.domain.model.LogLevel;
 import net.focik.homeoffice.logservice.domain.model.LogLevelOverride;
 import net.focik.homeoffice.logservice.domain.model.LogLevelsInfo;
+import net.focik.homeoffice.logservice.domain.model.LoggerInfo;
 import net.focik.homeoffice.logservice.domain.port.secondary.LogLevelControl;
 import net.focik.homeoffice.utils.exceptions.ObjectNotFoundException;
 import net.focik.homeoffice.utils.exceptions.ObjectNotValidException;
@@ -52,6 +53,35 @@ class LogLevelsServiceTest {
         });
         service = new LogLevelsService(control,
                 List.of("net.focik.homeoffice", "org.hibernate.SQL"), 15, 1440, "ec2", CLOCK, scheduler);
+    }
+
+    @Test
+    @DisplayName("should list only loggers under allowed prefixes, sorted by name")
+    void getLoggers_returnsOnlyAllowedSorted() {
+        when(control.getLoggers()).thenReturn(List.of(
+                new LoggerInfo("org.hibernate.SQL", null, LogLevel.INFO),
+                new LoggerInfo("net.focik.homeoffice.goahead", LogLevel.DEBUG, LogLevel.DEBUG),
+                new LoggerInfo("net.focik.homeofficeevil", null, LogLevel.INFO),
+                new LoggerInfo("org.hibernate", null, LogLevel.INFO),
+                new LoggerInfo("ROOT", LogLevel.INFO, LogLevel.INFO),
+                new LoggerInfo("net.focik.homeoffice", null, LogLevel.INFO)));
+
+        List<String> names = service.getLoggers(null).stream().map(LoggerInfo::name).toList();
+
+        assertEquals(List.of("net.focik.homeoffice", "net.focik.homeoffice.goahead", "org.hibernate.SQL"), names);
+    }
+
+    @Test
+    @DisplayName("should narrow the logger list to the given prefix")
+    void getLoggers_filtersByPrefix() {
+        when(control.getLoggers()).thenReturn(List.of(
+                new LoggerInfo("net.focik.homeoffice.goahead.Foo", null, LogLevel.INFO),
+                new LoggerInfo("net.focik.homeoffice.goaheadx.Bar", null, LogLevel.INFO),
+                new LoggerInfo("net.focik.homeoffice.finance.Baz", null, LogLevel.INFO)));
+
+        List<String> names = service.getLoggers(" net.focik.homeoffice.goahead ").stream().map(LoggerInfo::name).toList();
+
+        assertEquals(List.of("net.focik.homeoffice.goahead.Foo"), names);
     }
 
     @Test

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.logservice.domain.model.LogLevel;
 import net.focik.homeoffice.logservice.domain.model.LogLevelOverride;
 import net.focik.homeoffice.logservice.domain.model.LogLevelsInfo;
+import net.focik.homeoffice.logservice.domain.model.LoggerInfo;
 import net.focik.homeoffice.logservice.domain.port.primary.ManageLogLevelsUseCase;
 import net.focik.homeoffice.logservice.domain.port.secondary.LogLevelControl;
 import net.focik.homeoffice.utils.exceptions.ObjectNotFoundException;
@@ -78,6 +79,16 @@ class LogLevelsService implements ManageLogLevelsUseCase {
                 .sorted(Comparator.comparing(LogLevelOverride::logger))
                 .toList();
         return new LogLevelsInfo(instance, control.getRootLevel(), allowedPrefixes, defaultTtlMinutes, maxTtlMinutes, overrides);
+    }
+
+    @Override
+    public List<LoggerInfo> getLoggers(String prefix) {
+        String filter = prefix == null ? "" : prefix.trim();
+        return control.getLoggers().stream()
+                .filter(info -> allowedPrefixes.stream().anyMatch(allowed -> isUnder(info.name(), allowed)))
+                .filter(info -> filter.isEmpty() || isUnder(info.name(), filter))
+                .sorted(Comparator.comparing(LoggerInfo::name))
+                .toList();
     }
 
     @Override

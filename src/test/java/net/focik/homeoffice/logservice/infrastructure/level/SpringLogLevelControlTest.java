@@ -1,6 +1,7 @@
 package net.focik.homeoffice.logservice.infrastructure.level;
 
 import net.focik.homeoffice.logservice.domain.model.LogLevel;
+import net.focik.homeoffice.logservice.domain.model.LoggerInfo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,20 @@ class SpringLogLevelControlTest {
 
         control.setLevel(LOGGER, null);
         assertNull(control.getConfiguredLevel(LOGGER));
+    }
+
+    @Test
+    @DisplayName("should list existing loggers with their configured and effective levels")
+    void getLoggersListsExistingLoggers() {
+        LoggerFactory.getLogger(LOGGER);
+        control.setLevel(LOGGER, LogLevel.DEBUG);
+
+        LoggerInfo info = control.getLoggers().stream()
+                .filter(logger -> logger.name().equals(LOGGER))
+                .findFirst().orElseThrow();
+
+        assertEquals(LogLevel.DEBUG, info.configuredLevel());
+        assertEquals(LogLevel.DEBUG, info.effectiveLevel());
     }
 
     @Test
