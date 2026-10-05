@@ -66,12 +66,6 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SYNOLOGY_SSH_KEY }}
 
-      - name: Debug SSH from runner
-        run: |
-          ssh -i id_rsa_deploy -v -o StrictHostKeyChecking=no \
-          ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }} \
-          'echo SSH OK'
-
       - name: Save SSH key to file
         run: |
           echo "${{ secrets.SYNOLOGY_SSH_KEY }}" > id_rsa_deploy
@@ -85,6 +79,7 @@ jobs:
       - name: Copy TAR into home
         run: |
           scp -o StrictHostKeyChecking=no \
+           -P ${{ secrets.SYNOLOGY_PORT }} \
            -i id_rsa_deploy \
           homeoffice-${{ steps.get_version.outputs.version }}.tar \
           ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }}:docker/images/
