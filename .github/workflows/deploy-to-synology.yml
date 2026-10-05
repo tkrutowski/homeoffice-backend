@@ -74,7 +74,7 @@ jobs:
       - name: Debug SSH from runner
         run: |
           ssh -i id_rsa_deploy -p ${{ secrets.SYNOLOGY_PORT }} -v -o StrictHostKeyChecking=no \
-          ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }} 'echo SSH OK && docker ps'
+          ${{ secrets.SYNOLOGY_USER }}@${{ secrets.SYNOLOGY_HOST }} 'echo SSH OK && /usr/local/bin/docker ps'
 
       - name: Copy TAR into home
         run: |
