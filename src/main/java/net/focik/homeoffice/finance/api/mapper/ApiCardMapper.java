@@ -32,6 +32,7 @@ public class ApiCardMapper {
                 .cardNumber(dto.getCardNumber())
                 .imageUrl(dto.getImageUrl())
                 .multi(dto.isMulti())
+                .defaultTransactionCategoryId(dto.getDefaultTransactionCategoryId())
                 .build();
     }
 
@@ -62,6 +63,7 @@ public class ApiCardMapper {
                 .cardNumber(card.getCardNumber())
                 .imageUrl(card.getImageUrl())
                 .multi(card.isMulti())
+                .defaultTransactionCategoryId(card.getDefaultTransactionCategoryId())
                 .build();
     }
 

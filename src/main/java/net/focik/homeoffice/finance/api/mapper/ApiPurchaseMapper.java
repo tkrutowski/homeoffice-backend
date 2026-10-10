@@ -74,7 +74,7 @@ public class ApiPurchaseMapper {
             throw new PurchaseNotValidException("Amount can't be empty.");
     }
 
-    public BankTransactionDbDto toBankTransaction(Purchase purchase, int transactionCategoryId) {
+    public BankTransactionDbDto toBankTransaction(Purchase purchase, Integer transactionCategoryId) {
         return BankTransactionDbDto.builder()
                 .idFirm(purchase.getIdFirm())
                 .idUser(UserHelper.getCurrentUserId())

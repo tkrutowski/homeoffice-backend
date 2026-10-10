@@ -41,6 +41,10 @@ public class Card {
     private String cardNumber;
     private String imageUrl;
     private boolean multi;
+    /**
+     * Kategoria transakcji bankowej tworzonej przy opłaceniu zakupu tą kartą; null = bez kategorii.
+     */
+    private Integer defaultTransactionCategoryId;
 
     public void changeActiveStatus(ActiveStatus activeStatus) {
         this.activeStatus = activeStatus;

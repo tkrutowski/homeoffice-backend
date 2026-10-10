@@ -30,4 +30,5 @@ public class CardDto {
     private String cardNumber;
     private String imageUrl;
     private boolean multi;
+    private Integer defaultTransactionCategoryId;
 }

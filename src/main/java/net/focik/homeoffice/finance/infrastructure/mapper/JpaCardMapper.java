@@ -25,6 +25,7 @@ public class JpaCardMapper {
                 .cardNumber(card.getCardNumber())
                 .imageUrl(card.getImageUrl())
                 .multi(card.isMulti())
+                .defaultTransactionCategoryId(card.getDefaultTransactionCategoryId())
                 .build();
     }
 
@@ -46,6 +47,7 @@ public class JpaCardMapper {
                 .cardNumber(dto.getCardNumber())
                 .imageUrl(dto.getImageUrl())
                 .multi(dto.getMulti())
+                .defaultTransactionCategoryId(dto.getDefaultTransactionCategoryId())
                 .build();
     }
 }

@@ -42,4 +42,5 @@ public class CardDbDto extends AuditableEntity {
     private String cardNumber;
     private String imageUrl;
     private Boolean multi;
+    private Integer defaultTransactionCategoryId;
 }

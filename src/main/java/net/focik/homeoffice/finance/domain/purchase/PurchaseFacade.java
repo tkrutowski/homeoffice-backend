@@ -1,5 +1,6 @@
 package net.focik.homeoffice.finance.domain.purchase;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.focik.homeoffice.audit.AuditAction;
@@ -51,7 +52,9 @@ public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase
         return purchaseService.addPurchase(purchase);
     }
 
+    // Zmiana statusu i zapis transakcji bankowej w jednej transakcji - błąd cofa obie zmiany.
     @Override
+    @Transactional
     @AuditLog(action = AuditAction.UPDATE, entityType = "Purchase")
     public Purchase updatePurchaseStatus(int idPurchase, PaymentStatus paymentStatus) {
         Optional<Purchase> previousPurchase = Optional.ofNullable(purchaseService.findPurchaseById(idPurchase));
@@ -81,14 +84,13 @@ public class PurchaseFacade implements AddPurchaseUseCase, UpdatePurchaseUseCase
         return result;
     }
 
-    private int findCategoryByCard(int idCard) {
+    /** Kategoria transakcji skonfigurowana na karcie; null = transakcja bez kategorii. */
+    private Integer findCategoryByCard(int idCard) {
         Card card = cardFacade.findById(idCard);
-        return switch (card.getCardName().toLowerCase()) {
-            case "alfa" -> 8;
-            case "impresja" -> 9;
-            default -> throw new IllegalArgumentException("Unknown card name: " + card.getCardName());
-        };
-
+        if (card.getDefaultTransactionCategoryId() == null) {
+            log.warn("Card '{}' has no default transaction category, saving bank transaction without category", card.getCardName());
+        }
+        return card.getDefaultTransactionCategoryId();
     }
 
     @Override
