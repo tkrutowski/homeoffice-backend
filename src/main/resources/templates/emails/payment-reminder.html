@@ -209,9 +209,9 @@
 
         <!-- Alert Box -->
         <div class="alert-box"
-             th:classappend="${daysUntilDeadline >= 3 && daysUntilDeadline <= 7} ? 'status-early' :
-                             ${daysUntilDeadline >= 0 && daysUntilDeadline <= 1} ? 'status-warning' :
-                             ${daysUntilDeadline < 0} ? 'status-overdue' : ''">
+             th:classappend="${daysUntilDeadline >= 3 && daysUntilDeadline <= 7 ? 'status-early' :
+                              (daysUntilDeadline >= 0 && daysUntilDeadline <= 1 ? 'status-warning' :
+                              (daysUntilDeadline < 0 ? 'status-overdue' : ''))}">
             <h2>⚠️ Płatność do wykonania</h2>
 
             <div class="payment-details">
