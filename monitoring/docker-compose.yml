@@ -1,0 +1,30 @@
+# Monitoring: Grafana Alloy scrapuje backend i wysyla metryki do Grafana Cloud.
+# Dzialaja osobno od deployu backendu (workflowy robia `docker rm -f homeoffice`) - uruchom raz na kazdym
+# hoscie (Synology, EC2): skopiuj ten katalog, utworz .env wg .env.example i `docker compose up -d`.
+# Instrukcja: monitoring/README.md
+
+services:
+  alloy:
+    image: grafana/alloy:v1.20.1
+    container_name: alloy
+    # host network: backend publikuje 8077 na hoscie (-p 8077:8077), wiec Alloy scrapuje localhost:8077
+    # identycznie na Synology (siec "home") i EC2 (domyslny bridge bez DNS po nazwie kontenera)
+    network_mode: host
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # 1 GB wolnego RAM-u na Synology wspoldzielone z backendem i n8n - miekki limit sterty Go
+      - GOMEMLIMIT=150MiB
+    mem_limit: 256m
+    command:
+      - run
+      # UI Alloya tylko lokalnie, nie na zewnatrz hosta
+      - --server.http.listen-addr=127.0.0.1:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+
+volumes:
+  alloy-data:

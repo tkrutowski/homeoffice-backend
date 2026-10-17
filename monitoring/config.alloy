@@ -1,0 +1,50 @@
+// Grafana Alloy: scrapuje metryki lokalnego backendu i wysyla je do Grafana Cloud (Hosted Prometheus).
+// Wszystkie wartosci zmienne i sekrety pochodza z env (plik .env obok docker-compose.yml).
+
+prometheus.remote_write "grafana_cloud" {
+  endpoint {
+    url = sys.env("GRAFANA_CLOUD_PROM_URL")
+
+    basic_auth {
+      username = sys.env("GRAFANA_CLOUD_PROM_USER")
+      password = sys.env("GRAFANA_CLOUD_API_TOKEN")
+    }
+  }
+}
+
+// Zostawiamy tylko metryki, ktore faktycznie uzywamy - limit Grafana Cloud Free to 10k aktywnych serii.
+prometheus.relabel "filter" {
+  forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+
+  // Histogramy per-uri sa najdrozsze (kazdy kubelek = osobna seria). Nie potrzebujemy tych dla zasobow
+  // statycznych ani nieistniejacych sciezek (boty skanujace).
+  rule {
+    source_labels = ["__name__", "uri"]
+    separator     = ";"
+    regex         = "http_server_requests_seconds_.*;(/static/.*|NOT_FOUND|root|/favicon.ico)"
+    action        = "drop"
+  }
+}
+
+prometheus.scrape "homeoffice" {
+  targets = [{
+    "__address__" = "localhost:8077",
+    // etykieta instance = synology/ec2 - rozroznia hosty takze w metryce "up" (alert "backend nie zyje")
+    "instance"    = sys.env("APP_INSTANCE"),
+    "job"         = "homeoffice",
+  }]
+
+  metrics_path    = "/actuator/prometheus"
+  scrape_interval = "30s"
+  scrape_timeout  = "10s"
+  // aplikacja sama taguje metryki instance=APP_INSTANCE (ta sama wartosc) - bez tego Prometheus
+  // zmienilby nazwe etykiety na exported_instance
+  honor_labels    = true
+
+  // /actuator/prometheus wymaga tokena wewnetrznego (nie JWT - patrz CLAUDE.md, sekcja Monitoring)
+  http_headers = {
+    "X-Internal-Token" = [sys.env("INTERNAL_API_TOKEN")],
+  }
+
+  forward_to = [prometheus.relabel.filter.receiver]
+}
