@@ -22,7 +22,8 @@ class AsyncTaskServiceTest {
 
     @BeforeEach
     void setUp() {
-        asyncTaskService = new AsyncTaskService(asyncTaskRepository);
+        asyncTaskService = new AsyncTaskService(asyncTaskRepository,
+                new AsyncTaskMetrics(new io.micrometer.core.instrument.simple.SimpleMeterRegistry()));
     }
 
     @Test

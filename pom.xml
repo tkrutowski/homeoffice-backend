@@ -10,7 +10,7 @@
     </parent>
     <groupId>net.focik</groupId>
     <artifactId>homeoffice</artifactId>
-    <version>6.4.2</version>
+    <version>6.5.0</version>
     <name>homeoffice</name>
     <description>HomeOfficeApp</description>
     <properties>
@@ -259,6 +259,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <!-- Metryki w formacie Prometheus pod /actuator/prometheus (wersja z BOM-a Spring Boot) -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
         <!-- Email Support -->
         <dependency>

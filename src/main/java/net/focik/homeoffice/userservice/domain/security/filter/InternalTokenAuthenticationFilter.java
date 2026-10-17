@@ -30,6 +30,8 @@ public class InternalTokenAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String HEADER = "X-Internal-Token";
     static final String ROLE_INTERNAL = "ROLE_INTERNAL";
+    // scrape metryk przez Grafana Alloy/Prometheus - ten sam token co n8n, bo nginx wystawia /actuator/** na swiat
+    private static final String PROMETHEUS_PATH = "/actuator/prometheus";
 
     @Value("${internal.api.token:}")
     private String expectedToken;
@@ -38,7 +40,8 @@ public class InternalTokenAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
                                      @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        if (!request.getRequestURI().startsWith("/internal/")) {
+        String uri = request.getRequestURI();
+        if (!uri.startsWith("/internal/") && !uri.equals(PROMETHEUS_PATH)) {
             filterChain.doFilter(request, response);
             return;
         }

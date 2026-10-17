@@ -14,6 +14,7 @@ import java.util.UUID;
 public class AsyncTaskService {
 
     private final AsyncTaskRepository asyncTaskRepository;
+    private final AsyncTaskMetrics asyncTaskMetrics;
 
     public AsyncTask startJob(int totalItems, String jobType) {
         String jobId = UUID.randomUUID().toString();
@@ -35,7 +36,9 @@ public class AsyncTaskService {
     }
 
     public AsyncTask updateTask(AsyncTask task) {
-        return asyncTaskRepository.save(task);
+        AsyncTask saved = asyncTaskRepository.save(task);
+        asyncTaskMetrics.recordIfFinished(saved);
+        return saved;
     }
 
     public void updateTaskStatus(String jobId, AsyncTaskStatus status) {
