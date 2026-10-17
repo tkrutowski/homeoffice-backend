@@ -1,7 +1,9 @@
 package net.focik.homeoffice.finance.infrastructure.adapter;
 
 import lombok.AllArgsConstructor;
+import net.focik.homeoffice.finance.domain.loanproposal.LoanProposalStatus;
 import net.focik.homeoffice.finance.domain.purchase.Purchase;
+import net.focik.homeoffice.finance.infrastructure.jpa.LoanProposalDtoRepository;
 import net.focik.homeoffice.finance.domain.purchase.port.secondary.PurchaseRepository;
 import net.focik.homeoffice.finance.infrastructure.dto.PurchaseDbDto;
 import net.focik.homeoffice.finance.infrastructure.jpa.PurchaseDtoRepository;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 class PurchaseRepositoryAdapter implements PurchaseRepository {
 
     PurchaseDtoRepository purchaseDtoRepository;
+    LoanProposalDtoRepository loanProposalDtoRepository;
     JpaPurchaseMapper mapper;
 
 
@@ -100,6 +103,7 @@ class PurchaseRepositoryAdapter implements PurchaseRepository {
 
     @Override
     public void deletePurchaseById(int idLoan) {
+        loanProposalDtoRepository.detachPurchase(idLoan, LoanProposalStatus.EXTRACTED);
         purchaseDtoRepository.deleteById(idLoan);
     }
 
