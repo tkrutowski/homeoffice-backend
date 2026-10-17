@@ -17,6 +17,18 @@ Działa niezależnie od deployu backendu - workflowy GitHub Actions go nie dotyk
 4. Sprawdź: `docker logs alloy` (brak błędów `401`/`remote_write`), potem w Grafanie → Explore →
    zapytanie `up{job="homeoffice"}` powinno pokazać wartość `1` dla `instance="synology"`/`"ec2"`.
 
+## Dashboard w Grafanie
+
+`dashboards/homeoffice.json` - gotowy dashboard (status, wersja i uptime per instancja, ruch HTTP, błędy 5xx,
+czasy odpowiedzi, JVM, pula Hikari, zadania w tle, błędy w logach). Import: Grafana → *Dashboards → New →
+Import* → *Upload dashboard JSON file* → wskaż plik → w polu źródła danych wybierz
+`grafanacloud-homeofficeapp-prom`. Zmienna `Instancja` (u góry) przełącza hosty (synology / ec2).
+
+Zapytania są sprawdzone pod kątem składni PromQL (`promtool check rules`), ale nie w żywej Grafanie -
+jeśli któryś panel jest pusty, sprawdź w *Explore*, czy metryka istnieje (np. `homeoffice_async_tasks_total`
+pojawia się dopiero po pierwszym zakończonym zadaniu, a `jvm_gc_pause_seconds_*` po pierwszym GC).
+Zmiany w dashboardzie wyeksportuj z Grafany (*Share → Export → Save to file*) i podmień plik w repo.
+
 Zmiana `config.alloy`: edytuj plik na hoście i `docker compose restart alloy`.
 
 ## Dlaczego tak
