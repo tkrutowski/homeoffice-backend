@@ -342,7 +342,7 @@
             "type": "prometheus",
             "uid": "${ds}"
           },
-          "expr": "sum by (instance) (rate(http_server_requests_seconds_count{instance=~\"$instance\"}[$__rate_interval]))",
+          "expr": "sum by (instance) (rate(http_server_requests_seconds_count{instance=~\"$instance\", uri!=\"/actuator/prometheus\"}[$__rate_interval]))",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -394,7 +394,7 @@
             "type": "prometheus",
             "uid": "${ds}"
           },
-          "expr": "sum by (status) (rate(http_server_requests_seconds_count{instance=~\"$instance\"}[$__rate_interval]))",
+          "expr": "sum by (status) (rate(http_server_requests_seconds_count{instance=~\"$instance\", uri!=\"/actuator/prometheus\"}[$__rate_interval]))",
           "legendFormat": "{{status}}",
           "refId": "A"
         }
@@ -443,14 +443,14 @@
     {
       "type": "timeseries",
       "title": "Odsetek błędów 5xx",
-      "description": "Luki na wykresie = brak ruchu w danym okresie.",
+      "description": "0% = brak błędów 5xx. Luki na wykresie = brak ruchu w danym okresie. Scrape Alloya (/actuator/prometheus) jest pominięty.",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${ds}"
           },
-          "expr": "sum by (instance) (rate(http_server_requests_seconds_count{status=~\"5..\", instance=~\"$instance\"}[$__rate_interval])) / sum by (instance) (rate(http_server_requests_seconds_count{instance=~\"$instance\"}[$__rate_interval]))",
+          "expr": "(sum by (instance) (rate(http_server_requests_seconds_count{status=~\"5..\", instance=~\"$instance\", uri!=\"/actuator/prometheus\"}[$__rate_interval])) or sum by (instance) (rate(http_server_requests_seconds_count{instance=~\"$instance\", uri!=\"/actuator/prometheus\"}[$__rate_interval])) * 0) / sum by (instance) (rate(http_server_requests_seconds_count{instance=~\"$instance\", uri!=\"/actuator/prometheus\"}[$__rate_interval]))",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -502,7 +502,7 @@
             "type": "prometheus",
             "uid": "${ds}"
           },
-          "expr": "sum by (instance) (rate(http_server_requests_seconds_sum{instance=~\"$instance\"}[$__rate_interval])) / sum by (instance) (rate(http_server_requests_seconds_count{instance=~\"$instance\"}[$__rate_interval]))",
+          "expr": "sum by (instance) (rate(http_server_requests_seconds_sum{instance=~\"$instance\", uri!=\"/actuator/prometheus\"}[$__rate_interval])) / sum by (instance) (rate(http_server_requests_seconds_count{instance=~\"$instance\", uri!=\"/actuator/prometheus\"}[$__rate_interval]))",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -554,7 +554,7 @@
             "type": "prometheus",
             "uid": "${ds}"
           },
-          "expr": "sum by (instance) (rate(http_server_requests_seconds_bucket{le=\"0.5\", instance=~\"$instance\"}[$__rate_interval])) / sum by (instance) (rate(http_server_requests_seconds_bucket{le=\"+Inf\", instance=~\"$instance\"}[$__rate_interval]))",
+          "expr": "sum by (instance) (rate(http_server_requests_seconds_bucket{le=\"0.5\", instance=~\"$instance\", uri!=\"/actuator/prometheus\"}[$__rate_interval])) / sum by (instance) (rate(http_server_requests_seconds_bucket{le=\"+Inf\", instance=~\"$instance\", uri!=\"/actuator/prometheus\"}[$__rate_interval]))",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -606,7 +606,7 @@
             "type": "prometheus",
             "uid": "${ds}"
           },
-          "expr": "topk(8, sum by (uri) (rate(http_server_requests_seconds_sum{instance=~\"$instance\"}[$__rate_interval])))",
+          "expr": "topk(8, sum by (uri) (rate(http_server_requests_seconds_sum{instance=~\"$instance\", uri!=\"/actuator/prometheus\"}[$__rate_interval])))",
           "legendFormat": "{{uri}}",
           "refId": "A"
         }
