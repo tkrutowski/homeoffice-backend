@@ -1,5 +1,6 @@
 package net.focik.homeoffice.userservice.domain.security.filter;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,22 +39,27 @@ private final UserDetailsService userDetailsService;
         }
 
         token = authHeader.substring(7);
-        userName = jwtService.extractUsername(token);
+        try {
+            userName = jwtService.extractUsername(token);
 
-        if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails =  userDetailsService.loadUserByUsername(userName);
+            if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails =  userDetailsService.loadUserByUsername(userName);
 
-            if (jwtService.isTokenValid(token, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                if (jwtService.isTokenValid(token, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    authToken.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request)
+                    );
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+        } catch (JwtException e) {
+            // Wygasły/uszkodzony token: bez uwierzytelnienia, Spring Security odpowie 401 (a nie 500 z filtra).
+            log.debug("Invalid JWT, request continues unauthenticated: {}", e.getMessage());
         }
         filterChain.doFilter(request, response);
     }
