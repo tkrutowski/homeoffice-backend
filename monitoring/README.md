@@ -12,10 +12,26 @@ Działa niezależnie od deployu backendu - workflowy GitHub Actions go nie dotyk
    - `GRAFANA_CLOUD_API_TOKEN` - Grafana Cloud → Administration → Access policies → Add token,
      scope `metrics:write`,
    - `INTERNAL_API_TOKEN` - ta sama wartość co sekret backendu.
-3. `docker compose up -d` (jeśli brak wtyczki compose, np. na EC2: odpowiednik `docker run` z
-   `--network host`, `--env-file .env`, tymi samymi wolumenami i komendą jak w `docker-compose.yml`).
+3. `docker compose up -d` (jeśli brak wtyczki compose, np. na EC2, użyj wariantu `docker run` poniżej).
 4. Sprawdź: `docker logs alloy` (brak błędów `401`/`remote_write`), potem w Grafanie → Explore →
    zapytanie `up{job="homeoffice"}` powinno pokazać wartość `1` dla `instance="synology"`/`"ec2"`.
+
+### Wariant bez `docker compose` (EC2)
+
+Na EC2 (`sudo docker compose version` → "unknown command") wystarczą dwa pliki w `/opt/monitoring`:
+`config.alloy` i `.env` (z `APP_INSTANCE=ec2`, uprawnienia `600`; `docker-compose.yml` jest zbędny).
+Komenda w **jednej linii** (po wklejeniu w kilku liniach terminal wykona tylko pierwszą):
+
+```bash
+sudo docker volume create alloy-data
+sudo docker run -d --name alloy --restart unless-stopped --network host --memory 256m -e GOMEMLIMIT=150MiB --env-file /opt/monitoring/.env -v /opt/monitoring/config.alloy:/etc/alloy/config.alloy:ro -v alloy-data:/var/lib/alloy/data grafana/alloy:v1.20.1 run --server.http.listen-addr=127.0.0.1:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+```
+
+Zmiana `.env` albo `config.alloy` wymaga **odtworzenia** kontenera (`sudo docker rm -f alloy` i ponownie `docker run`):
+Docker czyta `--env-file` tylko przy tworzeniu kontenera, więc samo `docker restart` zostawi stary token.
+Gdy w logach jest `401 ... invalid token`, token Grafany w `.env` jest zły. Test bez wypisywania tokenu:
+`set -a; . /opt/monitoring/.env; set +a; curl -s -o /dev/null -w "%{http_code}\n" -u "$GRAFANA_CLOUD_PROM_USER:$GRAFANA_CLOUD_API_TOKEN" -X POST "$GRAFANA_CLOUD_PROM_URL"`
+(`400` = token dobry, `401` = zły, `403` = brak scope `metrics:write`).
 
 ## Dashboard w Grafanie
 
