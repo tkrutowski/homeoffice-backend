@@ -79,7 +79,9 @@
           },
           "expr": "up{job=\"homeoffice\", instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "fieldConfig": {
@@ -157,7 +159,9 @@
           },
           "expr": "homeoffice_build_info{instance=~\"$instance\"}",
           "legendFormat": "{{instance}}: {{version}}",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "fieldConfig": {
@@ -217,7 +221,9 @@
           },
           "expr": "process_uptime_seconds{instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "fieldConfig": {
@@ -277,7 +283,9 @@
           },
           "expr": "sum by (instance) (jvm_memory_used_bytes{area=\"heap\", instance=~\"$instance\"}) / sum by (instance) (jvm_memory_max_bytes{area=\"heap\", instance=~\"$instance\"} > 0)",
           "legendFormat": "{{instance}}",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "fieldConfig": {

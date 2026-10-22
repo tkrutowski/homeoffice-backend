@@ -92,7 +92,9 @@
           },
           "expr": "sum(((increase(homeoffice_ksef_operations_seconds_count{operation=\"login\", outcome=~\"unauthorized|auth_rejected\", instance=~\"$instance\"}[$__range]) and (homeoffice_ksef_operations_seconds_count{operation=\"login\", outcome=~\"unauthorized|auth_rejected\", instance=~\"$instance\"} offset $__range)) or (homeoffice_ksef_operations_seconds_count{operation=\"login\", outcome=~\"unauthorized|auth_rejected\", instance=~\"$instance\"} unless (homeoffice_ksef_operations_seconds_count{operation=\"login\", outcome=~\"unauthorized|auth_rejected\", instance=~\"$instance\"} offset $__range)))) or vector(0)",
           "legendFormat": "odrzucone",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "fieldConfig": {
@@ -156,7 +158,9 @@
           },
           "expr": "sum(((increase(homeoffice_ksef_invoices_total{result=\"rejected\", instance=~\"$instance\"}[$__range]) and (homeoffice_ksef_invoices_total{result=\"rejected\", instance=~\"$instance\"} offset $__range)) or (homeoffice_ksef_invoices_total{result=\"rejected\", instance=~\"$instance\"} unless (homeoffice_ksef_invoices_total{result=\"rejected\", instance=~\"$instance\"} offset $__range)))) or vector(0)",
           "legendFormat": "odrzucone",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "fieldConfig": {
@@ -346,7 +350,9 @@
           },
           "expr": "sum(((increase(homeoffice_async_tasks_total{job_type=~\"KSEF_.*|PDF_GENERATE.*|ZUS_DRA_PREPARE\", status=~\"FAILED|PARTIAL\", instance=~\"$instance\"}[$__range]) and (homeoffice_async_tasks_total{job_type=~\"KSEF_.*|PDF_GENERATE.*|ZUS_DRA_PREPARE\", status=~\"FAILED|PARTIAL\", instance=~\"$instance\"} offset $__range)) or (homeoffice_async_tasks_total{job_type=~\"KSEF_.*|PDF_GENERATE.*|ZUS_DRA_PREPARE\", status=~\"FAILED|PARTIAL\", instance=~\"$instance\"} unless (homeoffice_async_tasks_total{job_type=~\"KSEF_.*|PDF_GENERATE.*|ZUS_DRA_PREPARE\", status=~\"FAILED|PARTIAL\", instance=~\"$instance\"} offset $__range)))) or vector(0)",
           "legendFormat": "nieudane",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "fieldConfig": {
