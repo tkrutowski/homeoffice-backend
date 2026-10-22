@@ -13,6 +13,7 @@ import net.focik.homeoffice.goahead.domain.cost.Cost;
 import net.focik.homeoffice.goahead.domain.exception.KsefResponseException;
 import net.focik.homeoffice.goahead.domain.exception.StatusWaitingException;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.CustomKsefClient;
+import net.focik.homeoffice.goahead.domain.invoice.ksef.KsefMetrics;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.InvoiceKsefDto;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.Pozycja;
 import net.focik.homeoffice.goahead.domain.invoice.ksef.model.SendKsefInvoiceResponse;
@@ -64,6 +65,7 @@ public class KsefService {
     private final ObjectMapper objectMapper;
     private final CompanyFacade companyFacade;
     private final KsefInvoiceApiProperties properties;
+    private final KsefMetrics ksefMetrics;
 
     // Pola do cache'owania sesji
     private String cachedAccessToken;
@@ -98,6 +100,10 @@ public class KsefService {
     }
 
     private String loginWithToken(Company company) {
+        return ksefMetrics.record("login", () -> doLoginWithToken(company));
+    }
+
+    private String doLoginWithToken(Company company) {
         try {
             AuthenticationChallengeResponse challenge = ksefClient.getAuthChallenge();
             DefaultCryptographyService defaultCryptographyService = new DefaultCryptographyService(ksefClient);
@@ -123,12 +129,16 @@ public class KsefService {
             return tokenResponse.getAccessToken().getToken();
 
         } catch (ApiException | InterruptedException e) {
-            throw new KsefResponseException("Failed to login with certificate to KSeF system", e);
+            throw new KsefResponseException("Failed to login to KSeF system with token", e);
         }
     }
 
 
     private String loginWithCertificate(Company company) {
+        return ksefMetrics.record("login", () -> doLoginWithCertificate(company));
+    }
+
+    private String doLoginWithCertificate(Company company) {
         DefaultSignatureService signatureService = new DefaultSignatureService();
         DefaultCertificateService certificateService = new DefaultCertificateService();
         //"9720495827";//NIP
@@ -177,6 +187,10 @@ public class KsefService {
 
 
     public Map<InvoiceKsefDto, String> findInvoices(LocalDate fromDate, LocalDate toDate, InvoiceQuerySubjectType subjectType) {
+        return ksefMetrics.record("find_invoices", () -> doFindInvoices(fromDate, toDate, subjectType));
+    }
+
+    private Map<InvoiceKsefDto, String> doFindInvoices(LocalDate fromDate, LocalDate toDate, InvoiceQuerySubjectType subjectType) {
         Map<InvoiceKsefDto, String> foundInvoices = new HashMap<>();
         try {
             DefaultCryptographyService defaultCryptographyService = new DefaultCryptographyService(ksefClient);
@@ -256,7 +270,7 @@ public class KsefService {
             }
             return foundInvoices;
         } catch (ApiException | IOException | InterruptedException e) {
-            throw new KsefResponseException("Failed to login with certificate to KSeF system", e);
+            throw new KsefResponseException("Failed to find invoices in KSeF", e);
         } catch (JAXBException e) {
             log.error("Błąd mapowania XML na InvoiceKsefDto: " + e.getMessage(), e);
             throw new KsefResponseException("Błąd mapowania XML na InvoiceKsefDto: " + e.getMessage(), e);
@@ -275,6 +289,10 @@ public class KsefService {
     }
 
     public List<SendKsefInvoiceResponse> sendInvoices(List<String> xmls) {
+        return ksefMetrics.record("send_invoices", () -> doSendInvoices(xmls));
+    }
+
+    private List<SendKsefInvoiceResponse> doSendInvoices(List<String> xmls) {
         try {
             String accessToken = getToken();
             DefaultCryptographyService defaultCryptographyService = new DefaultCryptographyService(ksefClient);
@@ -306,6 +324,7 @@ public class KsefService {
             waitForCondition(() -> isUpoGenerated(sessionReferenceNumber, accessToken), 30, 7);
 
             SessionStatusResponse sessionStatus = ksefClient.getSessionStatus(sessionReferenceNumber, accessToken);
+            ksefMetrics.recordInvoices(sessionStatus.getSuccessfulInvoiceCount(), sessionStatus.getFailedInvoiceCount());
 
             List<SendKsefInvoiceResponse> sendKsefInvoiceRespons = new ArrayList<>();
             for (SessionInvoiceStatusResponse sessionInvoiceStatus : invoiceStatusResponses) {
@@ -324,7 +343,7 @@ public class KsefService {
             }
             return sendKsefInvoiceRespons;
         } catch (ApiException | InterruptedException e) {
-            throw new KsefResponseException("Failed to login with certificate to KSeF system", e);
+            throw new KsefResponseException("Failed to send invoices to KSeF", e);
         }
     }
 
@@ -426,7 +445,7 @@ public class KsefService {
                 return; // Sukces, proces zakończony
             }
             if (code >= 400) {
-                throw new KsefResponseException("Błąd uwierzytelnienia KSeF (kod " + code + "): " + authStatus.getStatus().getDescription());
+                throw new KsefResponseException("Błąd uwierzytelnienia KSeF (kod " + code + "): " + authStatus.getStatus().getDescription(), code);
             }
             TimeUnit.SECONDS.sleep(1); // Czekaj 1 sekundę przed kolejną próbą
         }

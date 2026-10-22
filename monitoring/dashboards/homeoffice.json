@@ -54,6 +54,18 @@
   "annotations": {
     "list": []
   },
+  "links": [
+    {
+      "type": "dashboards",
+      "title": "Powiązane dashboardy",
+      "tags": [
+        "homeoffice"
+      ],
+      "asDropdown": true,
+      "includeVars": true,
+      "keepTime": true
+    }
+  ],
   "panels": [
     {
       "type": "stat",
