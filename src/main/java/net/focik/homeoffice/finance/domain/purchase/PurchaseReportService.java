@@ -112,7 +112,7 @@ public class PurchaseReportService implements GeneratePurchaseReportUseCase {
                 }
             }
 
-            log.info("Monthly purchase report processing completed successfully");
+            log.info("Monthly purchase report processing finished, e-mails queued (delivery result is logged by EmailServiceAdapter)");
         } catch (Exception e) {
             log.error("Error during monthly purchase report processing", e);
         }
@@ -146,7 +146,7 @@ public class PurchaseReportService implements GeneratePurchaseReportUseCase {
                 }
             }
 
-            log.info("Weekly purchase report processing completed successfully");
+            log.info("Weekly purchase report processing finished, e-mails queued (delivery result is logged by EmailServiceAdapter)");
         } catch (Exception e) {
             log.error("Error during weekly purchase report processing", e);
         }

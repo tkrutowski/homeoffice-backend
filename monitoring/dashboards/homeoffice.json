@@ -1125,6 +1125,67 @@
         "type": "prometheus",
         "uid": "${ds}"
       }
+    },
+    {
+      "type": "bargauge",
+      "title": "Wysyłka maili: wysłane i nieudane",
+      "description": "Z EmailServiceAdapter: jedna sztuka na wiadomość po wszystkich próbach. failure > 0 = maile nie wychodzą (np. 535 po zmianie hasła SMTP).",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "expr": "sum by (instance, result) (((increase(homeoffice_email_sent_total{instance=~\"$instance\"}[$__range]) and (homeoffice_email_sent_total{instance=~\"$instance\"} offset $__range)) or (homeoffice_email_sent_total{instance=~\"$instance\"} unless (homeoffice_email_sent_total{instance=~\"$instance\"} offset $__range))))",
+          "legendFormat": "{{instance}} {{result}}",
+          "refId": "A",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "showUnfilled": true,
+        "valueMode": "color"
+      },
+      "id": 21,
+      "gridPos": {
+        "x": 0,
+        "y": 46,
+        "w": 12,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds}"
+      }
     }
   ]
 }

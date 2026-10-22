@@ -81,7 +81,7 @@ public class PaymentReminderService {
             // Process Loan reminders
             processLoanReminders(today);
 
-            log.info("Payment reminder processing completed successfully");
+            log.info("Payment reminder processing finished, e-mails queued (delivery result is logged by EmailServiceAdapter)");
         } catch (Exception e) {
             log.error("Error during payment reminder processing", e);
         }

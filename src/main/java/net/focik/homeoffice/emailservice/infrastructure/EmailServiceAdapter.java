@@ -1,6 +1,7 @@
 package net.focik.homeoffice.emailservice.infrastructure;
 
-import lombok.RequiredArgsConstructor;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.emailservice.domain.EmailNotificationPort;
 import net.focik.homeoffice.emailservice.domain.EmailRequest;
@@ -23,7 +24,6 @@ import jakarta.mail.internet.MimeMessage;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class EmailServiceAdapter implements EmailNotificationPort {
 
     /** Zob. EMAIL_SMTP_ISSUES.md #1 - proba, potem do 2 dodatkowych prob po chwilowym bledzie SMTP. */
@@ -31,8 +31,28 @@ public class EmailServiceAdapter implements EmailNotificationPort {
     /** Pakietowo-widoczne (nie final) wylacznie po to, zeby testy mogly przyspieszyc retry. */
     long retryBackoffMs = 2000;
 
+    /**
+     * Licznik {@code homeoffice.email.sent{type,result}}: jedna sztuka na wiadomosc, liczona po ostatecznym
+     * wyniku (po wszystkich probach). Seria istnieje od startu, takze z zerem, zeby wykresy i alerty
+     * widzialy pierwsza porazke (increase() nie widzi pierwszego zdarzenia nowej serii).
+     */
+    static final String SENT_METRIC = "homeoffice.email.sent";
+
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
+    private final Counter simpleSuccess;
+    private final Counter simpleFailure;
+    private final Counter htmlSuccess;
+    private final Counter htmlFailure;
+
+    public EmailServiceAdapter(JavaMailSender mailSender, TemplateEngine templateEngine, MeterRegistry registry) {
+        this.mailSender = mailSender;
+        this.templateEngine = templateEngine;
+        this.simpleSuccess = registry.counter(SENT_METRIC, "type", "simple", "result", "success");
+        this.simpleFailure = registry.counter(SENT_METRIC, "type", "simple", "result", "failure");
+        this.htmlSuccess = registry.counter(SENT_METRIC, "type", "html", "result", "success");
+        this.htmlFailure = registry.counter(SENT_METRIC, "type", "html", "result", "failure");
+    }
 
     // Pakietowo-widoczne (nie private), zeby testy jednostkowe mogly je ustawic bezposrednio -
     // ta klasa normalnie dostaje je przez Spring @Value, nie ma innego konstruktora do tego celu.
@@ -109,10 +129,12 @@ public class EmailServiceAdapter implements EmailNotificationPort {
                 message.setText(text);
                 mailSender.send(message);
                 log.info("Simple email sent successfully to: {} | Subject: {}", to, subject);
+                simpleSuccess.increment();
                 return true;
             } catch (MailException e) {
                 if (attempt == MAX_SEND_ATTEMPTS) {
                     log.error("Failed to send simple email to: {} after {} attempt(s)", to, attempt, e);
+                    simpleFailure.increment();
                     return false;
                 }
                 log.warn("Attempt {}/{} failed sending simple email to: {} - retrying: {}",
@@ -139,10 +161,12 @@ public class EmailServiceAdapter implements EmailNotificationPort {
                 helper.setText(htmlContent, true); // true = isHtml
                 mailSender.send(message);
                 log.info("HTML email sent successfully to: {} | Subject: {}", to, subject);
+                htmlSuccess.increment();
                 return true;
             } catch (MessagingException | MailException e) {
                 if (attempt == MAX_SEND_ATTEMPTS) {
                     log.error("Failed to send HTML email to: {} after {} attempt(s)", to, attempt, e);
+                    htmlFailure.increment();
                     return false;
                 }
                 log.warn("Attempt {}/{} failed sending HTML email to: {} - retrying: {}",
@@ -150,6 +174,7 @@ public class EmailServiceAdapter implements EmailNotificationPort {
                 sleepBeforeRetry();
             } catch (Exception e) {
                 log.error("Unexpected error while sending HTML email to: {}", to, e);
+                htmlFailure.increment();
                 return false;
             }
         }

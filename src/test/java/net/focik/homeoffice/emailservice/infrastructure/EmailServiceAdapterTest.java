@@ -1,5 +1,6 @@
 package net.focik.homeoffice.emailservice.infrastructure;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import net.focik.homeoffice.emailservice.domain.EmailRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +19,7 @@ import jakarta.mail.internet.MimeMessage;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -41,14 +43,19 @@ class EmailServiceAdapterTest {
     @Mock
     private TemplateEngine templateEngine;
 
+    private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
     private EmailServiceAdapter adapter;
 
     @BeforeEach
     void setUp() {
-        adapter = new EmailServiceAdapter(mailSender, templateEngine);
+        adapter = new EmailServiceAdapter(mailSender, templateEngine, registry);
         adapter.mailFrom = "noreply@example.com";
         adapter.mailFromName = "Test App";
         adapter.retryBackoffMs = 0; // nie czekaj naprawde miedzy probami w testach
+    }
+
+    private double sent(String type, String result) {
+        return registry.get(EmailServiceAdapter.SENT_METRIC).tag("type", type).tag("result", result).counter().count();
     }
 
     private static MimeMessage newMimeMessage() {
@@ -63,6 +70,8 @@ class EmailServiceAdapterTest {
         adapter.sendHtmlEmail("to@example.com", "Subject", "<p>Hi</p>");
 
         verify(mailSender, times(1)).send(any(MimeMessage.class));
+        assertThat(sent("html", "success")).isEqualTo(1);
+        assertThat(sent("html", "failure")).isZero();
     }
 
     @Test
@@ -89,6 +98,9 @@ class EmailServiceAdapterTest {
                 .doesNotThrowAnyException();
 
         verify(mailSender, times(3)).send(any(MimeMessage.class));
+        // jedna wiadomosc = jedna porazka, a nie trzy (po jednej na probe)
+        assertThat(sent("html", "failure")).isEqualTo(1);
+        assertThat(sent("html", "success")).isZero();
     }
 
     @Test
@@ -101,6 +113,8 @@ class EmailServiceAdapterTest {
         adapter.sendSimpleEmail("to@example.com", "Subject", "text");
 
         verify(mailSender, times(2)).send(any(SimpleMailMessage.class));
+        assertThat(sent("simple", "success")).isEqualTo(1);
+        assertThat(sent("simple", "failure")).isZero();
     }
 
     @Test

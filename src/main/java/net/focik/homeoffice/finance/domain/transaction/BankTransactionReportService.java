@@ -107,7 +107,7 @@ public class BankTransactionReportService implements GenerateBankTransactionRepo
                 }
             }
 
-            log.info("Monthly bank transaction report processing completed successfully");
+            log.info("Monthly bank transaction report processing finished, e-mails queued (delivery result is logged by EmailServiceAdapter)");
         } catch (Exception e) {
             log.error("Error during monthly bank transaction report processing", e);
         }
@@ -141,7 +141,7 @@ public class BankTransactionReportService implements GenerateBankTransactionRepo
                 }
             }
 
-            log.info("Weekly bank transaction report processing completed successfully");
+            log.info("Weekly bank transaction report processing finished, e-mails queued (delivery result is logged by EmailServiceAdapter)");
         } catch (Exception e) {
             log.error("Error during weekly bank transaction report processing", e);
         }
