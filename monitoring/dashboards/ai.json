@@ -1,0 +1,562 @@
+{
+  "uid": "homeoffice-ai",
+  "title": "HomeOffice - AI (Claude)",
+  "tags": [
+    "homeoffice",
+    "ai"
+  ],
+  "timezone": "Europe/Warsaw",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "1m",
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "ds",
+        "label": "Źródło danych",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {},
+        "hide": 0,
+        "refresh": 1
+      },
+      {
+        "name": "instance",
+        "label": "Instancja",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${ds}"
+        },
+        "query": {
+          "query": "label_values(up{job=\"homeoffice\"}, instance)",
+          "refId": "StandardVariableQuery",
+          "qryType": 1
+        },
+        "definition": "label_values(up{job=\"homeoffice\"}, instance)",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "sort": 1
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "links": [
+    {
+      "type": "dashboards",
+      "title": "Powiązane dashboardy",
+      "tags": [
+        "homeoffice"
+      ],
+      "asDropdown": true,
+      "includeVars": true,
+      "keepTime": true
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Stan (w wybranym zakresie czasu)",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "Błędy",
+      "description": "Wywołania Claude zakończone błędem. Metryki z Spring AI (ChatModel): ekstrakcja faktur z PDF i pobieranie danych książek. Nie obejmują wniosków o pożyczki ani dopasowania transakcji bankowych (surowy HttpClient).",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "expr": "sum(((increase(gen_ai_client_operation_seconds_count{error!=\"none\", instance=~\"$instance\"}[$__range]) and (gen_ai_client_operation_seconds_count{error!=\"none\", instance=~\"$instance\"} offset $__range)) or (gen_ai_client_operation_seconds_count{error!=\"none\", instance=~\"$instance\"} unless (gen_ai_client_operation_seconds_count{error!=\"none\", instance=~\"$instance\"} offset $__range)))) or vector(0)",
+          "legendFormat": "błędy",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto"
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 4,
+        "h": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds}"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Wywołania",
+      "description": "Wszystkie wywołania Claude przez Spring AI. Metryki z Spring AI (ChatModel): ekstrakcja faktur z PDF i pobieranie danych książek. Nie obejmują wniosków o pożyczki ani dopasowania transakcji bankowych (surowy HttpClient).",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "expr": "sum(((increase(gen_ai_client_operation_seconds_count{instance=~\"$instance\"}[$__range]) and (gen_ai_client_operation_seconds_count{instance=~\"$instance\"} offset $__range)) or (gen_ai_client_operation_seconds_count{instance=~\"$instance\"} unless (gen_ai_client_operation_seconds_count{instance=~\"$instance\"} offset $__range)))) or vector(0)",
+          "legendFormat": "wywołania",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto"
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 4,
+        "y": 1,
+        "w": 4,
+        "h": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds}"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Tokeny wejściowe",
+      "description": "Tokeny wysłane do Claude (prompt, tekst PDF).",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "expr": "sum(((increase(gen_ai_client_token_usage_total{gen_ai_token_type=\"input\", instance=~\"$instance\"}[$__range]) and (gen_ai_client_token_usage_total{gen_ai_token_type=\"input\", instance=~\"$instance\"} offset $__range)) or (gen_ai_client_token_usage_total{gen_ai_token_type=\"input\", instance=~\"$instance\"} unless (gen_ai_client_token_usage_total{gen_ai_token_type=\"input\", instance=~\"$instance\"} offset $__range)))) or vector(0)",
+          "legendFormat": "input",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto"
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 8,
+        "y": 1,
+        "w": 4,
+        "h": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds}"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Tokeny wyjściowe",
+      "description": "Tokeny odpowiedzi Claude (droższe od wejściowych).",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "expr": "sum(((increase(gen_ai_client_token_usage_total{gen_ai_token_type=\"output\", instance=~\"$instance\"}[$__range]) and (gen_ai_client_token_usage_total{gen_ai_token_type=\"output\", instance=~\"$instance\"} offset $__range)) or (gen_ai_client_token_usage_total{gen_ai_token_type=\"output\", instance=~\"$instance\"} unless (gen_ai_client_token_usage_total{gen_ai_token_type=\"output\", instance=~\"$instance\"} offset $__range)))) or vector(0)",
+          "legendFormat": "output",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto"
+      },
+      "id": 5,
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 4,
+        "h": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds}"
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "Tokeny wg modelu",
+      "description": "Pozwala zobaczyć, który model zużywa najwięcej. Metryki z Spring AI (ChatModel): ekstrakcja faktur z PDF i pobieranie danych książek. Nie obejmują wniosków o pożyczki ani dopasowania transakcji bankowych (surowy HttpClient).",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "expr": "sum by (gen_ai_request_model, gen_ai_token_type) (((increase(gen_ai_client_token_usage_total{gen_ai_token_type=~\"input|output\", instance=~\"$instance\"}[$__range]) and (gen_ai_client_token_usage_total{gen_ai_token_type=~\"input|output\", instance=~\"$instance\"} offset $__range)) or (gen_ai_client_token_usage_total{gen_ai_token_type=~\"input|output\", instance=~\"$instance\"} unless (gen_ai_client_token_usage_total{gen_ai_token_type=~\"input|output\", instance=~\"$instance\"} offset $__range))))",
+          "legendFormat": "{{gen_ai_request_model}} / {{gen_ai_token_type}}",
+          "refId": "A",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "showUnfilled": true,
+        "valueMode": "color"
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 16,
+        "y": 1,
+        "w": 8,
+        "h": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds}"
+      }
+    },
+    {
+      "id": 7,
+      "type": "row",
+      "title": "W czasie",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "title": "Tokeny w czasie",
+      "description": "Skok zużycia bez powodu może oznaczać pętlę ponowień. Metryki z Spring AI (ChatModel): ekstrakcja faktur z PDF i pobieranie danych książek. Nie obejmują wniosków o pożyczki ani dopasowania transakcji bankowych (surowy HttpClient).",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "expr": "sum by (gen_ai_token_type) (increase(gen_ai_client_token_usage_total{gen_ai_token_type=~\"input|output\", instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{gen_ai_token_type}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 12,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 8,
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds}"
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Wywołania wg wyniku",
+      "description": "error=none to wywołania udane; pozostałe wartości to typ błędu.",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "expr": "sum by (error) (increase(gen_ai_client_operation_seconds_count{instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{error}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 12,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 8,
+        "y": 8,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds}"
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Średni czas wywołania",
+      "description": "Luki = w tym okresie nie było wywołań.",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "expr": "sum by (gen_ai_request_model) (rate(gen_ai_client_operation_seconds_sum{instance=~\"$instance\"}[$__rate_interval])) / sum by (gen_ai_request_model) (rate(gen_ai_client_operation_seconds_count{instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{gen_ai_request_model}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 12,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 10,
+      "gridPos": {
+        "x": 16,
+        "y": 8,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds}"
+      }
+    }
+  ]
+}

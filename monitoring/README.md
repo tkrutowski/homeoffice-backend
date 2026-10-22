@@ -125,6 +125,13 @@ Drugi dashboard, `dashboards/goahead.json` (*HomeOffice - GoAhead (faktury, kosz
 (KSeF, PDF, ZUS DRA) i ruch HTTP na `/api/goahead/*`. Importuje się tak samo; oba dashboardy mają link do siebie
 (lista *Powiązane dashboardy* u góry).
 
+Trzeci dashboard, `dashboards/ai.json` (*HomeOffice - AI (Claude)*), pokazuje użycie Claude przez Spring AI: błędy,
+liczbę wywołań, tokeny (wejściowe i wyjściowe, wg modelu i w czasie) oraz średni czas wywołania. Metryki
+`gen_ai_client_*` publikuje Spring AI sam, ale tylko dla wywołań przez `ChatModel` (ekstrakcja faktur z PDF,
+książki); wnioski o pożyczki i dopasowanie transakcji (surowy `HttpClient`) nie są objęte. Panele są puste, dopóki
+aplikacja nie wywoła Claude po raz pierwszy; jeśli mimo wywołań nadal są puste, sprawdź w *Explore*
+`gen_ai_client_token_usage_total`.
+
 Zapytania są sprawdzone pod kątem składni PromQL (`promtool check rules`), ale nie w żywej Grafanie -
 jeśli któryś panel jest pusty, sprawdź w *Explore*, czy metryka istnieje (np. `homeoffice_async_tasks_total`
 pojawia się dopiero po pierwszym zakończonym zadaniu, a `jvm_gc_pause_seconds_*` po pierwszym GC).

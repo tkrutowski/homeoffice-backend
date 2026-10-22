@@ -962,7 +962,7 @@
             "type": "prometheus",
             "uid": "${ds}"
           },
-          "expr": "sum by (job_type, status) (increase(homeoffice_async_tasks_total{instance=~\"$instance\"}[$__range]))",
+          "expr": "sum by (job_type, status) (((increase(homeoffice_async_tasks_total{instance=~\"$instance\"}[$__range]) and (homeoffice_async_tasks_total{instance=~\"$instance\"} offset $__range)) or (homeoffice_async_tasks_total{instance=~\"$instance\"} unless (homeoffice_async_tasks_total{instance=~\"$instance\"} offset $__range))))",
           "legendFormat": "{{job_type}} / {{status}}",
           "refId": "A",
           "instant": true,
@@ -1023,7 +1023,7 @@
             "type": "prometheus",
             "uid": "${ds}"
           },
-          "expr": "sum by (job_type) (increase(homeoffice_async_tasks_duration_seconds_sum{instance=~\"$instance\"}[$__range])) / sum by (job_type) (increase(homeoffice_async_tasks_duration_seconds_count{instance=~\"$instance\"}[$__range]))",
+          "expr": "sum by (job_type) (((increase(homeoffice_async_tasks_duration_seconds_sum{instance=~\"$instance\"}[$__range]) and (homeoffice_async_tasks_duration_seconds_sum{instance=~\"$instance\"} offset $__range)) or (homeoffice_async_tasks_duration_seconds_sum{instance=~\"$instance\"} unless (homeoffice_async_tasks_duration_seconds_sum{instance=~\"$instance\"} offset $__range)))) / sum by (job_type) (((increase(homeoffice_async_tasks_duration_seconds_count{instance=~\"$instance\"}[$__range]) and (homeoffice_async_tasks_duration_seconds_count{instance=~\"$instance\"} offset $__range)) or (homeoffice_async_tasks_duration_seconds_count{instance=~\"$instance\"} unless (homeoffice_async_tasks_duration_seconds_count{instance=~\"$instance\"} offset $__range))))",
           "legendFormat": "{{job_type}}",
           "refId": "A",
           "instant": true,
