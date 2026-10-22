@@ -40,6 +40,9 @@ class PaymentReminderServiceTest {
     @Mock
     private UserFacade userFacade;
 
+    @Mock
+    private net.focik.homeoffice.config.JobHeartbeat jobHeartbeat;
+
     @InjectMocks
     private PaymentReminderService paymentReminderService;
 
@@ -431,5 +434,25 @@ class PaymentReminderServiceTest {
 
         // Then - nie wysyłamy email gdy użytkownik nie ma emaila
         verify(emailNotificationPort, never()).sendTemplatedEmail(any());
+    }
+
+    @Test
+    @DisplayName("should record a heartbeat after a scheduled run when reminders are enabled")
+    void scheduledProcessPaymentReminders_ShouldRecordHeartbeat_WhenEnabled() {
+        org.springframework.test.util.ReflectionTestUtils.setField(paymentReminderService, "reminderEnabled", true);
+
+        paymentReminderService.scheduledProcessPaymentReminders();
+
+        verify(jobHeartbeat).ran("payment_reminder");
+    }
+
+    @Test
+    @DisplayName("should not record a heartbeat when reminders are disabled")
+    void scheduledProcessPaymentReminders_ShouldNotRecordHeartbeat_WhenDisabled() {
+        org.springframework.test.util.ReflectionTestUtils.setField(paymentReminderService, "reminderEnabled", false);
+
+        paymentReminderService.scheduledProcessPaymentReminders();
+
+        verifyNoInteractions(jobHeartbeat);
     }
 }

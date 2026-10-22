@@ -40,6 +40,9 @@ class PurchaseReportServiceTest {
     @Mock
     private UserFacade userFacade;
 
+    @Mock
+    private net.focik.homeoffice.config.JobHeartbeat jobHeartbeat;
+
     @InjectMocks
     private PurchaseReportService purchaseReportService;
 

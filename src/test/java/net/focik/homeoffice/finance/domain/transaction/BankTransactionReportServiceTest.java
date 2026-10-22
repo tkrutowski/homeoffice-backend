@@ -37,6 +37,9 @@ class BankTransactionReportServiceTest {
     @Mock
     private UserFacade userFacade;
 
+    @Mock
+    private net.focik.homeoffice.config.JobHeartbeat jobHeartbeat;
+
     @InjectMocks
     private BankTransactionReportService bankTransactionReportService;
 

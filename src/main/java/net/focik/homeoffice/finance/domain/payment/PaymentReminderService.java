@@ -2,6 +2,7 @@ package net.focik.homeoffice.finance.domain.payment;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.config.JobHeartbeat;
 import net.focik.homeoffice.emailservice.domain.EmailNotificationPort;
 import net.focik.homeoffice.emailservice.domain.EmailRequest;
 import net.focik.homeoffice.finance.domain.exception.PaymentReminderException;
@@ -42,6 +43,7 @@ public class PaymentReminderService {
     private final GetLoanUseCase getLoanUseCase;
     private final EmailNotificationPort emailNotificationPort;
     private final UserFacade userFacade;
+    private final JobHeartbeat jobHeartbeat;
 
     @Value("${app.payment-reminder.enabled:true}")
     private boolean reminderEnabled;
@@ -60,6 +62,7 @@ public class PaymentReminderService {
         try {
             log.debug("Triggering scheduled payment reminder processing");
             processPaymentReminders();
+            jobHeartbeat.ran("payment_reminder");
         } catch (Exception e) {
             log.error("Error in scheduled payment reminder processing", e);
         }

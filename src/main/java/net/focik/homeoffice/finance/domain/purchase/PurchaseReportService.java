@@ -2,6 +2,7 @@ package net.focik.homeoffice.finance.domain.purchase;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.config.JobHeartbeat;
 import net.focik.homeoffice.emailservice.domain.EmailNotificationPort;
 import net.focik.homeoffice.emailservice.domain.EmailRequest;
 import net.focik.homeoffice.finance.domain.card.CardFacade;
@@ -34,6 +35,7 @@ public class PurchaseReportService implements GeneratePurchaseReportUseCase {
     private final CardFacade cardFacade;
     private final EmailNotificationPort emailNotificationPort;
     private final UserFacade userFacade;
+    private final JobHeartbeat jobHeartbeat;
 
     @Value("${app.purchase-report.enabled:true}")
     private boolean purchaseReportEnabled;
@@ -52,6 +54,7 @@ public class PurchaseReportService implements GeneratePurchaseReportUseCase {
         try {
             log.debug("Triggering scheduled monthly purchase report processing");
             processMonthlyReports();
+            jobHeartbeat.ran("purchase_report_monthly");
         } catch (Exception e) {
             log.error("Error in scheduled monthly purchase report processing", e);
         }
@@ -71,6 +74,7 @@ public class PurchaseReportService implements GeneratePurchaseReportUseCase {
         try {
             log.debug("Triggering scheduled weekly purchase report processing");
             processWeeklyReports();
+            jobHeartbeat.ran("purchase_report_weekly");
         } catch (Exception e) {
             log.error("Error in scheduled weekly purchase report processing", e);
         }

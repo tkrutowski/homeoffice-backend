@@ -2,6 +2,7 @@ package net.focik.homeoffice.finance.domain.transaction;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.config.JobHeartbeat;
 import net.focik.homeoffice.emailservice.domain.EmailNotificationPort;
 import net.focik.homeoffice.emailservice.domain.EmailRequest;
 import net.focik.homeoffice.finance.domain.transaction.model.BankTransaction;
@@ -35,6 +36,7 @@ public class BankTransactionReportService implements GenerateBankTransactionRepo
     private final GetBankTransactionUseCase getBankTransactionUseCase;
     private final EmailNotificationPort emailNotificationPort;
     private final UserFacade userFacade;
+    private final JobHeartbeat jobHeartbeat;
 
     @Value("${app.transaction-report.enabled:true}")
     private boolean transactionReportEnabled;
@@ -53,6 +55,7 @@ public class BankTransactionReportService implements GenerateBankTransactionRepo
         try {
             log.debug("Triggering scheduled monthly bank transaction report processing");
             processMonthlyReports();
+            jobHeartbeat.ran("transaction_report_monthly");
         } catch (Exception e) {
             log.error("Error in scheduled monthly bank transaction report processing", e);
         }
@@ -72,6 +75,7 @@ public class BankTransactionReportService implements GenerateBankTransactionRepo
         try {
             log.debug("Triggering scheduled weekly bank transaction report processing");
             processWeeklyReports();
+            jobHeartbeat.ran("transaction_report_weekly");
         } catch (Exception e) {
             log.error("Error in scheduled weekly bank transaction report processing", e);
         }
