@@ -101,7 +101,9 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     public Book addBook(Book book) {
         book.setCategories(categoryService.validCategories(book.getCategories()));
         book.setAuthors(authorService.validAuthors(book.getAuthors()));
-        book.setSeries(seriesService.validSeries(book.getSeries()));
+        if (Objects.nonNull(book.getSeries())) {
+            book.setSeries(seriesService.validSeries(book.getSeries()));
+        }
         return bookService.addBook(book);
     }
 
