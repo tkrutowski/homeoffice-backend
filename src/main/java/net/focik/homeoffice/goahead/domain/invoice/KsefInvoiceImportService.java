@@ -107,9 +107,16 @@ public class KsefInvoiceImportService implements ImportKsefInvoicesUseCase {
             customer.setNip(nip);
             customer.setCustomerType(CustomerType.COMPANY);
             customer.setActiveStatus(ActiveStatus.ACTIVE);
+            // Puste kontakty zapisujemy jako "" (jak klienci z formularza), nie NULL
+            customer.setMail("");
+            customer.setPhone("");
             if (buyer.getDaneKontaktowe() != null) {
-                customer.setMail(buyer.getDaneKontaktowe().getEmail());
-                customer.setPhone(buyer.getDaneKontaktowe().getTelefon());
+                if (buyer.getDaneKontaktowe().getEmail() != null) {
+                    customer.setMail(buyer.getDaneKontaktowe().getEmail());
+                }
+                if (buyer.getDaneKontaktowe().getTelefon() != null) {
+                    customer.setPhone(buyer.getDaneKontaktowe().getTelefon());
+                }
             }
             var address = buyer.getAdres() == null ? java.util.Optional.<KsefAddressParser.ParsedAddress>empty()
                     : KsefAddressParser.parse(buyer.getAdres().getAdresL1(), buyer.getAdres().getAdresL2());

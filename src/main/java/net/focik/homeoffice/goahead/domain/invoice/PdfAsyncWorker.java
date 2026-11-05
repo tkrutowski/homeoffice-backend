@@ -52,7 +52,7 @@ public class PdfAsyncWorker {
                 } catch (Exception e) {
                     log.error("Error generating PDF for invoice {}", id, e);
                     failed++;
-                    job.getErrors().add(new AsyncTaskError(String.valueOf(id), e.getMessage()));
+                    job.getErrors().add(new AsyncTaskError(String.valueOf(id), e.getMessage() != null ? e.getMessage() : e.toString()));
                     job.setProcessed(processed + failed);
                     asyncTaskService.updateTask(job);
                 }

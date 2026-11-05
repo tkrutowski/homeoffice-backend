@@ -7,6 +7,8 @@ import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.javamoney.moneta.Money;
 import javax.money.Monetary;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Slf4j
 @Builder
@@ -62,16 +64,17 @@ public class Pozycja {
 
             // Oblicz brakujące kwotaNetto
             if (kwotaNetto == null) {
-                if (kwotaVat != null) {
-                    // kwotaNetto = kwotaVat / (stawka / 100)
-                    Money vat = Money.of(kwotaVat, pln);
-                    Money netto = vat.divide(vatRate);
-                    this.kwotaNetto = netto.getNumber().doubleValue();
-                } else if (kwotaBrutto != null) {
-                    // kwotaNetto = kwotaBrutto / (1 + stawka / 100)
-                    Money brutto = Money.of(kwotaBrutto, pln);
-                    Money netto = brutto.divide(1 + vatRate);
-                    this.kwotaNetto = netto.getNumber().doubleValue();
+                if (kwotaBrutto != null) {
+                    // kwotaNetto = kwotaBrutto / (1 + stawka / 100) - dokładne, bo brutto jest kwotą z faktury
+                    this.kwotaNetto = BigDecimal.valueOf(kwotaBrutto)
+                            .divide(BigDecimal.valueOf(1 + vatRate), 2, RoundingMode.HALF_UP)
+                            .doubleValue();
+                } else if (kwotaVat != null && vatRate > 0) {
+                    // Ostateczność: VAT jest zaokrąglony do groszy, więc dzielenie przez stawkę
+                    // powiela błąd (np. 2,43 / 5% = 48,60 zamiast 48,56)
+                    this.kwotaNetto = BigDecimal.valueOf(kwotaVat)
+                            .divide(BigDecimal.valueOf(vatRate), 2, RoundingMode.HALF_UP)
+                            .doubleValue();
                 }
             }
 

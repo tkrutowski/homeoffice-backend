@@ -330,12 +330,25 @@ public class CostPdf {
             addCell(table, item.getVat().getViewValue(), Element.ALIGN_CENTER);
             addCell(table, item.getUnit(), Element.ALIGN_CENTER);
             addCell(table, String.valueOf(item.getQuantity()), Element.ALIGN_CENTER);
+            addCell(table, formatMoney(unitNet(item)), Element.ALIGN_RIGHT);
+            // amountNet/amountVat/amountGross to kwoty całej pozycji (nie za sztukę) - nie mnożymy przez ilość
             addCell(table, formatMoney(item.getAmountNet()), Element.ALIGN_RIGHT);
-            addCell(table, formatMoney(item.getAmountNet().multiply(item.getQuantity())), Element.ALIGN_RIGHT);
             addCell(table, item.getVat().getViewValue(), Element.ALIGN_CENTER);
-            addCell(table, formatMoney(item.getAmountVat().multiply(item.getQuantity())), Element.ALIGN_RIGHT);
-            addCell(table, formatMoney(item.getAmountGross().multiply(item.getQuantity())), Element.ALIGN_RIGHT);
+            addCell(table, formatMoney(item.getAmountVat()), Element.ALIGN_RIGHT);
+            addCell(table, formatMoney(item.getAmountGross()), Element.ALIGN_RIGHT);
         }
+    }
+
+    /** Cena jednostkowa netto; dla starszych pozycji bez amountUnitNet liczona jako kwota netto / ilość. */
+    private static Money unitNet(CostItem item) {
+        Money unit = item.getAmountUnitNet();
+        if (unit != null && !unit.isZero()) {
+            return unit;
+        }
+        if (item.getQuantity() > 0) {
+            return item.getAmountNet().divide(item.getQuantity());
+        }
+        return item.getAmountNet();
     }
 
     private static PdfPTable createItemTableSummary( Cost cost) {
@@ -357,13 +370,13 @@ public class CostPdf {
         List<VatSums> vatSumsList = itemsByVat.entrySet().stream()
                 .map(entry -> {
                     Money net = entry.getValue().stream()
-                            .map(item -> item.getAmountNet().multiply(item.getQuantity()))
+                            .map(CostItem::getAmountNet)
                             .reduce(Money.of(0, "PLN"), Money::add);
                     Money vat = entry.getValue().stream()
-                            .map(item -> item.getAmountVat().multiply(item.getQuantity()))
+                            .map(CostItem::getAmountVat)
                             .reduce(Money.of(0, "PLN"), Money::add);
                     Money gross = entry.getValue().stream()
-                            .map(item -> item.getAmountGross().multiply(item.getQuantity()))
+                            .map(CostItem::getAmountGross)
                             .reduce(Money.of(0, "PLN"), Money::add);
                     return new VatSums(entry.getKey(), net, vat, gross);
                 })

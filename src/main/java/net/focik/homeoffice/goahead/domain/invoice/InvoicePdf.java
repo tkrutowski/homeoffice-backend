@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import org.springframework.util.StringUtils;
+
 import static net.focik.homeoffice.utils.prints.FontUtil.*;
 
 @Slf4j
@@ -42,6 +44,10 @@ public class InvoicePdf {
             log.debug("Created supplier");
             document.add(createBuyer(invoice.getCustomer()));
             log.debug("Created buyer");
+            if (StringUtils.hasText(invoice.getVatGroupRecipientNip())) {
+                document.add(createVatGroupRecipient(invoice));
+                log.debug("Created VAT group recipient");
+            }
             document.add(createItemTable(invoice));
             log.debug("Created items table");
             document.add(createItemTableSummary(invoice));
@@ -237,7 +243,7 @@ public class InvoicePdf {
         //name
         Phrase name = new Phrase();
         Chunk name1 = new Chunk("Nabywca: ", FONT_10);
-        Chunk name2 = new Chunk(c.getName(), FONT_10_BOLD);
+        Chunk name2 = new Chunk(safe(c.getName()), FONT_10_BOLD);
         name.add(name1);
         name.add(name2);
         name.add(Chunk.NEWLINE);
@@ -247,7 +253,7 @@ public class InvoicePdf {
         //adres
         Phrase address = new Phrase();
         Chunk adr1 = new Chunk("Adres: ", FONT_10);
-        Chunk adr2 = new Chunk(c.getAddress().toString(), FONT_10_BOLD);
+        Chunk adr2 = new Chunk(c.getAddress() == null ? "" : c.getAddress().toString(), FONT_10_BOLD);
         address.add(adr1);
         address.add(adr2);
         address.add(Chunk.NEWLINE);
@@ -257,7 +263,7 @@ public class InvoicePdf {
         //tel
         Phrase phone = new Phrase();
         Chunk phone1 = new Chunk("Telefon: ", FONT_10);
-        Chunk phone2 = new Chunk(c.getPhone(), FONT_10_BOLD);
+        Chunk phone2 = new Chunk(safe(c.getPhone()), FONT_10_BOLD);
         phone.add(phone1);
         phone.add(phone2);
         phone.add(Chunk.NEWLINE);
@@ -267,7 +273,7 @@ public class InvoicePdf {
         //mail
         Phrase mail = new Phrase();
         Chunk mail1 = new Chunk("E-mail: ", FONT_10);
-        Chunk mail2 = new Chunk(c.getMail(), FONT_10_BOLD);
+        Chunk mail2 = new Chunk(safe(c.getMail()), FONT_10_BOLD);
         mail.add(mail1);
         mail.add(mail2);
         mail.add(Chunk.NEWLINE);
@@ -294,6 +300,48 @@ public class InvoicePdf {
 
         table.setSpacingAfter(5f);
         return table;
+    }
+
+    /** Faktura grupowa: nabywcą jest grupa VAT, a faktycznym odbiorcą jej członek (Podmiot3, rola 10 w KSeF). */
+    private static PdfPTable createVatGroupRecipient(Invoice invoice) {
+        PdfPTable table = new PdfPTable(1);
+        table.setWidthPercentage(100);
+
+        Phrase name = new Phrase();
+        name.add(new Chunk("Odbiorca (członek grupy VAT): ", FONT_10));
+        name.add(new Chunk(safe(invoice.getVatGroupRecipientName()), FONT_10_BOLD));
+        name.add(Chunk.NEWLINE);
+        name.add(new Chunk(" ", FONT_EMPTY_SPACE));
+        name.add(Chunk.NEWLINE);
+
+        String street = safe(invoice.getVatGroupRecipientStreet());
+        String zipCity = (safe(invoice.getVatGroupRecipientZip()) + " " + safe(invoice.getVatGroupRecipientCity())).trim();
+        String addressText = street.isEmpty() ? zipCity : (zipCity.isEmpty() ? street : street + ", " + zipCity);
+        Phrase address = new Phrase();
+        address.add(new Chunk("Adres: ", FONT_10));
+        address.add(new Chunk(addressText, FONT_10_BOLD));
+        address.add(Chunk.NEWLINE);
+        address.add(new Chunk(" ", FONT_EMPTY_SPACE));
+        address.add(Chunk.NEWLINE);
+
+        Phrase nip = new Phrase();
+        nip.add(new Chunk("NIP: ", FONT_10));
+        nip.add(new Chunk(safe(invoice.getVatGroupRecipientNip()), FONT_10_BOLD));
+        nip.add(Chunk.NEWLINE);
+
+        Paragraph p = new Paragraph();
+        p.add(name);
+        p.add(address);
+        p.add(nip);
+
+        table.addCell(p);
+        table.setSpacingAfter(5f);
+        return table;
+    }
+
+    /** iText nie przyjmuje null w Chunk - puste pola klienta (NULL w bazie) drukujemy jako pusty tekst. */
+    private static String safe(String value) {
+        return value == null ? "" : value;
     }
 
     private static PdfPTable createItemTable(Invoice invoice) {
