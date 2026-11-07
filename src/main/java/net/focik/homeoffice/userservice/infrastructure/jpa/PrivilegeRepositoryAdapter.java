@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 @RequiredArgsConstructor
 public class PrivilegeRepositoryAdapter implements IPrivilegeRepository {
-    private final IPrivilegeDtoRepository privilegeDtoRepository;
+    private final PrivilegeDtoRepository privilegeDtoRepository;
 
 
     @Override

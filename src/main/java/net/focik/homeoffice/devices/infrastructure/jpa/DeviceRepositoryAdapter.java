@@ -8,7 +8,7 @@ import net.focik.homeoffice.devices.domain.port.secondary.DeviceRepository;
 import net.focik.homeoffice.devices.infrastructure.dto.DeviceDbDto;
 import net.focik.homeoffice.devices.infrastructure.mapper.JpaDeviceMapper;
 import net.focik.homeoffice.fileService.infrastructure.dto.FileInfoDbDto;
-import net.focik.homeoffice.fileService.infrastructure.jpa.FilesDtoRepository;
+import net.focik.homeoffice.fileService.infrastructure.jpa.FileDtoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class DeviceRepositoryAdapter implements DeviceRepository {
 
     private final DeviceDtoRepository devicesDtoRepository;
-    private final FilesDtoRepository fileInfoDbDtoRepository;
+    private final FileDtoRepository fileInfoDbDtoRepository;
     private final JpaDeviceMapper mapper;
 
     @Override

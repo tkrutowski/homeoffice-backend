@@ -12,7 +12,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PasswordResetTokenRepositoryAdapter implements IPasswordResetTokenRepository {
 
-    private final IPasswordResetTokenDtoRepository passwordResetTokenDtoRepository;
+    private final PasswordResetTokenDtoRepository passwordResetTokenDtoRepository;
 
     @Override
     public PasswordResetToken save(PasswordResetToken token) {

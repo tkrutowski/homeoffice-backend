@@ -12,7 +12,7 @@ import java.util.Optional;
 @AllArgsConstructor
 class AddressRepositoryAdapter implements AddressRepository {
 
-    IAddressDtoRepository addressDtoRepository;
+    AddressDtoRepository addressDtoRepository;
     JpaMapper mapper;
 
     @Override

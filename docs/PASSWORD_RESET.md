@@ -132,7 +132,7 @@ chodzi pod innym adresem niż domyślny.
 | `userservice/domain/PasswordResetFacade.java` | logika: generowanie/hash tokena, TTL, jednorazowość, anty-spam, wysyłka maila, reset hasła |
 | `userservice/domain/port/primary/RequestPasswordResetUseCase.java` / `ResetPasswordUseCase.java` | porty (primary) |
 | `userservice/domain/port/secondary/IPasswordResetTokenRepository.java` | port repozytorium (secondary) |
-| `userservice/infrastructure/jpa/IPasswordResetTokenDtoRepository.java` / `PasswordResetTokenRepositoryAdapter.java` | adapter JPA |
+| `userservice/infrastructure/jpa/PasswordResetTokenDtoRepository.java` / `PasswordResetTokenRepositoryAdapter.java` | adapter JPA |
 | `userservice/api/dto/ForgotPasswordRequest.java` / `ResetPasswordRequest.java` | DTO żądań |
 | `userservice/api/AuthController.java` | `POST /forgot-password`, `POST /reset-password` |
 | `userservice/domain/exceptions/InvalidPasswordResetTokenException.java` | wyjątek nieprawidłowego/wygasłego tokena |

@@ -12,7 +12,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AppUserRepositoryAdapter implements IAppUserRepository {
 
-    private final IUserDtoRepository userDtoRepository;
+    private final UserDtoRepository userDtoRepository;
 
     @Override
     public AppUser addUser(AppUser user) {
