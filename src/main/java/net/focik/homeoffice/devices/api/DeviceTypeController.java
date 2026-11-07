@@ -3,8 +3,8 @@ package net.focik.homeoffice.devices.api;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.devices.domain.model.DeviceType;
-import net.focik.homeoffice.devices.domain.port.primary.FindDeviceUseCase;
-import net.focik.homeoffice.devices.domain.port.primary.SaveDeviceUseCase;
+import net.focik.homeoffice.devices.domain.port.primary.FindDeviceTypeUseCase;
+import net.focik.homeoffice.devices.domain.port.primary.SaveDeviceTypeUseCase;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +19,8 @@ import java.util.List;
 @RequestMapping("/api/v1/devices/type")
 public class DeviceTypeController {
 
-    private final FindDeviceUseCase findDeviceTypeUseCase;
-    private final SaveDeviceUseCase saveDeviceUseCase;
+    private final FindDeviceTypeUseCase findDeviceTypeUseCase;
+    private final SaveDeviceTypeUseCase saveDeviceTypeUseCase;
     private final ModelMapper mapper;
 
     @GetMapping
@@ -45,7 +45,7 @@ public class DeviceTypeController {
     @PreAuthorize("hasAnyAuthority('DEVICE_WRITE_ALL','DEVICE_WRITE') or hasRole('ROLE_ADMIN')")
     public  ResponseEntity<DeviceType> addDeviceType(@RequestBody DeviceType deviceType) {
         log.info("Request to add device type {}", deviceType);
-        DeviceType added = saveDeviceUseCase.add(deviceType);
+        DeviceType added = saveDeviceTypeUseCase.add(deviceType);
         log.info("Added device type {}", added);
         return new ResponseEntity<>(added,HttpStatus.CREATED);
     }

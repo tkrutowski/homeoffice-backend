@@ -5,7 +5,6 @@ import net.focik.homeoffice.audit.AuditAction;
 import net.focik.homeoffice.audit.AuditLog;
 import net.focik.homeoffice.devices.domain.model.Device;
 import net.focik.homeoffice.devices.domain.model.DeviceFile;
-import net.focik.homeoffice.devices.domain.model.DeviceType;
 import net.focik.homeoffice.devices.domain.port.primary.DeleteDeviceUseCase;
 import net.focik.homeoffice.devices.domain.port.primary.FindDeviceUseCase;
 import net.focik.homeoffice.devices.domain.port.primary.SaveDeviceUseCase;
@@ -18,7 +17,6 @@ import java.util.List;
 @Component
 public class DeviceFacade implements FindDeviceUseCase, SaveDeviceUseCase, DeleteDeviceUseCase {
     private final DeviceService deviceService;
-    private final DeviceTypeService deviceTypeService;
 
     @Override
     public Device getDeviceById(int id) {
@@ -32,24 +30,8 @@ public class DeviceFacade implements FindDeviceUseCase, SaveDeviceUseCase, Delet
     }
 
     @Override
-    public DeviceType findDeviceType(Integer id) {
-        return deviceTypeService.getById(id);
-    }
-
-    @Override
-    public List<DeviceType> getAllDeviceTypes() {
-        return deviceTypeService.getDeviceTypes();
-    }
-
-    @Override
     public List<Device> getDevicesByFirm(Integer idFirm) {
         return deviceService.getDevicesByFirm(idFirm);
-    }
-
-    @Override
-    @AuditLog(action = AuditAction.CREATE, entityType = "DeviceType")
-    public DeviceType add(DeviceType deviceType) {
-        return deviceTypeService.add(deviceType);
     }
 
     @Override
