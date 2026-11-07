@@ -1,4 +1,4 @@
-package net.focik.homeoffice.finance.infrastructure.adapter;
+package net.focik.homeoffice.finance.infrastructure.s3;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

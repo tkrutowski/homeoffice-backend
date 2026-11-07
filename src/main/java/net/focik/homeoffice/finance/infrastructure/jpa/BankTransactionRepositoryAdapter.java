@@ -1,10 +1,9 @@
-package net.focik.homeoffice.finance.infrastructure.adapter;
+package net.focik.homeoffice.finance.infrastructure.jpa;
 
 import lombok.AllArgsConstructor;
 import net.focik.homeoffice.finance.domain.transaction.model.BankTransaction;
 import net.focik.homeoffice.finance.domain.transaction.port.secondary.BankTransactionRepository;
 import net.focik.homeoffice.finance.infrastructure.dto.BankTransactionDbDto;
-import net.focik.homeoffice.finance.infrastructure.jpa.BankTransactionDtoRepository;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaBankTransactionMapper;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;

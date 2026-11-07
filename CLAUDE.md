@@ -40,6 +40,12 @@ domain/          entities, *UseCase port interfaces, domain services, domain exc
 infrastructure/  JPA *DbDto entities, Spring Data repos, UseCase adapters (@Repository)
 ```
 
+Layout inside `infrastructure/` (same in every module):
+- `dto/` — JPA `*DbDto` entities (the name stays `dto`, not `entity`).
+- `jpa/` — Spring Data repos named `<Entity>DtoRepository` (no `I` prefix) **and** the `<Entity>RepositoryAdapter` classes that implement the `port/secondary` interfaces, annotated `@Repository`.
+- `mapper/` — `Jpa*Mapper` classes (domain ↔ `*DbDto`).
+- `<technology>/` — one folder per external integration, named after the technology (`s3/`, `claude/`, `csvimport/`, `storage/` …); never `adapter/` and no in-memory/test-profile adapters.
+
 Modules: `goahead` (invoicing/KSef, costs, suppliers/customers), `finance` (purchases, fees, payments, cards, banks, loans, firms), `userservice` (auth, users, roles — also has `application/` layer), `devices`, `library`, `addresses`, `fileService` (S3), `logservice`, `async`, `utils`.
 
 Controllers depend on `*UseCase` interfaces from `domain/`, never on infrastructure adapters directly. Domain services/facades are Spring beans (`@Service`/`@Component`, 100+ classes in `domain/` use `org.springframework`), so domain is **not** Spring-free — but keep Spring out of the *port interfaces* (`port/primary`, `port/secondary`: no `@Component` on interfaces, the bean annotation belongs on the implementing adapter/service) and out of `model/`. Exceptions are custom `*Exception` classes in `domain/`.

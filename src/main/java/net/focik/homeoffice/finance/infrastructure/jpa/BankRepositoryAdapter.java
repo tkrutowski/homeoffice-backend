@@ -1,10 +1,9 @@
-package net.focik.homeoffice.finance.infrastructure.adapter;
+package net.focik.homeoffice.finance.infrastructure.jpa;
 
 import lombok.AllArgsConstructor;
 import net.focik.homeoffice.finance.domain.bank.Bank;
 import net.focik.homeoffice.finance.domain.bank.port.secondary.BankRepository;
 import net.focik.homeoffice.finance.infrastructure.dto.BankDbDto;
-import net.focik.homeoffice.finance.infrastructure.jpa.BankDtoRepository;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaBankMapper;
 import org.springframework.stereotype.Repository;
 

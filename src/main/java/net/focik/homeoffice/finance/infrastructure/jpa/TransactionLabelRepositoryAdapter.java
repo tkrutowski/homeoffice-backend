@@ -1,9 +1,8 @@
-package net.focik.homeoffice.finance.infrastructure.adapter;
+package net.focik.homeoffice.finance.infrastructure.jpa;
 
 import lombok.AllArgsConstructor;
 import net.focik.homeoffice.finance.domain.transaction.model.TransactionLabel;
 import net.focik.homeoffice.finance.domain.transaction.port.secondary.TransactionLabelRepository;
-import net.focik.homeoffice.finance.infrastructure.jpa.TransactionLabelDtoRepository;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaTransactionLabelMapper;
 import org.springframework.stereotype.Repository;
 

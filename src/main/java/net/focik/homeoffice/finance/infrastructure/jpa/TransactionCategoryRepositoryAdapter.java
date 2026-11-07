@@ -1,10 +1,9 @@
-package net.focik.homeoffice.finance.infrastructure.adapter;
+package net.focik.homeoffice.finance.infrastructure.jpa;
 
 import lombok.AllArgsConstructor;
 import net.focik.homeoffice.finance.domain.transaction.model.TransactionCategory;
 import net.focik.homeoffice.finance.domain.transaction.model.TransactionCategoryType;
 import net.focik.homeoffice.finance.domain.transaction.port.secondary.TransactionCategoryRepository;
-import net.focik.homeoffice.finance.infrastructure.jpa.TransactionCategoryDtoRepository;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaTransactionCategoryMapper;
 import org.springframework.stereotype.Repository;
 

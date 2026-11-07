@@ -1,10 +1,9 @@
-package net.focik.homeoffice.finance.infrastructure.adapter;
+package net.focik.homeoffice.finance.infrastructure.jpa;
 
 import lombok.AllArgsConstructor;
 import net.focik.homeoffice.finance.domain.loanproposal.LoanProposal;
 import net.focik.homeoffice.finance.domain.loanproposal.LoanProposalStatus;
 import net.focik.homeoffice.finance.domain.loanproposal.port.secondary.LoanProposalRepository;
-import net.focik.homeoffice.finance.infrastructure.jpa.LoanProposalDtoRepository;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaLoanProposalMapper;
 import org.springframework.stereotype.Repository;
 

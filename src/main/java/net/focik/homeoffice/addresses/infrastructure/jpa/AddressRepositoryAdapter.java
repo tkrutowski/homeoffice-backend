@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import net.focik.homeoffice.addresses.domain.Address;
 import net.focik.homeoffice.addresses.domain.port.AddressRepository;
 import net.focik.homeoffice.addresses.infrastructure.dto.AddressDbDto;
+import net.focik.homeoffice.addresses.infrastructure.mapper.JpaMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;

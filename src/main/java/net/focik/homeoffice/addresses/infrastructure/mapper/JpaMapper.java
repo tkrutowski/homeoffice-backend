@@ -1,11 +1,11 @@
-package net.focik.homeoffice.addresses.infrastructure.jpa;
+package net.focik.homeoffice.addresses.infrastructure.mapper;
 
 import net.focik.homeoffice.addresses.domain.Address;
 import net.focik.homeoffice.addresses.infrastructure.dto.AddressDbDto;
 import org.springframework.stereotype.Component;
 
 @Component
-class JpaMapper {
+public class JpaMapper {
 
     public Address toDomain(AddressDbDto dto) {
         return Address.builder()
