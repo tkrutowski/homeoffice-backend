@@ -11,14 +11,14 @@ import net.focik.homeoffice.devices.infrastructure.dto.DesktopComputerDbDto;
 import net.focik.homeoffice.devices.infrastructure.dto.LaptopComputerDbDto;
 import net.focik.homeoffice.devices.infrastructure.mapper.JpaDesktopComputerMapper;
 import net.focik.homeoffice.devices.infrastructure.mapper.JpaLaptopComputerMapper;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Slf4j
-@Component
+@Repository
 @RequiredArgsConstructor
 public class ComputerRepositoryAdapter implements ComputerRepository {
 

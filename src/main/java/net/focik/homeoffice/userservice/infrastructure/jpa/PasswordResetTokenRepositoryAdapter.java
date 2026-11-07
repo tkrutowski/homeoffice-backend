@@ -3,12 +3,12 @@ package net.focik.homeoffice.userservice.infrastructure.jpa;
 import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.userservice.domain.PasswordResetToken;
 import net.focik.homeoffice.userservice.domain.port.secondary.IPasswordResetTokenRepository;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-@Component
+@Repository
 @RequiredArgsConstructor
 public class PasswordResetTokenRepositoryAdapter implements IPasswordResetTokenRepository {
 

@@ -6,13 +6,13 @@ import net.focik.homeoffice.finance.domain.firm.port.secondary.FirmRepository;
 import net.focik.homeoffice.finance.infrastructure.dto.FirmDbDto;
 import net.focik.homeoffice.finance.infrastructure.jpa.FirmDtoRepository;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaFirmMapper;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Component
+@Repository
 @AllArgsConstructor
 public class FirmRepositoryAdapter implements FirmRepository {
 

@@ -9,7 +9,7 @@ import net.focik.homeoffice.devices.infrastructure.dto.DeviceDbDto;
 import net.focik.homeoffice.devices.infrastructure.mapper.JpaDeviceMapper;
 import net.focik.homeoffice.fileService.infrastructure.dto.FileInfoDbDto;
 import net.focik.homeoffice.fileService.infrastructure.jpa.FilesDtoRepository;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Component
+@Repository
 @AllArgsConstructor
 public class DeviceRepositoryAdapter implements DeviceRepository {
 

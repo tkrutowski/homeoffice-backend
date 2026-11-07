@@ -4,11 +4,11 @@ import lombok.AllArgsConstructor;
 import net.focik.homeoffice.addresses.domain.Address;
 import net.focik.homeoffice.addresses.domain.port.AddressRepository;
 import net.focik.homeoffice.addresses.infrastructure.dto.AddressDbDto;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Component
+@Repository
 @AllArgsConstructor
 class AddressRepositoryAdapter implements AddressRepository {
 

@@ -7,7 +7,7 @@ import net.focik.homeoffice.finance.infrastructure.dto.BankTransactionDbDto;
 import net.focik.homeoffice.finance.infrastructure.jpa.BankTransactionDtoRepository;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaBankTransactionMapper;
 import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Component
+@Repository
 @Primary
 @AllArgsConstructor
 class BankTransactionRepositoryAdapter implements BankTransactionRepository {

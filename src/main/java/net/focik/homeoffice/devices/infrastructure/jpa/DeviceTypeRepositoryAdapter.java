@@ -6,13 +6,13 @@ import net.focik.homeoffice.devices.domain.model.DeviceType;
 import net.focik.homeoffice.devices.domain.port.secondary.DeviceTypeRepository;
 import net.focik.homeoffice.devices.infrastructure.dto.DeviceTypeDbDto;
 import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Slf4j
-@Component
+@Repository
 @RequiredArgsConstructor
 public class DeviceTypeRepositoryAdapter implements DeviceTypeRepository {
 

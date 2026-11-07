@@ -3,12 +3,12 @@ package net.focik.homeoffice.userservice.infrastructure.jpa;
 import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.userservice.domain.Role;
 import net.focik.homeoffice.userservice.domain.port.secondary.RoleRepository;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-@Component
+@Repository
 @RequiredArgsConstructor
 public class RoleRepositoryAdapter implements RoleRepository {
     private final IRoleDtoRepository roleDtoRepository;

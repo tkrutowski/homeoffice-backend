@@ -6,13 +6,13 @@ import net.focik.homeoffice.goahead.domain.customer.ActiveStatus;
 import net.focik.homeoffice.goahead.domain.customer.port.secondary.CustomerRepository;
 import net.focik.homeoffice.goahead.infrastructure.dto.CustomerDbDto;
 import net.focik.homeoffice.goahead.infrastructure.mapper.JpaCustomerMapper;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Component
+@Repository
 @AllArgsConstructor
 public class CustomerRepositoryAdapter implements CustomerRepository {
 

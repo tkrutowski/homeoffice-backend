@@ -5,13 +5,13 @@ import net.focik.homeoffice.library.domain.model.Category;
 import net.focik.homeoffice.library.domain.port.secondary.CategoryRepository;
 import net.focik.homeoffice.library.infrastructure.dto.CategoryDbDto;
 import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Component
+@Repository
 @RequiredArgsConstructor
 public class CategoryRepositoryAdapter implements CategoryRepository {
     private final CategoryDtoRepository categoryDtoRepository;

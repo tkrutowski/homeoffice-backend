@@ -6,13 +6,13 @@ import net.focik.homeoffice.finance.domain.loanproposal.LoanProposalStatus;
 import net.focik.homeoffice.finance.domain.loanproposal.port.secondary.LoanProposalRepository;
 import net.focik.homeoffice.finance.infrastructure.jpa.LoanProposalDtoRepository;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaLoanProposalMapper;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Component
+@Repository
 @AllArgsConstructor
 class LoanProposalRepositoryAdapter implements LoanProposalRepository {
 

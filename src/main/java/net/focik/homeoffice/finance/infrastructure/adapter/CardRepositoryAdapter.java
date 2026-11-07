@@ -7,13 +7,13 @@ import net.focik.homeoffice.finance.infrastructure.dto.CardDbDto;
 import net.focik.homeoffice.finance.infrastructure.jpa.CardDtoRepository;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaCardMapper;
 import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Component
+@Repository
 @Primary
 @AllArgsConstructor
 class CardRepositoryAdapter implements CardRepository {

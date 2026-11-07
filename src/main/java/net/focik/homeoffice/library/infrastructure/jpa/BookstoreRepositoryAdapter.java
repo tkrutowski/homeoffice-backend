@@ -5,13 +5,13 @@ import net.focik.homeoffice.library.domain.model.Bookstore;
 import net.focik.homeoffice.library.domain.port.secondary.BookstoreRepository;
 import net.focik.homeoffice.library.infrastructure.dto.BookstoreDbDto;
 import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Component
+@Repository
 @RequiredArgsConstructor
 public class BookstoreRepositoryAdapter implements BookstoreRepository {
 

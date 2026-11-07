@@ -6,13 +6,13 @@ import net.focik.homeoffice.finance.domain.bank.port.secondary.BankRepository;
 import net.focik.homeoffice.finance.infrastructure.dto.BankDbDto;
 import net.focik.homeoffice.finance.infrastructure.jpa.BankDtoRepository;
 import net.focik.homeoffice.finance.infrastructure.mapper.JpaBankMapper;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Component
+@Repository
 @AllArgsConstructor
 public class BankRepositoryAdapter implements BankRepository {
 

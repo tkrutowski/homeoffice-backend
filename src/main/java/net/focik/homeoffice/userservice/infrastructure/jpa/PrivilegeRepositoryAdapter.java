@@ -3,11 +3,11 @@ package net.focik.homeoffice.userservice.infrastructure.jpa;
 import lombok.RequiredArgsConstructor;
 import net.focik.homeoffice.userservice.domain.Privilege;
 import net.focik.homeoffice.userservice.domain.port.secondary.IPrivilegeRepository;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Component
+@Repository
 @RequiredArgsConstructor
 public class PrivilegeRepositoryAdapter implements IPrivilegeRepository {
     private final IPrivilegeDtoRepository privilegeDtoRepository;

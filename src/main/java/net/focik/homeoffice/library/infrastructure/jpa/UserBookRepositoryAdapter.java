@@ -7,14 +7,14 @@ import net.focik.homeoffice.library.domain.model.UserBook;
 import net.focik.homeoffice.library.domain.port.secondary.UserBookRepository;
 import net.focik.homeoffice.library.infrastructure.dto.UserBookDbDto;
 import net.focik.homeoffice.library.infrastructure.mapper.JpaUserBookMapper;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Component
+@Repository
 @AllArgsConstructor
 public class UserBookRepositoryAdapter implements UserBookRepository {
 

@@ -6,14 +6,14 @@ import net.focik.homeoffice.goahead.domain.supplier.Supplier;
 import net.focik.homeoffice.goahead.domain.supplier.port.secondary.SupplierRepository;
 import net.focik.homeoffice.goahead.infrastructure.dto.SupplierDbDto;
 import net.focik.homeoffice.goahead.infrastructure.mapper.JpaSupplierMapper;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Component
+@Repository
 @AllArgsConstructor
 public class SupplierRepositoryAdapter implements SupplierRepository {
 
