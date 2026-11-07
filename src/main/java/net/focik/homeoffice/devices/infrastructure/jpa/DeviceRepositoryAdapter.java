@@ -19,9 +19,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @AllArgsConstructor
-public class DevicesRepositoryAdapter implements DeviceRepository {
+public class DeviceRepositoryAdapter implements DeviceRepository {
 
-    private final DevicesDtoRepository devicesDtoRepository;
+    private final DeviceDtoRepository devicesDtoRepository;
     private final FilesDtoRepository fileInfoDbDtoRepository;
     private final JpaDeviceMapper mapper;
 

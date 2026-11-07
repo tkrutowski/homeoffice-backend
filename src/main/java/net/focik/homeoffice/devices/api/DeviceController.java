@@ -21,7 +21,7 @@ import java.util.List;
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/v1/devices")
-public class DevicesController {
+public class DeviceController {
     private final FindDeviceUseCase findDeviceUseCase;
     private final SaveDeviceUseCase saveDeviceUseCase;
     private final DeleteDeviceUseCase deleteDeviceUseCase;

@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-interface DevicesDtoRepository extends JpaRepository<DeviceDbDto, Integer> {
+interface DeviceDtoRepository extends JpaRepository<DeviceDbDto, Integer> {
 
     List<DeviceDbDto> findAllByFirm_Id(Integer idFirm);
 }
