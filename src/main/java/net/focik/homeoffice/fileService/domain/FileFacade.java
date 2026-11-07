@@ -33,6 +33,11 @@ public class FileFacade implements SaveFileUseCase, DeleteFileUseCase, GetFilesU
     }
 
     @Override
+    public String downloadAndSaveImage(String imageUrl, String name, Module module) {
+        return fileStorageService.downloadAndSaveImage(imageUrl, name, module);
+    }
+
+    @Override
     public void deleteFile(Module module, String fileName) {
         String s3Key = buildS3Key(module, fileName);
         fileStorageService.delete(s3Key);

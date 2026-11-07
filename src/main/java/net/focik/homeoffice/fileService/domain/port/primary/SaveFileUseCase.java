@@ -9,4 +9,5 @@ import org.springframework.web.multipart.MultipartFile;
 public interface SaveFileUseCase {
     FileInfo uploadFile(MultipartFile file, Module module);
     UploadUrlResponse getUploadUrl(UploadUrlRequest request);
+    String downloadAndSaveImage(String imageUrl, String name, Module module);
 }

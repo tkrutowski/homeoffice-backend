@@ -3,6 +3,7 @@ package net.focik.homeoffice.devices.domain;
 import lombok.AllArgsConstructor;
 import net.focik.homeoffice.audit.AuditAction;
 import net.focik.homeoffice.audit.AuditLog;
+import net.focik.homeoffice.devices.domain.service.ComputerService;
 import net.focik.homeoffice.devices.domain.model.Computer;
 import net.focik.homeoffice.devices.domain.model.ComputerType;
 import net.focik.homeoffice.devices.domain.port.primary.*;

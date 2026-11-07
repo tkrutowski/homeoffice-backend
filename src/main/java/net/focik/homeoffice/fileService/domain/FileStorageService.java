@@ -44,6 +44,10 @@ public class FileStorageService {
         );
     }
 
+    public String downloadAndSaveImage(String imageUrl, String name, Module module) {
+        return fileRepository.downloadAndSaveImage(imageUrl, name, module);
+    }
+
     public void delete(String s3Key) {
         fileRepository.deleteFile(s3Key);
     }

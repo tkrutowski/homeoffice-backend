@@ -1,4 +1,4 @@
-package net.focik.homeoffice.devices.domain;
+package net.focik.homeoffice.devices.domain.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @AllArgsConstructor
-class ComputerService {
+public class ComputerService {
     private final ComputerRepository computerRepository;
     private final DeviceService deviceService;
 

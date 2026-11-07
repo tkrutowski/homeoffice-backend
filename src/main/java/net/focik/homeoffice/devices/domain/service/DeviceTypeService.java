@@ -1,4 +1,4 @@
-package net.focik.homeoffice.devices.domain;
+package net.focik.homeoffice.devices.domain.service;
 
 import lombok.AllArgsConstructor;
 import net.focik.homeoffice.audit.AuditAction;

@@ -1,4 +1,4 @@
-package net.focik.homeoffice.devices.domain;
+package net.focik.homeoffice.devices.domain.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +8,7 @@ import net.focik.homeoffice.devices.domain.model.Device;
 import net.focik.homeoffice.devices.domain.model.DesktopComputer;
 import net.focik.homeoffice.devices.domain.port.secondary.ComputerRepository;
 import net.focik.homeoffice.devices.domain.port.secondary.DeviceRepository;
-import net.focik.homeoffice.fileService.domain.port.secondary.FileRepository;
+import net.focik.homeoffice.fileService.domain.port.primary.SaveFileUseCase;
 import net.focik.homeoffice.utils.share.ActiveStatus;
 import net.focik.homeoffice.utils.share.Module;
 import org.apache.commons.lang3.StringUtils;
@@ -22,9 +22,9 @@ import java.util.stream.Stream;
 @Slf4j
 @Service
 @AllArgsConstructor
-class DeviceService {
+public class DeviceService {
     private final DeviceRepository deviceRepository;
-    private final FileRepository fileRepository;
+    private final SaveFileUseCase saveFileUseCase;
     private final ComputerRepository computerRepository;
 
     public List<Device> getDevices(ActiveStatus activeStatus) {
@@ -47,7 +47,7 @@ class DeviceService {
             log.debug("No image url found for device {}", device);
         } else {
             log.debug("Image url found for device {}", device);
-            device.setImageUrl(fileRepository.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
+            device.setImageUrl(saveFileUseCase.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
         }
         return deviceRepository.saveDevice(device);
     }
@@ -56,7 +56,7 @@ class DeviceService {
         log.debug("Updating device {}", device);
 
         if (device.getImageUrl() != null && !device.getImageUrl().contains("focik-home")) {
-            device.setImageUrl(fileRepository.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
+            device.setImageUrl(saveFileUseCase.downloadAndSaveImage(device.getImageUrl(), device.getName(), Module.DEVICE_IMAGES));
         }
         Device savedDevice = deviceRepository.saveDevice(device);
         log.debug("Updated device {}", savedDevice);
