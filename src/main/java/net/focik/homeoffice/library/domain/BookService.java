@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.emailservice.domain.EmailNotificationPort;
 import net.focik.homeoffice.emailservice.domain.EmailRequest;
-import net.focik.homeoffice.fileService.domain.port.secondary.FileRepository;
+import net.focik.homeoffice.fileService.domain.port.primary.SaveFileUseCase;
 import net.focik.homeoffice.library.domain.exception.BookAlreadyExistException;
 import net.focik.homeoffice.library.domain.exception.BookNotFoundException;
 import net.focik.homeoffice.library.domain.model.Author;
@@ -41,7 +41,7 @@ import java.util.Optional;
 public class BookService {
 
     private final BookRepository bookRepository;
-    private final FileRepository fileRepository;
+    private final SaveFileUseCase saveFileUseCase;
     private final UserBookRepository userBookRepository;
     private final EmailNotificationPort emailNotificationPort;
 
@@ -68,7 +68,7 @@ public class BookService {
         log.debug("Adding book {}", book);
         if (isBookExist(book))
             throw new BookAlreadyExistException(book);
-        book.setCover(fileRepository.downloadAndSaveImage(book.getCover(), book.getTitle(), Module.BOOK));
+        book.setCover(saveFileUseCase.downloadAndSaveImage(book.getCover(), book.getTitle(), Module.BOOK));
         return Optional.of(bookRepository.add(book))
                 .get().orElse(null);
     }
@@ -105,7 +105,7 @@ public class BookService {
     public Book updateBook(Book book) {
         log.debug("Updating book {}", book);
         if (!book.getCover().contains("focik-home")) {
-            book.setCover(fileRepository.downloadAndSaveImage(book.getCover(), book.getTitle(), Module.BOOK));
+            book.setCover(saveFileUseCase.downloadAndSaveImage(book.getCover(), book.getTitle(), Module.BOOK));
         }
 
         Optional<Book> updatedBook = bookRepository.update(book);

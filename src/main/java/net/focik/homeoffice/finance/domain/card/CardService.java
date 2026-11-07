@@ -3,7 +3,7 @@ package net.focik.homeoffice.finance.domain.card;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.focik.homeoffice.fileService.domain.port.secondary.FileRepository;
+import net.focik.homeoffice.fileService.domain.port.primary.SaveFileUseCase;
 import net.focik.homeoffice.finance.domain.card.port.secondary.CardRepository;
 import net.focik.homeoffice.finance.domain.exception.CardAlreadyExistException;
 import net.focik.homeoffice.finance.domain.exception.CardCanNotBeDeletedException;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 class CardService {
 
     private final CardRepository cardRepository;
-    private final FileRepository fileRepository;
+    private final SaveFileUseCase saveFileUseCase;
     // @Lazy przerywa cykl zależności: PurchaseFacade (implementacja GetPurchaseUseCase)
     // zależy od CardFacade, a ta od CardService - bez leniwego proxy Spring nie złoży kontekstu.
     @Lazy
@@ -41,7 +41,7 @@ class CardService {
             throw new CardAlreadyExistException("Karta o tej nazwie już istnieje.");
 
         if (card.getImageUrl() != null && !card.getImageUrl().isBlank())
-            card.setImageUrl(fileRepository.downloadAndSaveImage(card.getImageUrl(), card.getCardName(), Module.CARD));
+            card.setImageUrl(saveFileUseCase.downloadAndSaveImage(card.getImageUrl(), card.getCardName(), Module.CARD));
         return cardRepository.saveCard(card);
     }
 
