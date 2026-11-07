@@ -42,7 +42,7 @@ infrastructure/  JPA *DbDto entities, Spring Data repos, UseCase adapters (@Repo
 
 Modules: `goahead` (invoicing/KSef, costs, suppliers/customers), `finance` (purchases, fees, payments, cards, banks, loans, firms), `userservice` (auth, users, roles — also has `application/` layer), `devices`, `library`, `addresses`, `fileService` (S3), `logservice`, `async`, `utils`.
 
-Controllers depend on `*UseCase` interfaces from `domain/`, never on infrastructure adapters directly. Domain stays Spring-free; exceptions are custom `*Exception` classes in `domain/`.
+Controllers depend on `*UseCase` interfaces from `domain/`, never on infrastructure adapters directly. Domain services/facades are Spring beans (`@Service`/`@Component`, 100+ classes in `domain/` use `org.springframework`), so domain is **not** Spring-free — but keep Spring out of the *port interfaces* (`port/primary`, `port/secondary`: no `@Component` on interfaces, the bean annotation belongs on the implementing adapter/service) and out of `model/`. Exceptions are custom `*Exception` classes in `domain/`.
 
 ### Key cross-cutting pieces
 
@@ -106,6 +106,8 @@ public class BankTransactionReportService implements GenerateBankTransactionRepo
 ```
 
 Controllers always depend on `*UseCase` port interfaces from `domain/`, never on `*Service` or `*Facade` directly.
+
+Keep ports focused: one `*UseCase` set per aggregate (e.g. `devices` has separate `FindDeviceTypeUseCase`/`SaveDeviceTypeUseCase`, not extra methods on `FindDeviceUseCase`). A module must reach another module's functionality through its `port/primary` use case (e.g. `SaveFileUseCase.downloadAndSaveImage`), never through that module's `port/secondary` repository.
 
 ### Conventions to follow
 
