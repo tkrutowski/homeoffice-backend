@@ -6,7 +6,7 @@ import net.focik.homeoffice.library.domain.model.ReadingStatus;
 import net.focik.homeoffice.library.domain.model.UserBook;
 import net.focik.homeoffice.library.domain.port.secondary.BookRepository;
 import net.focik.homeoffice.library.domain.port.secondary.UserBookRepository;
-import net.focik.homeoffice.fileService.domain.port.secondary.FileRepository;
+import net.focik.homeoffice.fileService.domain.port.primary.SaveFileUseCase;
 import net.focik.homeoffice.userservice.domain.AppUser;
 import net.focik.homeoffice.userservice.domain.UserFacade;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +46,7 @@ class BookServiceEmailTest {
     private BookRepository bookRepository;
 
     @Mock
-    private FileRepository fileRepository;
+    private SaveFileUseCase saveFileUseCase;
 
     @Mock
     private UserBookRepository userBookRepository;
@@ -70,7 +70,7 @@ class BookServiceEmailTest {
         // Create service with mocks
         bookService = new BookService(
                 bookRepository,
-                fileRepository,
+                saveFileUseCase,
                 userBookRepository,
                 emailNotificationPort,
                 userFacade
