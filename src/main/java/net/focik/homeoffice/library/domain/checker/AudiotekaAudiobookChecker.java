@@ -32,7 +32,13 @@ public class AudiotekaAudiobookChecker implements AudiobookChecker {
                     .userAgent("Mozilla/5.0")
                     .get();
 
-            Elements results = doc.select("li.adtk-item");
+            Elements results = doc.select("li:has(a[href*=/pl/audiobook/])");
+
+            if (results.isEmpty() && !doc.select("[class*=search_]").isEmpty()) {
+                log.debug("Audioteka: brak wyników dla '{}'", title);
+            } else if (results.isEmpty()) {
+                log.warn("Audioteka: strona wyszukiwania nie zawiera oczekiwanej struktury - HTML mógł się zmienić ({})", searchUrl);
+            }
 
             for (Element result : results) {
                 String bookTitle = extractTitle(result);
@@ -60,12 +66,22 @@ public class AudiotekaAudiobookChecker implements AudiobookChecker {
     }
 
     private String extractTitle(Element item) {
-        Element titleEl = item.selectFirst("p.teaser_title__hDeCG");
-        return titleEl != null ? titleEl.text() : "";
+        Element titleEl = item.selectFirst("[class*=teaser_title]");
+        if (titleEl != null && !titleEl.text().isBlank()) {
+            return titleEl.text();
+        }
+        // zapas: aria-label linku zaczyna się od tytułu ("Tytuł. Autor. Ocena ...")
+        Element linkEl = item.selectFirst("a[href*=/pl/audiobook/]");
+        if (linkEl != null) {
+            String label = linkEl.attr("aria-label");
+            int dot = label.indexOf(". ");
+            return dot > 0 ? label.substring(0, dot) : label;
+        }
+        return "";
     }
 
     private String extractUrl(Element item) {
-        Element linkEl = item.selectFirst("a.teaser_link__fxVFQ");
+        Element linkEl = item.selectFirst("a[href*=/pl/audiobook/]");
         if (linkEl != null) {
             String href = linkEl.attr("href");
             if (href.contains("/pl/audiobook/")) {
