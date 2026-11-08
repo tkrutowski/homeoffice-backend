@@ -12,16 +12,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 class BookScraperService {
+
+    private static final long MIN_DELAY_BETWEEN_REQUESTS_MS = 1500;
+    private static final long DELAY_JITTER_MS = 1000;
 
     private final AiScraperPort aiScraperPort;
     private final SeriesRepository seriesRepository;
@@ -55,19 +58,43 @@ class BookScraperService {
         log.debug("Trying to find books in series by url {}", url);
         Scraper scraper  = getScraperFromUrl(url);
         List<String> booksFromUrl = scraper.findBooksFromUrl(url);
-        return booksFromUrl.stream()
-                .map(this::findBookByUrl)
-                .filter(Objects::nonNull)
-                .filter(book -> {
-                    String normalizedExisting = normalizeForComparison(existingTitles);
-                    String normalizedTitle = normalizeForComparison(book.getTitle());
-                    boolean isNew = !normalizedExisting.contains(normalizedTitle);
-                    if (!isNew) {
-                        log.debug("Filtered out duplicate title: '{}' | existing: '{}'", book.getTitle(), existingTitles);
-                    }
-                    return isNew;
-                })
-                .collect(Collectors.toList());
+        String normalizedExisting = normalizeForComparison(existingTitles);
+
+        List<Book> newBooks = new ArrayList<>();
+        for (int i = 0; i < booksFromUrl.size(); i++) {
+            if (i > 0 && !pauseBetweenRequests()) {
+                break;
+            }
+            Book book = findBookByUrl(booksFromUrl.get(i));
+            if (book == null) {
+                continue;
+            }
+            String normalizedTitle = normalizeForComparison(book.getTitle());
+            if (normalizedExisting.contains(normalizedTitle)) {
+                log.debug("Filtered out duplicate title: '{}' | existing: '{}'", book.getTitle(), existingTitles);
+            } else {
+                newBooks.add(book);
+            }
+        }
+        return newBooks;
+    }
+
+    /**
+     * Przerwa między pobraniami kolejnych stron książek z serii. Bez niej seria z kilkunastoma tomami
+     * to kilkanaście żądań w kilka sekund, a serwisy (np. upolujebooka.pl za Cloudflare) blokują za to klienta.
+     *
+     * @return false, gdy wątek został przerwany i należy przerwać pobieranie
+     */
+    private boolean pauseBetweenRequests() {
+        long delay = MIN_DELAY_BETWEEN_REQUESTS_MS + ThreadLocalRandom.current().nextLong(DELAY_JITTER_MS + 1);
+        try {
+            Thread.sleep(delay);
+            return true;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("Interrupted while waiting between book page requests, stopping series scan");
+            return false;
+        }
     }
 
     private Book convertToBook(BookScraperDto dto) {
