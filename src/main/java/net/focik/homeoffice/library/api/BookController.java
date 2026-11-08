@@ -4,13 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.api.dto.AudiobookAvailabilityResponseDto;
 import net.focik.homeoffice.library.api.dto.BookApiDto;
+import net.focik.homeoffice.library.api.dto.BookSearchResultDto;
 import net.focik.homeoffice.library.api.mapper.ApiBookMapper;
+import net.focik.homeoffice.library.api.mapper.ApiBookSearchResultMapper;
 import net.focik.homeoffice.library.api.mapper.AudiobookAvailabilityMapper;
 import net.focik.homeoffice.library.domain.model.Book;
 import net.focik.homeoffice.library.domain.port.primary.DeleteBookUseCase;
 import net.focik.homeoffice.library.domain.port.primary.FindAudiobookAvailabilityUseCase;
 import net.focik.homeoffice.library.domain.port.primary.FindBookUseCase;
 import net.focik.homeoffice.library.domain.port.primary.SaveBookUseCase;
+import net.focik.homeoffice.library.domain.port.primary.SearchBookUseCase;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -35,6 +38,23 @@ public class BookController {
     private final ApiBookMapper bookMapper;
     private final FindAudiobookAvailabilityUseCase findAudiobookAvailabilityUseCase;
     private final AudiobookAvailabilityMapper audiobookAvailabilityMapper;
+    private final SearchBookUseCase searchBookUseCase;
+    private final ApiBookSearchResultMapper bookSearchResultMapper;
+
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
+    ResponseEntity<List<BookSearchResultDto>> searchBooks(@RequestParam(name = "title") String title,
+                                                          @RequestParam(name = "author", defaultValue = "") String author) {
+        log.info("Request to search books: title='{}', author='{}'", title, author);
+        if (title.isBlank()) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        List<BookSearchResultDto> results = searchBookUseCase.searchBooks(title, author).stream()
+                .map(bookSearchResultMapper::toDto)
+                .toList();
+        log.info("Book search found {} candidates", results.size());
+        return new ResponseEntity<>(results, HttpStatus.OK);
+    }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
