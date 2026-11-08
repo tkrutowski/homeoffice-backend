@@ -6,6 +6,7 @@ import net.focik.homeoffice.library.domain.port.secondary.BookSearchPort;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -20,6 +21,7 @@ import java.util.regex.Pattern;
  * to nic nie da (np. autor zapisany inaczej) ponawiamy z samym tytułem.
  */
 @Slf4j
+@Order(1)
 @Component
 public class LubimyczytacBookSearchAdapter implements BookSearchPort {
 
