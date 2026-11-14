@@ -32,12 +32,12 @@ class ClaudeBookQueryExtractorAdapterTest {
     @Test
     void parsesAllFields() {
         BookQuery q = parse("""
-                {"title": "Rodzinny interes", "author": "Chmielarz", "editionType": "AUDIOBOOK", "ownershipStatus": "WONT"}""");
+                {"title": "Rodzinny interes", "author": "Chmielarz", "editionType": "AUDIOBOOK", "ownershipStatus": "WANT"}""");
 
         assertEquals("Rodzinny interes", q.title());
         assertEquals("Chmielarz", q.author());
         assertEquals(EditionType.AUDIOBOOK, q.editionType());
-        assertEquals(OwnershipStatus.WONT, q.ownershipStatus());
+        assertEquals(OwnershipStatus.WANT, q.ownershipStatus());
     }
 
     @Test

@@ -153,7 +153,7 @@ class BookSearchServiceTest {
 
     @Test
     void textSearchSearchesWithExtractedTitleAndAuthorAndReturnsQuery() {
-        BookQuery query = new BookQuery("Rodzinny interes", "Chmielarz", EditionType.AUDIOBOOK, OwnershipStatus.WONT);
+        BookQuery query = new BookQuery("Rodzinny interes", "Chmielarz", EditionType.AUDIOBOOK, OwnershipStatus.WANT);
         FakeExtractor extractor = new FakeExtractor(query);
         BookSearchService service = newService(
                 List.of(port("a", List.of(

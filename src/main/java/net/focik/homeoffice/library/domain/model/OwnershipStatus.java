@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 public enum OwnershipStatus {
-    HAVE("Mam"), WONT("Chce"), READ_ONLY("Tylko czytam");
+    HAVE("Mam"), WANT("Chce"), READ_ONLY("Tylko czytam");
 
     private final String viewValue;
 
