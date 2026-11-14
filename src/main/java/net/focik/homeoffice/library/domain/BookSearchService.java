@@ -2,8 +2,11 @@ package net.focik.homeoffice.library.domain;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.library.domain.model.BookQuery;
 import net.focik.homeoffice.library.domain.model.BookSearchResult;
+import net.focik.homeoffice.library.domain.model.BookTextSearchResult;
 import net.focik.homeoffice.library.domain.port.primary.SearchBookUseCase;
+import net.focik.homeoffice.library.domain.port.secondary.BookQueryExtractorPort;
 import net.focik.homeoffice.library.domain.port.secondary.BookSearchPort;
 import org.springframework.stereotype.Service;
 
@@ -20,8 +23,45 @@ import java.util.Map;
 class BookSearchService implements SearchBookUseCase {
 
     private static final int MAX_RESULTS = 10;
+    // punktacja dopasowania; dokładny tytuł > tytuł zawierający frazę, autor tylko dokłada punkt
+    private static final int TITLE_EXACT = 4;
+    private static final int TITLE_CONTAINS = 2;
+    private static final int AUTHOR_MATCH = 1;
 
     private final List<BookSearchPort> searchPorts;
+    private final BookQueryExtractorPort queryExtractor;
+
+    @Override
+    public BookTextSearchResult searchBooksByText(String text) {
+        if (text == null || text.isBlank()) {
+            return new BookTextSearchResult(BookQuery.empty(), List.of());
+        }
+        BookQuery query = queryExtractor.extract(text.trim());
+        if (!query.hasTitle()) {
+            log.debug("No title recognized in text '{}'", text);
+            return new BookTextSearchResult(query, List.of());
+        }
+        String title = query.title().trim();
+        String author = query.author() == null ? "" : query.author().trim();
+        List<BookSearchResult> candidates = searchBooks(title, author);
+        return new BookTextSearchResult(query, candidates, findBestMatch(candidates, title, author));
+    }
+
+    /**
+     * Zwraca kandydata, którego można wybrać bez pytania użytkownika, albo null. Jest "pewny" tylko gdy
+     * ma dokładny tytuł, pasującego autora (jeśli go podano) i <b>ściśle</b> wyprzedza drugą pozycję.
+     * Bez autora "Rodzinny interes" jest więc niejednoznaczny (są trzy takie książki), a z autorem już nie.
+     * Literówka w nazwisku też daje null - wtedy lepiej pokazać listę niż zgadywać.
+     */
+    private BookSearchResult findBestMatch(List<BookSearchResult> ranked, String title, String author) {
+        if (ranked.isEmpty()) {
+            return null;
+        }
+        int required = author.isBlank() ? TITLE_EXACT : TITLE_EXACT + AUTHOR_MATCH;
+        int top = score(ranked.get(0), title, author);
+        int second = ranked.size() > 1 ? score(ranked.get(1), title, author) : -1;
+        return top >= required && top > second ? ranked.get(0) : null;
+    }
 
     @Override
     public List<BookSearchResult> searchBooks(String title, String author) {
@@ -57,12 +97,12 @@ class BookSearchService implements SearchBookUseCase {
         String foundTitle = normalize(result.title());
         String expectedTitle = normalize(title);
         if (foundTitle.equals(expectedTitle)) {
-            score += 4;
+            score += TITLE_EXACT;
         } else if (foundTitle.contains(expectedTitle)) {
-            score += 2;
+            score += TITLE_CONTAINS;
         }
         if (!author.isBlank() && authorMatches(result.authors(), author)) {
-            score += 1;
+            score += AUTHOR_MATCH;
         }
         return score;
     }

@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.api.dto.AudiobookAvailabilityResponseDto;
 import net.focik.homeoffice.library.api.dto.BookApiDto;
 import net.focik.homeoffice.library.api.dto.BookSearchResultDto;
+import net.focik.homeoffice.library.api.dto.BookTextSearchRequestDto;
+import net.focik.homeoffice.library.api.dto.BookTextSearchResponseDto;
 import net.focik.homeoffice.library.api.mapper.ApiBookMapper;
 import net.focik.homeoffice.library.api.mapper.ApiBookSearchResultMapper;
 import net.focik.homeoffice.library.api.mapper.AudiobookAvailabilityMapper;
@@ -54,6 +56,22 @@ public class BookController {
                 .toList();
         log.info("Book search found {} candidates", results.size());
         return new ResponseEntity<>(results, HttpStatus.OK);
+    }
+
+    /** Każde wywołanie to jedno zapytanie do modelu AI, stąd limit długości tekstu. */
+    private static final int MAX_SEARCH_TEXT_LENGTH = 500;
+
+    @PostMapping("/search/text")
+    @PreAuthorize("hasAnyAuthority('LIBRARY_READ_ALL','LIBRARY_READ') or hasRole('ROLE_ADMIN')")
+    ResponseEntity<BookTextSearchResponseDto> searchBooksByText(@RequestBody BookTextSearchRequestDto request) {
+        String text = request == null || request.text() == null ? "" : request.text().trim();
+        log.info("Request to search books by text: '{}'", text);
+        if (text.isEmpty() || text.length() > MAX_SEARCH_TEXT_LENGTH) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        BookTextSearchResponseDto response = bookSearchResultMapper.toDto(searchBookUseCase.searchBooksByText(text));
+        log.info("Text search understood as {}, found {} candidates", response.query(), response.candidates().size());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

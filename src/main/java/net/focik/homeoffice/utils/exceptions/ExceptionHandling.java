@@ -2,6 +2,7 @@ package net.focik.homeoffice.utils.exceptions;
 
 import jakarta.persistence.NoResultException;
 import lombok.extern.slf4j.Slf4j;
+import net.focik.homeoffice.library.domain.exception.BookQueryExtractionException;
 import net.focik.homeoffice.userservice.domain.exceptions.*;
 import org.springframework.boot.webmvc.error.ErrorController;
 import org.springframework.http.HttpMethod;
@@ -75,6 +76,12 @@ public class ExceptionHandling implements ErrorController {
     public ResponseEntity<HttpResponse> notValidException(ObjectNotValidException exception) {
         log.error("Object not valid: " + exception.getMessage(), exception);
         return createHttpResponse(BAD_REQUEST, exception.getMessage(), exception.getMessage());
+    }
+
+    @ExceptionHandler(BookQueryExtractionException.class)
+    public ResponseEntity<HttpResponse> bookQueryExtractionException(BookQueryExtractionException exception) {
+        log.error("Book query extraction failed: " + exception.getMessage(), exception);
+        return createHttpResponse(SERVICE_UNAVAILABLE, exception.getMessage(), exception.getMessage());
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
