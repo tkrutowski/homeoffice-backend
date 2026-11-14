@@ -18,6 +18,9 @@ public interface FindUserBookUseCase {
 
     List<UserBook> findUserBooksByQuery(String userName, String query);
 
+    /** Pozycje użytkownika z dokładnie tego cyklu (po id cyklu, nie po fragmencie nazwy). */
+    List<UserBook> findUserBooksInSeries(String userName, Integer idSeries);
+
     List<UserBook> findBookByUserAndReadStatusAndYear(String userName, ReadingStatus readingStatus, int year);
 
     List<BookStatisticDto> getStatistics(String userName);

@@ -2,6 +2,7 @@ package net.focik.homeoffice.library.infrastructure.claude;
 
 import net.focik.homeoffice.library.domain.exception.BookQueryExtractionException;
 import net.focik.homeoffice.library.domain.model.BookQuery;
+import net.focik.homeoffice.library.domain.model.BookQueryIntent;
 import net.focik.homeoffice.library.domain.model.EditionType;
 import net.focik.homeoffice.library.domain.model.OwnershipStatus;
 import org.junit.jupiter.api.Test;
@@ -11,8 +12,10 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -97,5 +100,45 @@ class ClaudeBookQueryExtractorAdapterTest {
 
         assertThrows(BookQueryExtractionException.class,
                 () -> new ClaudeBookQueryExtractorAdapter(chatModel, MAPPER).extract("cokolwiek"));
+    }
+
+    // --- intencje dotyczące cyklu ---
+
+    @Test
+    void parsesSeriesIntentWithSeriesName() {
+        BookQuery q = parse("{\"intent\": \"SERIES_NEXT\", \"series\": \"Bezimienny\", \"title\": null}");
+
+        assertEquals(BookQueryIntent.SERIES_NEXT, q.intent());
+        assertEquals("Bezimienny", q.series());
+        assertTrue(q.intent().isSeries());
+    }
+
+    @Test
+    void missingOrUnknownIntentDefaultsToFindBook() {
+        assertEquals(BookQueryIntent.FIND_BOOK, parse("{\"title\": \"Mordownia\"}").intent());
+        assertEquals(BookQueryIntent.FIND_BOOK, parse("{\"intent\": \"COS_INNEGO\", \"title\": \"Mordownia\"}").intent());
+        assertEquals(BookQueryIntent.FIND_BOOK, parse("{\"intent\": null, \"title\": \"Mordownia\"}").intent());
+    }
+
+    @Test
+    void seriesNameIsIgnoredForFindBookIntent() {
+        BookQuery q = parse("{\"intent\": \"FIND_BOOK\", \"title\": \"Mordownia\", \"series\": \"Coś\"}");
+
+        assertNull(q.series());
+        assertEquals("Mordownia", q.title());
+    }
+
+    @Test
+    void seriesIntentWithoutSeriesNameKeepsIntentAndNullSeries() {
+        BookQuery q = parse("{\"intent\": \"SERIES_ALL\", \"series\": \"null\"}");
+
+        assertEquals(BookQueryIntent.SERIES_ALL, q.intent());
+        assertNull(q.series());
+        assertFalse(q.hasSeries());
+    }
+
+    @Test
+    void intentIsCaseInsensitive() {
+        assertEquals(BookQueryIntent.SERIES_UNREAD, parse("{\"intent\": \"series_unread\", \"series\": \"X\"}").intent());
     }
 }

@@ -5,12 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import net.focik.homeoffice.library.domain.model.BookQuery;
 import net.focik.homeoffice.library.domain.model.BookSearchResult;
 import net.focik.homeoffice.library.domain.model.BookTextSearchResult;
+import net.focik.homeoffice.library.domain.model.SeriesAnswer;
+import net.focik.homeoffice.library.domain.model.SeriesAnswerStatus;
 import net.focik.homeoffice.library.domain.port.primary.SearchBookUseCase;
+import net.focik.homeoffice.library.domain.port.primary.SearchSeriesUseCase;
 import net.focik.homeoffice.library.domain.port.secondary.BookQueryExtractorPort;
 import net.focik.homeoffice.library.domain.port.secondary.BookSearchPort;
 import org.springframework.stereotype.Service;
 
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -30,13 +32,21 @@ class BookSearchService implements SearchBookUseCase {
 
     private final List<BookSearchPort> searchPorts;
     private final BookQueryExtractorPort queryExtractor;
+    private final SearchSeriesUseCase searchSeriesUseCase;
 
     @Override
-    public BookTextSearchResult searchBooksByText(String text) {
+    public BookTextSearchResult searchBooksByText(String text, String userName) {
         if (text == null || text.isBlank()) {
             return new BookTextSearchResult(BookQuery.empty(), List.of());
         }
         BookQuery query = queryExtractor.extract(text.trim());
+        if (query.intent().isSeries()) {
+            // pytanie o cykl: odpowiada serwis cykli, kandydatów książek nie ma
+            SeriesAnswer answer = query.hasSeries()
+                    ? searchSeriesUseCase.answer(query.intent(), query.series(), userName)
+                    : SeriesAnswer.of(SeriesAnswerStatus.SERIES_NAME_MISSING);
+            return new BookTextSearchResult(query, List.of(), null, answer);
+        }
         if (!query.hasTitle()) {
             log.debug("No title recognized in text '{}'", text);
             return new BookTextSearchResult(query, List.of());
@@ -122,12 +132,7 @@ class BookSearchService implements SearchBookUseCase {
         return normalize(result.title()) + "|" + normalize(firstAuthor);
     }
 
-    /** Małe litery, bez znaków diakrytycznych (ł nie rozkłada się w NFD, więc osobno). */
     private String normalize(String text) {
-        if (text == null) {
-            return "";
-        }
-        String decomposed = Normalizer.normalize(text.toLowerCase().replace('ł', 'l'), Normalizer.Form.NFD);
-        return decomposed.replaceAll("\\p{M}", "").replaceAll("\\s+", " ").trim();
+        return SearchText.normalize(text);
     }
 }

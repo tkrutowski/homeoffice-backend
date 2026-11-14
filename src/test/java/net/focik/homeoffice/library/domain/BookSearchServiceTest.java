@@ -3,9 +3,13 @@ package net.focik.homeoffice.library.domain;
 import net.focik.homeoffice.library.domain.exception.BookQueryExtractionException;
 import net.focik.homeoffice.library.domain.model.BookQuery;
 import net.focik.homeoffice.library.domain.model.BookSearchResult;
+import net.focik.homeoffice.library.domain.model.BookQueryIntent;
 import net.focik.homeoffice.library.domain.model.BookTextSearchResult;
+import net.focik.homeoffice.library.domain.model.SeriesAnswer;
+import net.focik.homeoffice.library.domain.model.SeriesAnswerStatus;
 import net.focik.homeoffice.library.domain.model.EditionType;
 import net.focik.homeoffice.library.domain.model.OwnershipStatus;
+import net.focik.homeoffice.library.domain.port.primary.SearchSeriesUseCase;
 import net.focik.homeoffice.library.domain.port.secondary.BookQueryExtractorPort;
 import net.focik.homeoffice.library.domain.port.secondary.BookSearchPort;
 import org.junit.jupiter.api.Test;
@@ -49,8 +53,21 @@ class BookSearchServiceTest {
         };
     }
 
+    private static final String USER = "tomek";
+
+    /** Serwis cykli, który nie powinien być wołany (testy pojedynczych książek). */
+    private static SearchSeriesUseCase unusedSeriesUseCase() {
+        return (intent, seriesName, userName) -> {
+            throw new AssertionError("series use case should not be called");
+        };
+    }
+
+    private static BookSearchService newService(List<BookSearchPort> ports, BookQueryExtractorPort extractor) {
+        return new BookSearchService(ports, extractor, unusedSeriesUseCase());
+    }
+
     private static BookSearchService service(BookSearchPort... ports) {
-        return new BookSearchService(List.of(ports), unusedExtractor());
+        return newService(List.of(ports), unusedExtractor());
     }
 
     @Test
@@ -138,13 +155,13 @@ class BookSearchServiceTest {
     void textSearchSearchesWithExtractedTitleAndAuthorAndReturnsQuery() {
         BookQuery query = new BookQuery("Rodzinny interes", "Chmielarz", EditionType.AUDIOBOOK, OwnershipStatus.WONT);
         FakeExtractor extractor = new FakeExtractor(query);
-        BookSearchService service = new BookSearchService(
+        BookSearchService service = newService(
                 List.of(port("a", List.of(
                         result("Coś innego", "Ktoś", "a"),
                         result("Rodzinny interes", "Wojciech Chmielarz", "a")))),
                 extractor);
 
-        BookTextSearchResult found = service.searchBooksByText("  znajdź mi audiobook rodzinny interes autora chmielarz ");
+        BookTextSearchResult found = service.searchBooksByText("  znajdź mi audiobook rodzinny interes autora chmielarz ", USER);
 
         assertSame(query, found.query());
         assertEquals("Rodzinny interes", found.candidates().get(0).title());
@@ -154,19 +171,19 @@ class BookSearchServiceTest {
 
     @Test
     void textSearchWithBlankTextDoesNotCallExtractor() {
-        BookSearchService service = new BookSearchService(List.of(failingPort()), unusedExtractor());
+        BookSearchService service = newService(List.of(failingPort()), unusedExtractor());
 
-        BookTextSearchResult found = service.searchBooksByText("   ");
+        BookTextSearchResult found = service.searchBooksByText("   ", USER);
 
         assertTrue(found.candidates().isEmpty());
         assertTrue(!found.query().hasTitle());
-        assertTrue(service.searchBooksByText(null).candidates().isEmpty());
+        assertTrue(service.searchBooksByText(null, USER).candidates().isEmpty());
     }
 
     @Test
     void textSearchWithoutRecognizedTitleReturnsNoCandidatesAndSkipsSources() {
         BookQuery noTitle = new BookQuery(null, "Chmielarz", null, null);
-        BookSearchService service = new BookSearchService(
+        BookSearchService service = newService(
                 List.of(new BookSearchPort() {
                     public String sourceName() { return "must-not-be-called"; }
                     public List<BookSearchResult> search(String title, String author) {
@@ -175,7 +192,7 @@ class BookSearchServiceTest {
                 }),
                 new FakeExtractor(noTitle));
 
-        BookTextSearchResult found = service.searchBooksByText("coś tam autora chmielarz");
+        BookTextSearchResult found = service.searchBooksByText("coś tam autora chmielarz", USER);
 
         assertSame(noTitle, found.query());
         assertTrue(found.candidates().isEmpty());
@@ -183,11 +200,11 @@ class BookSearchServiceTest {
 
     @Test
     void textSearchPropagatesExtractionFailure() {
-        BookSearchService service = new BookSearchService(List.of(port("a", List.of())), text -> {
+        BookSearchService service = newService(List.of(port("a", List.of())), text -> {
             throw new BookQueryExtractionException("Nie udało się zrozumieć zapytania", new RuntimeException("AI down"));
         });
 
-        assertThrows(BookQueryExtractionException.class, () -> service.searchBooksByText("cokolwiek"));
+        assertThrows(BookQueryExtractionException.class, () -> service.searchBooksByText("cokolwiek", USER));
     }
 
     // --- bestMatch ---
@@ -197,10 +214,10 @@ class BookSearchServiceTest {
     private static final BookSearchResult AVENGERS = result("Avengers: Rodzinny interes", "Mark Waid", "a");
 
     private static BookTextSearchResult textSearch(String title, String author, BookSearchResult... found) {
-        BookSearchService service = new BookSearchService(
+        BookSearchService service = newService(
                 List.of(port("a", List.of(found))),
                 new FakeExtractor(new BookQuery(title, author, null, null)));
-        return service.searchBooksByText("dowolny tekst");
+        return service.searchBooksByText("dowolny tekst", USER);
     }
 
     @Test
@@ -248,5 +265,53 @@ class BookSearchServiceTest {
     void bestMatchIsNullWhenNothingFoundOrNoTitleRecognized() {
         assertNull(textSearch("Nieistniejąca książka", "Nikt").bestMatch());
         assertNull(textSearch(null, "Chmielarz", CHMIELARZ).bestMatch());
+    }
+
+    // --- intencje dotyczące cyklu ---
+
+    private static BookSearchService seriesService(BookQuery query, SearchSeriesUseCase seriesUseCase) {
+        return new BookSearchService(List.of(failingPort()), new FakeExtractor(query), seriesUseCase);
+    }
+
+    @Test
+    void seriesIntentIsRoutedToSeriesUseCaseWithSeriesNameAndUser() {
+        BookQuery query = new BookQuery(null, null, null, null, BookQueryIntent.SERIES_NEXT, "Bezimienny");
+        SeriesAnswer answer = SeriesAnswer.of(SeriesAnswerStatus.OK, "Bezimienny");
+        List<Object> calls = new ArrayList<>();
+        BookSearchService service = seriesService(query, (intent, seriesName, userName) -> {
+            calls.add(List.of(intent, seriesName, userName));
+            return answer;
+        });
+
+        BookTextSearchResult found = service.searchBooksByText("znajdź następną z cyklu bezimienny", USER);
+
+        assertSame(query, found.query());
+        assertSame(answer, found.series());
+        assertTrue(found.candidates().isEmpty());
+        assertNull(found.bestMatch());
+        assertEquals(List.of(List.of(BookQueryIntent.SERIES_NEXT, "Bezimienny", USER)), calls);
+    }
+
+    @Test
+    void seriesIntentWithoutSeriesNameDoesNotCallSeriesUseCase() {
+        BookQuery query = new BookQuery(null, null, null, null, BookQueryIntent.SERIES_ALL, null);
+        BookSearchService service = seriesService(query, unusedSeriesUseCase());
+
+        BookTextSearchResult found = service.searchBooksByText("znajdź wszystkie książki z cyklu", USER);
+
+        assertEquals(SeriesAnswerStatus.SERIES_NAME_MISSING, found.series().status());
+        assertTrue(found.candidates().isEmpty());
+    }
+
+    @Test
+    void findBookIntentNeverCallsSeriesUseCase() {
+        BookQuery query = new BookQuery("Rodzinny interes", "Chmielarz", null, null);
+        BookSearchService service = new BookSearchService(
+                List.of(port("a", List.of(CHMIELARZ))), new FakeExtractor(query), unusedSeriesUseCase());
+
+        BookTextSearchResult found = service.searchBooksByText("znajdź rodzinny interes chmielarz", USER);
+
+        assertNull(found.series());
+        assertSame(CHMIELARZ, found.bestMatch());
     }
 }

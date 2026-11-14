@@ -118,6 +118,15 @@ class UserBookService {
                 .collect(Collectors.toList());
     }
 
+    public List<UserBook> findUserBooksInSeries(Long idUser, Series series) {
+        // repozytorium szuka po fragmencie nazwy ("The Frontiers Saga" łapie też "... Part 2"), więc zawężamy po id
+        return userBookRepository.findAllByUserAndSeries(idUser, series.getTitle()).stream()
+                .filter(ub -> ub.getBook() != null
+                        && ub.getBook().getSeries() != null
+                        && Objects.equals(ub.getBook().getSeries().getId(), series.getId()))
+                .collect(Collectors.toList());
+    }
+
     public List<UserBook> findBookByUserAndReadStatusAndYear(Long idUser, ReadingStatus readingStatus, int year) {
         LocalDate startDate = LocalDate.of(year, 1, 1);
         LocalDate stopDate = LocalDate.of(year, 12, 31);

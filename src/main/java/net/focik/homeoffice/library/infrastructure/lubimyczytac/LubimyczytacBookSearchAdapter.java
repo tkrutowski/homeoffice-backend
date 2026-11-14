@@ -6,6 +6,7 @@ import net.focik.homeoffice.library.domain.port.secondary.BookSearchPort;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -65,8 +66,13 @@ public class LubimyczytacBookSearchAdapter implements BookSearchPort {
     }
 
     static List<BookSearchResult> parse(Document doc) {
+        return parseCards(doc.select("div.book-card"));
+    }
+
+    /** Karty {@code div.book-card} wyglądają tak samo w wynikach wyszukiwania i na stronach cykli. */
+    static List<BookSearchResult> parseCards(Elements cards) {
         List<BookSearchResult> results = new ArrayList<>();
-        for (Element card : doc.select("div.book-card")) {
+        for (Element card : cards) {
             Element titleEl = card.selectFirst("a.book-card__title");
             if (titleEl == null) {
                 continue;

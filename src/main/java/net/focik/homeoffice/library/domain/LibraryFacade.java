@@ -170,6 +170,13 @@ public class LibraryFacade implements FindBookUseCase, SaveBookUseCase, DeleteBo
     }
 
     @Override
+    public List<UserBook> findUserBooksInSeries(String userName, Integer idSeries) {
+        AppUser user = userFacade.findUserByUsername(userName);
+        Series series = seriesService.findSeries(idSeries);
+        return userBookService.findUserBooksInSeries(user.getId(), series);
+    }
+
+    @Override
     public List<Bookstore> findAllBookstores() {
         return bookstoreService.findAllBookstores();
     }

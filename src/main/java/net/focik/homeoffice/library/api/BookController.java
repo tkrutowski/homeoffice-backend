@@ -16,6 +16,7 @@ import net.focik.homeoffice.library.domain.port.primary.FindAudiobookAvailabilit
 import net.focik.homeoffice.library.domain.port.primary.FindBookUseCase;
 import net.focik.homeoffice.library.domain.port.primary.SaveBookUseCase;
 import net.focik.homeoffice.library.domain.port.primary.SearchBookUseCase;
+import net.focik.homeoffice.utils.UserHelper;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -69,8 +70,10 @@ public class BookController {
         if (text.isEmpty() || text.length() > MAX_SEARCH_TEXT_LENGTH) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        BookTextSearchResponseDto response = bookSearchResultMapper.toDto(searchBookUseCase.searchBooksByText(text));
-        log.info("Text search understood as {}, found {} candidates", response.query(), response.candidates().size());
+        BookTextSearchResponseDto response = bookSearchResultMapper.toDto(
+                searchBookUseCase.searchBooksByText(text, UserHelper.getUserName()));
+        log.info("Text search understood as {} ({}), found {} candidates, series answer: {}", response.query(),
+                response.intent(), response.candidates().size(), response.series() == null ? null : response.series().status());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
