@@ -49,7 +49,9 @@ public class ExceptionHandling implements ErrorController {
 
     @ExceptionHandler(TokenExpiredException.class)
     public ResponseEntity<HttpResponse> tokenExpired(TokenExpiredException exception) {
-        log.error("Token Expired: " + exception.getMessage(), exception);
+        // Wygasły token to normalna sytuacja (klient musi się zalogować ponownie), nie błąd aplikacji.
+        // WARN z nazwą użytkownika loguje już AuthenticationService, więc tu bez stack trace'u i bez duplikatu.
+        log.debug("Token expired: {}", exception.getMessage());
         return createHttpResponse(UNAUTHORIZED, exception.getMessage(), TOKEN_EXPIRED);
     }
 
