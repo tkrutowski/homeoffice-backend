@@ -108,9 +108,11 @@ class SeriesQueryService implements SearchSeriesUseCase {
     }
 
     /**
-     * Następny = pierwszy tom o numerze wyższym niż najwyższy przeczytany. Numery bywają ułamkowe (opowiadania,
-     * "15.5") i zdarzają się duplikaty - kolejność ustala numer, przy remisie kolejność źródła. Gdy nic nie
-     * przeczytano, następny to pierwszy tom od numeru 1 (numer 0 to zwykle prequel/dodatek).
+     * Następny = pierwszy tom o numerze wyższym niż najwyższy przeczytany. Tom "czytam" ({@code READING}) liczy się
+     * jak przeczytany - pytając o następny, użytkownik chce wiedzieć, co czytać PO bieżącym, więc wtedy to on jest
+     * {@code lastRead}. Numery bywają ułamkowe (opowiadania, "15.5") i zdarzają się duplikaty - kolejność ustala
+     * numer, przy remisie kolejność źródła. Gdy nic nie przeczytano, następny to pierwszy tom od numeru 1 (numer 0
+     * to zwykle prequel/dodatek).
      */
     private SeriesAnswer nextAnswer(Series series, Source source, List<SeriesVolume> volumes) {
         List<SeriesVolume> numbered = volumes.stream().filter(v -> parseNumber(v.number()) != null).toList();
@@ -119,8 +121,8 @@ class SeriesQueryService implements SearchSeriesUseCase {
         }
 
         SeriesVolume lastRead = null;
-        for (SeriesVolume v : numbered) { // posortowane rosnąco, więc ostatni READ to najwyższy numer
-            if (v.status() == SeriesVolumeStatus.READ) {
+        for (SeriesVolume v : numbered) { // posortowane rosnąco, więc ostatni READ/READING to najwyższy numer
+            if (v.status() == SeriesVolumeStatus.READ || v.status() == SeriesVolumeStatus.READING) {
                 lastRead = v;
             }
         }

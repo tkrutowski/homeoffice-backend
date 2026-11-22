@@ -2,8 +2,7 @@
 
 Dokumentacja wyszukiwania książek po tytule i autorze oraz asystenta tekstowego, który rozumie zdania typu
 „znajdź mi książkę *Rodzinny interes* autora Chmielarz" albo „znajdź następną książkę z cyklu Bezimienny".
-Moduł `library`. Prompt dla agenta pracującego nad frontendem:
-[`BOOK_SEARCH_FRONTEND_PROMPT.md`](BOOK_SEARCH_FRONTEND_PROMPT.md).
+Moduł `library`.
 
 ## Zasada działania — najważniejsze
 
@@ -137,7 +136,7 @@ a `lastRead`/`next` dla `SERIES_NEXT`.)
 | `NO_SUPPORTED_SOURCE` | cykl nie ma adresu z obsługiwanego serwisu (tylko Lubimyczytac); `title` jest ustawiony |
 | `SOURCE_UNAVAILABLE` | serwis nie odpowiedział albo zwrócił pustą listę (np. zmienił się HTML) |
 | `NOT_ORDERED` | cykl bez numerów tomów (seria wydawnicza), „następnej" nie da się wskazać |
-| `NO_NEXT_VOLUME` | przeczytano już ostatni znany tom (`lastRead` ustawiony, `next` = `null`) |
+| `NO_NEXT_VOLUME` | przeczytano albo właśnie czytasz ostatni znany tom (`lastRead` ustawiony, `next` = `null`) |
 
 Status tomu (`volumes[].status`, `lastRead.status`, `next.status`):
 
@@ -235,14 +234,15 @@ odpowiedzi i żeby liczyły się przy ustalaniu „ostatnio przeczytanego".
 
 - `SERIES_ALL`: wszystkie tomy posortowane po numerze (tomy bez numeru na końcu, przy remisie kolejność źródła).
 - `SERIES_UNREAD`: te same tomy bez `READ`. Pusta lista przy `OK` oznacza „wszystko przeczytane".
-- `SERIES_NEXT`: **najwyższy numer** tomu `READ` = `lastRead` (nie data `readTo`, bo ta myli się przy czytaniu poza
+- `SERIES_NEXT`: **najwyższy numer** tomu `READ` lub `READING` = `lastRead` (nie data `readTo`, bo ta myli się przy czytaniu poza
   kolejnością); `next` = pierwszy tom o numerze **wyższym**. Szczegóły:
   - numery bywają **ułamkowe** (`15.5`, `10.1`) i są osobnymi tomami, więc po 15 następny to 15.5,
   - numery bywają **zdublowane** (`11`, `11`) i dziwne (`0`, `00`); przy remisie wygrywa kolejność źródła,
   - gdy nic nie przeczytano: pierwszy tom od numeru **1** (numer 0 to zwykle prequel/dodatek),
   - brak jakichkolwiek numerów (seria wydawnicza, `/seria/`) → `NOT_ORDERED`,
   - ostatni znany tom przeczytany → `NO_NEXT_VOLUME`,
-  - jeśli użytkownik właśnie czyta kolejny tom (`READING`), to on jest zwracany jako `next`.
+  - tom `READING` („czytam") liczy się **jak przeczytany**: jeśli użytkownik czyta tom 2, to `lastRead` = tom 2
+    (ze statusem `READING`), a `next` = tom 3; czytanie ostatniego znanego tomu daje `NO_NEXT_VOLUME`.
 
 ## Źródła i ich pułapki
 
@@ -310,8 +310,15 @@ Testy sieciowe (na żywych serwisach) są pominięte; adaptery testowane na frag
 
 ## Frontend
 
-Szczegółowy prompt: [`BOOK_SEARCH_FRONTEND_PROMPT.md`](BOOK_SEARCH_FRONTEND_PROMPT.md). W skrócie: pole tekstowe z
-mikrofonem (Web Speech API, `pl-PL`) → `POST /search/text` → zależnie od `intent` lista kandydatów albo widok cyklu.
+Pole tekstowe z mikrofonem (Web Speech API, `pl-PL`) → `POST /search/text` → zależnie od `intent` lista kandydatów
+albo widok cyklu.
+
+Widok `SERIES_NEXT`: karta „Następna" (`next`) i karta `lastRead`. Tom „czytam" liczy się jak przeczytany, więc:
+
+- `lastRead.status === 'READING'` → etykieta „Teraz czytasz" zamiast „Ostatnio przeczytana" (tag „Czytam" zostaje),
+- `next` nigdy nie ma statusu `READING` (komunikat „Już ją czytasz" przy „Następnej" jest zbędny),
+- `NO_NEXT_VOLUME` z `lastRead.status === 'READING'` → „Czytasz ostatni znany tom" zamiast „Przeczytano wszystkie
+  znane tomy".
 Uwaga prywatnościowa: rozpoznawanie mowy w Chrome wysyła audio do serwerów Google.
 
 ## Znane ograniczenia / co dalej

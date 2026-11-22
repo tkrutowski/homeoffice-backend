@@ -204,6 +204,33 @@ class SeriesQueryServiceTest {
     }
 
     @Test
+    void nextTreatsCurrentlyReadingVolumeAsRead() {
+        givenBezimienny();
+        givenUserBooks(1,
+                owned(11, "Prosta sprawa", "1", ReadingStatus.READ),
+                owned(12, "Dług honorowy", "2", ReadingStatus.READ_NOW));
+
+        SeriesAnswer answer = ask(BookQueryIntent.SERIES_NEXT, "Bezimienny");
+
+        assertEquals(SeriesAnswerStatus.OK, answer.status());
+        assertEquals("Dług honorowy", answer.lastRead().title());
+        assertEquals(SeriesVolumeStatus.READING, answer.lastRead().status());
+        assertEquals("Zwykła przyzwoitość", answer.next().title());
+    }
+
+    @Test
+    void nextReportsNoNextVolumeWhenReadingLastKnownVolume() {
+        givenBezimienny();
+        givenUserBooks(1, owned(15, "Wyższa konieczność", "5", ReadingStatus.READ_NOW));
+
+        SeriesAnswer answer = ask(BookQueryIntent.SERIES_NEXT, "Bezimienny");
+
+        assertEquals(SeriesAnswerStatus.NO_NEXT_VOLUME, answer.status());
+        assertEquals("Wyższa konieczność", answer.lastRead().title());
+        assertNull(answer.next());
+    }
+
+    @Test
     void nextIsFirstNumberedVolumeWhenNothingReadSkippingVolumeZero() {
         givenSeries(series(1, "Jack Reacher", LC_URL));
         givenCatalog(vol("0", "Zasady"), vol("1", "Poziom śmierci"), vol("2", "Zła wiadomość"));
